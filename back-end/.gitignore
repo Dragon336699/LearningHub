@@ -1,0 +1,71 @@
+# Build folders
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.Local.json
+
+# Environment files
+.env
+.env.*
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# Entity Framework
+*.dbmdl
+
+# Publish output
+publish/
+
+# IIS Express
+iisexpress/
+
+# SQL Server LocalDB
+*.mdf
+*.ldf
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (nếu có frontend Angular/React)
+node_modules/
+
+# Angular build
+dist/
+
+# Coverage/Test
+coverage/
+TestResults/
+
+# Docker
+docker-compose.override.yml
+
+# Secrets
+secrets.json

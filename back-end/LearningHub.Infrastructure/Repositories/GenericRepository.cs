@@ -1,0 +1,92 @@
+﻿using LearningHub.Application.Interfaces.Repositories;
+using LearningHub.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+
+namespace RetailSystem.Infrastructure.Repositories
+{
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
+    {
+        protected LearningHubDbContext _context;
+        public GenericRepository(LearningHubDbContext context)
+        {
+            _context = context;
+        }
+
+        public void Add(T entity)
+        {
+            _context.Set<T>().Add(entity);
+        }
+
+        public void AddRange(IEnumerable<T> entities)
+        {
+            _context.Set<T>().AddRange(entities);
+        }
+
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _context.Set<T>().AddRangeAsync(entities);
+        }
+
+        public IEnumerable<T> Find(Expression<Func<T, bool>> expression)
+        {
+            return _context.Set<T>().Where(expression);
+        }
+
+        public IEnumerable<T> GetAll()
+        {
+            return _context.Set<T>().ToList();
+        }
+
+        public T? GetById(int id)
+        {
+            return _context.Set<T>().Find(id);
+        }
+
+        public void Remove(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+        }
+
+        public void RemoveRange(IEnumerable<T> entities)
+        {
+            _context.Set<T>().RemoveRange(entities);
+        }
+
+        public async Task<T?> GetByIdAsync(object id)
+        {
+            return await _context.Set<T>().FindAsync(id);
+        }
+
+        public async Task<T?> GetWithConditionAndIncludeAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _context.Set<T>();
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.FirstOrDefaultAsync(predicate);
+        }
+
+
+        public async Task<List<T>> GetByIdsAsync(IEnumerable<Guid> ids)
+        {
+            return await _context.Set<T>().Where(x => ids.Contains(EF.Property<Guid>(x, "Id"))).ToListAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await _context.Set<T>().ToListAsync();
+        }
+        public async Task AddAsync(T entity)
+        {
+            await _context.Set<T>().AddAsync(entity);
+        }
+        public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _context.Set<T>().FirstOrDefaultAsync(expression);
+        }
+
+    }
+}
