@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using LearningHub.Domain.Entities;
-using LearningHub.Application.Dtos.Exterpises;
+using LearningHub.Application.Dtos.Expertises;
 
 namespace LearningHub.Application.Mappers
 {
@@ -8,7 +8,7 @@ namespace LearningHub.Application.Mappers
     {
         public ExpertiseMappingProfile()
         {
-            CreateMap<ExpertisesDto, Expertise>();
+            CreateMap<ExpertiseDto, Expertise>();
         }
     }
 }

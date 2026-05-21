@@ -13,11 +13,6 @@ namespace RetailSystem.Infrastructure.Repositories
             _context = context;
         }
 
-        public void Add(T entity)
-        {
-            _context.Set<T>().Add(entity);
-        }
-
         public void AddRange(IEnumerable<T> entities)
         {
             _context.Set<T>().AddRange(entities);
@@ -33,16 +28,6 @@ namespace RetailSystem.Infrastructure.Repositories
             return _context.Set<T>().Where(expression);
         }
 
-        public IEnumerable<T> GetAll()
-        {
-            return _context.Set<T>().ToList();
-        }
-
-        public T? GetById(int id)
-        {
-            return _context.Set<T>().Find(id);
-        }
-
         public void Remove(T entity)
         {
             _context.Set<T>().Remove(entity);
@@ -53,7 +38,7 @@ namespace RetailSystem.Infrastructure.Repositories
             _context.Set<T>().RemoveRange(entities);
         }
 
-        public async Task<T?> GetByIdAsync(object id)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
             return await _context.Set<T>().FindAsync(id);
         }

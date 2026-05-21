@@ -1,4 +1,4 @@
-﻿namespace LearningHub.API.Contracts.Users
+﻿namespace LearningHub.Application.Dtos.Users
 {
     public class CreateExperienceCommand
     {

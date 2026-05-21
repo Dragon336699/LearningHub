@@ -1,13 +1,12 @@
-﻿using LearningHub.Application.Dtos.Exterpises;
+﻿using LearningHub.Application.Dtos.Expertises;
 
-namespace LearningHub.API.Contracts.Users
+namespace LearningHub.Application.Dtos.Users
 {
     public record CreateUserProfileCommand
     {
-        public Guid UserId { get; init; }
         public decimal? CoachCost { get; init; }
         public string? Description { get; init; }
-        public required List<ExpertisesDto> Exterpises { get; init; }
+        public required List<ExpertiseDto> Expertises { get; init; }
         public string? Skills { get; init; }
         public List<CreateExperienceCommand>? Experiences { get; init; }
     }

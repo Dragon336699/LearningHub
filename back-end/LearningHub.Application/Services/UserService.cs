@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using LearningHub.API.Contracts.Users;
+using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
@@ -19,9 +19,9 @@ namespace LearningHub.Application.Services
             _mapper = mapper;
         }
 
-        public async Task CreateUserProfile(CreateUserProfileCommand command)
+        public async Task CreateUserProfile(CreateUserProfileCommand command, Guid userId)
         {
-            var user = await _userManager.FindByIdAsync(command.UserId.ToString());
+            var user = await _userManager.FindByIdAsync(userId.ToString());
 
             if (user == null)
             {
@@ -36,7 +36,7 @@ namespace LearningHub.Application.Services
             user.Description = command.Description;
             user.Skills = command.Skills;
             //user.Experiences = _mapper.Map<List<Experience>>(command.Experiences);
-            //user.Expertises = _mapper.Map<List<Expertise>>(command.Exterpises);
+            //user.Expertises = _mapper.Map<List<Expertise>>(command.Expertises);
 
             var result = await _userManager.UpdateAsync(user);
             //if (command.Experiences != null)

@@ -6,9 +6,6 @@ using LearningHub.Application.Mappers;
 using LearningHub.Application.Services;
 using LearningHub.Infrastructure.Persistence.Seed;
 using LearningHub.Infrastructure.Repositories;
-
-
-//using LearningHub.Infrastructure.Persistence.Seed;
 using LearningHub.Infrastructure.UnitOfWork;
 using RetailSystem.Infrastructure.Repositories;
 
@@ -21,11 +18,11 @@ namespace LearningHub.API.Configs
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IExpertiseRepository, ExpertiseRepository>();
+            services.AddScoped<IExperienceRepository, ExperienceRepository>();
 
             services.AddScoped<IUserService, UserService>();
 
-            services.AddAutoMapper(typeof(ExperienceMappingProfile));
-            services.AddAutoMapper(typeof(ExpertiseMappingProfile));
+            services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
             services.AddScoped<IDataSeeder, RoleSeeder>();
         }

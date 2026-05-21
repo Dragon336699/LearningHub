@@ -45,6 +45,11 @@ var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>();
 
+if (allowedOrigins == null || allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException("Cors:AllowedOrigins is missing or empty in configuration");
+}
+
 app.UseCors(options => options
     .WithOrigins(allowedOrigins!)
     .AllowAnyHeader()

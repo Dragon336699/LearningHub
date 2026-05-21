@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using LearningHub.API.Contracts.Users;
+using LearningHub.Application.Dtos.Users;
 using LearningHub.Domain.Entities;
 
 namespace LearningHub.Application.Mappers
