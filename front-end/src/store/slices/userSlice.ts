@@ -1,0 +1,50 @@
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { User } from "../../types/user";
+
+interface UserState {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: UserState = {
+  user: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null,
+};
+
+const userSlice = createSlice({
+  name: "user",
+  initialState,
+  reducers: {
+    setUser: (state, action: PayloadAction<User>) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+
+      localStorage.setItem("user", JSON.stringify(action.payload));
+    },
+
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (!state.user) return;
+
+      state.user = {
+        ...state.user,
+        ...action.payload,
+      };
+
+      localStorage.setItem("user", JSON.stringify(state.user));
+    },
+
+    clearUser: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+
+      localStorage.removeItem("user");
+    },
+  },
+});
+
+export const { setUser, updateUser, clearUser } = userSlice.actions;
+export default userSlice.reducer;
