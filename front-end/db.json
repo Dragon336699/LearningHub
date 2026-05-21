@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "id": "c1a8f2b2-8f8e-4f0c-9c2d-7c1f9c9f1111",
+      "email": "test@gmail.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "coachCost": 100,
+      "avatarUrl": "",
+      "description": "Coach dev",
+      "skills": "React, .NET",
+
+      "experiences": [
+        {
+          "id": "e1111111-aaaa-bbbb-cccc-111111111111",
+          "title": "Frontend Dev",
+          "description": "React project",
+          "startDate": "2023-01-01",
+          "endDate": "2024-01-01"
+        }
+      ],
+
+      "certificates": [
+        {
+          "id": "c2222222-aaaa-bbbb-cccc-222222222222",
+          "certificateName": "AWS Cert",
+          "organization": "Amazon",
+          "issueDate": "2023-05-01"
+        }
+      ],
+
+      "expertises": [
+        {
+          "id": "e3333333-aaaa-bbbb-cccc-333333333333",
+          "expertiseName": "React"
+        }
+      ]
+    }
+  ]
+}
