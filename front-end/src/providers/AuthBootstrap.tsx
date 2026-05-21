@@ -10,7 +10,6 @@ interface Props {
 
 export default function AuthBootstrap({ children }: Props) {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

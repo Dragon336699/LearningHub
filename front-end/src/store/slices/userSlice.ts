@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
+import { fetchUserById } from "../thunks/userThunks"; 
 
 interface UserState {
   user: User | null;
@@ -22,27 +23,37 @@ const userSlice = createSlice({
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
-
       localStorage.setItem("user", JSON.stringify(action.payload));
     },
-
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (!state.user) return;
-
       state.user = {
         ...state.user,
         ...action.payload,
       };
-
       localStorage.setItem("user", JSON.stringify(state.user));
     },
-
     clearUser: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-
       localStorage.removeItem("user");
     },
+  },
+
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserById.pending, (state) => {
+        state.loading = true; 
+        state.error = null;
+      })
+      .addCase(fetchUserById.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;      
+        state.user = action.payload; 
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        state.loading = false;     
+        state.error = action.error.message || "Không thể tải thông tin người dùng";
+      });
   },
 });
 
