@@ -33,7 +33,7 @@ export const UserProfilePage = () => {
   if (loading || !user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
-        <p>Đang tải thông tin người dùng...</p>
+        <p>Loading user profile...</p>
       </div>
     );
   }

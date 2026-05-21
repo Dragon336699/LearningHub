@@ -1,31 +1,33 @@
-import { Routes, Route } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute";
-
-import { URL_ROUTES } from "../configs/url_routes";
+import { createBrowserRouter, Outlet } from "react-router-dom";
+import AuthBootstrap from "../providers/AuthBootstrap";
 import { UserProfilePage } from "../features/users/components/UserProfilePage";
+import ProtectedRoute from "./ProtectedRoute"; 
+import { URL_ROUTES } from "../configs/url_routes";
 
-export default function Router() {
-  return (
-    <Routes>
-      {/* <Route path={URL_ROUTES.LOGIN} element={<Login />} /> */}
-
-      {/* <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        }
-      /> */}
-
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
+export const router = createBrowserRouter([
+  {
+    element: (
+      <AuthBootstrap>
+        <Outlet /> 
+      </AuthBootstrap>
+    ),
+    children: [
+      {
+        path: "/profile/:id",
+        element: (
+          // <ProtectedRoute>
             <UserProfilePage />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
-  );
-}
+          // </ProtectedRoute>
+        ),
+      },
+      // {
+      //   path: "/",
+      //   element: <ProtectedRoute><Home /></ProtectedRoute>,
+      // },
+      // {
+      //   path: URL_ROUTES.LOGIN,
+      //   element: <Login />,
+      // }
+    ],
+  },
+]);
