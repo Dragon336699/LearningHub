@@ -28,6 +28,11 @@ namespace RetailSystem.Infrastructure.Repositories
             return _context.Set<T>().Where(expression);
         }
 
+        public async Task<List<T>> FindAllAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _context.Set<T>().Where(expression).ToListAsync();
+        }
+
         public void Remove(T entity)
         {
             _context.Set<T>().Remove(entity);

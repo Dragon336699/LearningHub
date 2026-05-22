@@ -16,17 +16,45 @@ namespace LearningHub.API.Controllers
             _userService = userService;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         [Route("profile")]
-        public async Task<IActionResult> CreateUserProfile([FromBody] CreateUserProfileCommand request)
+        public async Task<IActionResult> CreateUserProfile([FromBody] CreateUserProfileCommand request, Guid testUserId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return BadRequest();
-            }
-            await _userService.CreateUserProfile(request, Guid.Parse(userId));
+            //if (userId == null)
+            //{
+            //    return BadRequest();
+            //}
+            await _userService.CreateUserProfile(request, testUserId);
+            return Ok();
+        }
+
+        //[Authorize]
+        [HttpGet]
+        [Route("profile")]
+        public async Task<IActionResult> GetUserProfile(Guid testUserId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //if (userId == null)
+            //{
+            //    return BadRequest();
+            //}
+            var userDto = await _userService.GetUserProfile(testUserId);
+            return Ok(userDto);
+        }
+
+        //[Authorize]
+        [HttpPut]
+        [Route("profile")]
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileCommand request, Guid testUserId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //if (userId == null)
+            //{
+            //    return BadRequest();
+            //}
+            await _userService.UpdateUserProfile(request, testUserId);
             return Ok();
         }
     }

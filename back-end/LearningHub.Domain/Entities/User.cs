@@ -6,9 +6,9 @@ namespace LearningHub.Domain.Entities
     {
         public required string FirstName { get; set; }
         public string? LastName { get; set; }
-        public decimal CoachCost { get; set; } = 0;
+        public decimal? CoachCost { get; set; }
         public string? AvatarUrl { get; set; }
-        public string? Description { get; set; }
+        public string? Bio { get; set; }
         public string? Skills { get; set; }
         public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
