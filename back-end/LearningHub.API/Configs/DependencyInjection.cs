@@ -8,7 +8,6 @@ using LearningHub.Infrastructure.Persistence.Seed;
 using LearningHub.Infrastructure.Repositories;
 using LearningHub.Infrastructure.Services;
 using LearningHub.Infrastructure.UnitOfWork;
-using RetailSystem.Infrastructure.Repositories;
 
 namespace LearningHub.API.Configs
 {
@@ -24,7 +23,7 @@ namespace LearningHub.API.Configs
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICertificateService, CertificateService>();
-            services.AddScoped<ICloudinaryService, CloudinaryService>();
+            services.AddScoped<IFileStorageService, FileStorageService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 

@@ -6,6 +6,6 @@ namespace LearningHub.Application.Interfaces.Services
     {
         Task CreateCertificateAsync(CreateCertificateCommand command, Guid userId);
         Task UpdateCertificateAsync(UpdateCertificateCommand command, Guid userId);
-        Task DeleteCertificate(Guid certificateId);
+        Task DeleteCertificateAsync(Guid certificateId);
     }
 }

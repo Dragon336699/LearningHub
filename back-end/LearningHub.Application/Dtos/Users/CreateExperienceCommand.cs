@@ -4,7 +4,7 @@
     {
         public required string Title { get; init; }
         public string? Description { get; init; }
-        public required DateOnly StartDate {  get; init; }
-        public required DateOnly EndDate {  get; init; }
+        public required DateTime StartDate {  get; init; }
+        public required DateTime EndDate {  get; init; }
     }
 }

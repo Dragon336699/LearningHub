@@ -36,10 +36,10 @@ namespace LearningHub.API.Controllers
         }
 
         //[Authorize]
-        [HttpDelete]
+        [HttpDelete("{certificateId}")]
         public async Task<IActionResult> DeleteCertificate(Guid certificateId)
         {
-            await _certificateService.DeleteCertificate(certificateId);
+            await _certificateService.DeleteCertificateAsync(certificateId);
             return Ok();
         }
     }

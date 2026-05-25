@@ -6,10 +6,10 @@ using CloudinaryDotNet.Actions;
 
 namespace LearningHub.Infrastructure.Services
 {
-    public class CloudinaryService : ICloudinaryService
+    public class FileStorageService : Application.Interfaces.Services.IFileStorageService
     {
         private readonly IConfiguration _configuration;
-        public CloudinaryService(IConfiguration configuration)
+        public FileStorageService(IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -41,11 +41,12 @@ namespace LearningHub.Infrastructure.Services
 
                 uploadResult = await cloudinary.UploadAsync(uploadParams);
 
-                if (uploadResult.Error != null)
+                if (uploadResult == null || uploadResult.Error != null)
                 {
                     return null;
                 }
-                if (uploadResult != null) uploadUrls.Add(uploadResult.SecureUrl.ToString());
+
+                uploadUrls.Add(uploadResult.SecureUrl.ToString());
             }
 
             return uploadUrls;

@@ -45,15 +45,15 @@ namespace LearningHub.Application.Services
             {
                 Title = x.Title,
                 Description = x.Description,
-                StartDate = x.StartDate,
-                EndDate = x.EndDate,
+                StartDate = DateOnly.FromDateTime(x.StartDate),
+                EndDate = DateOnly.FromDateTime(x.EndDate),
                 UserId = userId
             }).ToList();
 
             await _unitOfWork.Experiences.AddRangeAsync(experiences);
 
-            var userExpertise = _mapper.Map<List<Expertise>>(command.Expertises);
-            user.Expertises = userExpertise;
+            var expertises = await _unitOfWork.Expertises.GetByIdsAsync(command.Expertises);
+            user.Expertises = expertises;
 
             var result = await _userManager.UpdateAsync(user);
 
@@ -115,8 +115,8 @@ namespace LearningHub.Application.Services
                 {
                     existExp.Title = expDto.Title;
                     existExp.Description = expDto.Description;
-                    existExp.StartDate = expDto.StartDate;
-                    existExp.EndDate = expDto.EndDate;
+                    existExp.StartDate = DateOnly.FromDateTime(expDto.StartDate);
+                    existExp.EndDate = DateOnly.FromDateTime(expDto.EndDate);
                 }
                 else
                 {
@@ -124,8 +124,8 @@ namespace LearningHub.Application.Services
                     {
                         Title = expDto.Title,
                         Description = expDto.Description,
-                        StartDate = expDto.StartDate,
-                        EndDate = expDto.EndDate,
+                        StartDate = DateOnly.FromDateTime(expDto.StartDate),
+                        EndDate = DateOnly.FromDateTime(expDto.EndDate),
                         UserId = userId
                     });
                 }
@@ -139,8 +139,7 @@ namespace LearningHub.Application.Services
             _unitOfWork.Experiences.RemoveRange(deletedExperiences);
 
             //Update expertises
-            var requestExpertiseIds = command.Expertises.Select(x => x.Id);
-            var expertises = await _unitOfWork.Expertises.GetByIdsAsync(requestExpertiseIds);
+            var expertises = await _unitOfWork.Expertises.GetByIdsAsync(command.Expertises);
 
             user.Expertises.Clear();
             user.Expertises = expertises;
@@ -148,9 +147,9 @@ namespace LearningHub.Application.Services
 
             if (!result.Succeeded)
             {
-                throw new Exception("Create user profile failed");
+                throw new Exception("Update user profile failed");
             }
-
+            await _unitOfWork.CompleteAsync();
         }
     }
 }

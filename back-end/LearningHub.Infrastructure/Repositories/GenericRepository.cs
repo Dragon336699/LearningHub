@@ -3,7 +3,7 @@ using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace RetailSystem.Infrastructure.Repositories
+namespace LearningHub.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {

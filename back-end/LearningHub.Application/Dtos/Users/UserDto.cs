@@ -8,7 +8,7 @@ namespace LearningHub.Application.Dtos.Users
     {
         public string FirstName { get; init; } = null!;
         public string? LastName { get; init; }
-        public string? Description { get; init; }
+        public string? Bio { get; init; }
         public decimal? CoachCost {  get; init; }
         public string? Skills { get; init; }
         public List<ExpertiseDto> Expertises { get; init; } = new List<ExpertiseDto>();

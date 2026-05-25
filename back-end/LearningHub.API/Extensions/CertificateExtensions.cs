@@ -25,8 +25,8 @@ namespace LearningHub.API.Extensions
             {
                 CertificateName = request.CertificateName,
                 Organization = request.Organization,
-                IssueDate = request.IssueDate,
-                ExpirationDate = request.ExpirationDate,
+                IssueDate = DateOnly.FromDateTime(request.IssueDate),
+                ExpirationDate = request.ExpirationDate is not null ? DateOnly.FromDateTime(request.ExpirationDate.Value) : null,
                 CredentialFile = credentialFile
             };
         }
@@ -51,8 +51,8 @@ namespace LearningHub.API.Extensions
                 Id = request.Id,
                 CertificateName = request.CertificateName,
                 Organization = request.Organization,
-                IssueDate = request.IssueDate,
-                ExpirationDate = request.ExpirationDate,
+                IssueDate = DateOnly.FromDateTime(request.IssueDate),
+                ExpirationDate = request.ExpirationDate is not null ? DateOnly.FromDateTime(request.ExpirationDate.Value) : null,
                 CredentialFile = credentialFile
             };
         }

@@ -7,11 +7,11 @@ namespace LearningHub.Application.Services
 {
     public class CertificateService : ICertificateService
     {
-        private readonly ICloudinaryService _cloudinaryService;
+        private readonly IFileStorageService _fileStorateService;
         private readonly IUnitOfWork _unitOfWork;
-        public CertificateService(ICloudinaryService cloudinaryService, IUnitOfWork unitOfWork)
+        public CertificateService(IFileStorageService fileStorateService, IUnitOfWork unitOfWork)
         {
-            _cloudinaryService = cloudinaryService;
+            _fileStorateService = fileStorateService;
             _unitOfWork = unitOfWork;
         }
 
@@ -20,7 +20,7 @@ namespace LearningHub.Application.Services
             string? uploadUrl = null;
             if (command.CredentialFile != null)
             {
-                uploadUrl = await _cloudinaryService.UploadFileAsync(command.CredentialFile, "Certificates");
+                uploadUrl = await _fileStorateService.UploadFileAsync(command.CredentialFile, "Certificates");
 
                 if (uploadUrl == null)
                 {
@@ -33,7 +33,7 @@ namespace LearningHub.Application.Services
                 CertificateName = command.CertificateName,
                 Organization = command.Organization,
                 IssueDate = command.IssueDate,
-                ExpirationDate = command.IssueDate,
+                ExpirationDate = command.ExpirationDate,
                 UserId = userId
             };
 
@@ -63,7 +63,7 @@ namespace LearningHub.Application.Services
 
             if (command.CredentialFile != null)
             {
-                uploadUrl = await _cloudinaryService.UploadFileAsync(command.CredentialFile, "Certificates");
+                uploadUrl = await _fileStorateService.UploadFileAsync(command.CredentialFile, "Certificates");
 
                 if (uploadUrl == null)
                 {
@@ -79,7 +79,7 @@ namespace LearningHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        public async Task DeleteCertificate(Guid certificateId)
+        public async Task DeleteCertificateAsync(Guid certificateId)
         {
 
             Certificate? certificate = await _unitOfWork.Certificates.GetByIdAsync(certificateId);
