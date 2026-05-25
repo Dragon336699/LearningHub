@@ -1,14 +1,15 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import AuthBootstrap from "../providers/AuthBootstrap";
 import { UserProfilePage } from "../features/users/components/UserProfilePage";
-import ProtectedRoute from "./ProtectedRoute"; 
+import ProtectedRoute from "./ProtectedRoute";
 import { URL_ROUTES } from "../configs/url_routes";
+import CreateProfilePage from "../features/users/components/CreateProfilePage";
 
 export const router = createBrowserRouter([
   {
     element: (
       <AuthBootstrap>
-        <Outlet /> 
+        <Outlet />
       </AuthBootstrap>
     ),
     children: [
@@ -16,9 +17,13 @@ export const router = createBrowserRouter([
         path: "/profile/:id",
         element: (
           // <ProtectedRoute>
-            <UserProfilePage />
+          <UserProfilePage />
           // </ProtectedRoute>
         ),
+      },
+      {
+        path: "profile/create",
+        element: <CreateProfilePage />,
       },
       // {
       //   path: "/",

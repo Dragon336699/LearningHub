@@ -6,8 +6,6 @@ import {
   CreditCard,
   MessageSquare
 } from "lucide-react";
-// Import RootState từ file store của bạn
-// import { RootState } from "../../store"; 
 import { User } from "../../../types/user";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -75,7 +73,7 @@ export const UserProfilePage = () => {
             <h1 className="text-2xl font-bold text-white">{fullName}</h1>
             <p className="text-sm text-slate-400">{currentTitle}</p>
             
-            {/* Rating (Mocked UI) */}
+            {/* Rating */}
             <div className="flex items-center gap-2 text-sm">
               <div className="flex text-yellow-500">
                 <Star className="h-4 w-4 fill-current" />
@@ -145,7 +143,7 @@ export const UserProfilePage = () => {
         ))}
       </div>
 
-      {/* Tab Content: ABOUT & EXPERIENCE combined to match UI context */}
+      {/* Tab Content: ABOUT & EXPERIENCE */}
       <div className="flex flex-col gap-8">
         {/* ABOUT SECTION */}
         <section>
@@ -156,7 +154,7 @@ export const UserProfilePage = () => {
           </p>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Mentorship Style (Mocked) */}
+            {/* Mentorship Style */}
             <div className="stats-card">
               <h3 className="mb-3 font-semibold text-white">Mentorship Style</h3>
               <ul className="flex flex-col gap-2 text-sm text-slate-300">
@@ -175,7 +173,7 @@ export const UserProfilePage = () => {
               </ul>
             </div>
 
-            {/* Languages (Mocked) */}
+            {/* Languages */}
             <div className="stats-card">
               <h3 className="mb-3 font-semibold text-white">Languages</h3>
               <ul className="flex flex-col gap-2 text-sm text-slate-300">
@@ -203,17 +201,15 @@ export const UserProfilePage = () => {
                 <div key={exp.id} className="flex items-center justify-between rounded-xl bg-card p-5 border border-border">
                   <div className="flex flex-col">
                     <span className="font-semibold text-white">{exp.title}</span>
-                    {/* Giả sử description lưu tên công ty như thiết kế */}
                     <span className="text-sm text-slate-400">{exp.description || "Tech Company"}</span> 
                   </div>
                   <div className="text-sm text-slate-400">
-                    {/* Format date dựa theo cấu trúc ngày của bạn (ví dụ: YYYY hoặc YYYY - Present) */}
                     {new Date(exp.startDate).getFullYear()} - {exp.endDate ? new Date(exp.endDate).getFullYear() : "Present"}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-400">Chưa có thông tin kinh nghiệm làm việc.</p>
+              <p className="text-sm text-slate-400">No experience.</p>
             )}
           </div>
         </section>
