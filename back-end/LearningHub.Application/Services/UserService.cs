@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using LearningHub.Application.Common;
+using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
+using LearningHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +16,13 @@ namespace LearningHub.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
-        public UserService(IUnitOfWork unitOfWork, UserManager<User> userManager, IMapper mapper)
+        private readonly IFileStorageService _fileStorageService;
+        public UserService(IUnitOfWork unitOfWork, UserManager<User> userManager, IMapper mapper, IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _mapper = mapper;
+            _fileStorageService = fileStorageService;
         }
 
         //Create user profile
@@ -82,6 +87,25 @@ namespace LearningHub.Application.Services
             }
 
             return _mapper.Map<UserDto>(user);
+        }
+
+        //Search user profile 
+
+        public async Task<List<UserDto>> SearchUserProfile(SearchUserProfileCommand command)
+        {
+            var users = await _userManager.Users.Include(u => u.Expertises).ToListAsync();
+            if (string.IsNullOrEmpty(command.Keyword) && command.ExpertiseIds?.Count == 0)
+            {
+                return _mapper.Map<List<UserDto>>(users);
+            }
+
+            List<Guid> expertiseIds = command.ExpertiseIds;
+
+            var usersFilteredByKeyword = users.Where(u => u.Expertises.Any(e => e.ExpertiseName.Contains(command.Keyword)));
+
+            var usersFiltered = usersFilteredByKeyword.Where(u => u.Expertises.Any(e => expertiseIds.Contains(e.Id)));
+
+            return _mapper.Map<List<UserDto>>(usersFiltered);
         }
 
         //Update user profile
@@ -151,5 +175,78 @@ namespace LearningHub.Application.Services
             }
             await _unitOfWork.CompleteAsync();
         }
+
+        // AVATAR //
+
+        public async Task<Result<UploadAvatarResponse>> UploadAvatarFile(FileUploadDto avatarFileUpload, Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User can't be found");
+            }
+
+            string? avatarUrl = await _fileStorageService.UploadFileAsync(avatarFileUpload, "Avatar");
+
+            if (avatarUrl == null)
+            {
+                throw new Exception("Upload avatar url");
+            }
+
+            user.AvatarUrl = avatarUrl;
+            await _userManager.UpdateAsync(user);
+
+            UploadAvatarResponse response = new UploadAvatarResponse { AvatarUrl = avatarUrl };
+
+            return Result<UploadAvatarResponse>.Success(response);
+        }
+
+        public async Task<Result<string>> DeleteAvatar(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User can't be found");
+            }
+
+            if (user.AvatarUrl == null)
+            {
+                return Result<string>.Failure(new List<string> { "Avatar already removed" });
+            }
+
+            user.AvatarUrl = null;
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded) return Result<string>.Failure(new List<string> { "Update user failed." });
+
+            return Result<string>.Success();
+        }
+
+        // ACTIVE/DEACTIVE USER
+        public async Task<Result<string>> ToggleUserStatus(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User can't be found");
+            }
+
+            if (user.Status == UserStatusEnum.Active)
+            {
+                user.Status = UserStatusEnum.Deactivated;
+            } else
+            {
+                user.Status = UserStatusEnum.Active;
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded) return Result<string>.Failure(new List<string> { "Update user failed." });
+
+            return Result<string>.Success();
+        }
+
     }
 }

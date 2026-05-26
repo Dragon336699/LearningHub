@@ -28,8 +28,4 @@
     <ProjectReference Include="..\LearningHub.Infrastructure\LearningHub.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Contracts\Users\" />
-  </ItemGroup>
-
 </Project>

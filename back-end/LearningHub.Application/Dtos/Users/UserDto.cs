@@ -6,6 +6,7 @@ namespace LearningHub.Application.Dtos.Users
 {
     public record UserDto
     {
+        public Guid Id { get; init; }
         public string FirstName { get; init; } = null!;
         public string? LastName { get; init; }
         public string? Bio { get; init; }
