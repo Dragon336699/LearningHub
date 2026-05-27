@@ -1,12 +1,12 @@
 ﻿namespace LearningHub.Application.Dtos.Certificates
 {
-    public record CertificateDto
+    public class CertificateDto
     {
-        public Guid Id { get; init; }
-        public string CertificateName { get; init; } = null!;
-        public string Organization { get; init; } = null!;
-        public DateOnly IssueDate { get; init; } = default!;
-        public DateOnly? ExpirationDate {  get; init; }
-        public string CredentialUrl { get; init; } = null!;
+        public Guid Id { get; set; }
+        public string CertificateName { get; set; } = null!;
+        public string Organization { get; set; } = null!;
+        public DateOnly IssueDate { get; set; } = default!;
+        public DateOnly? ExpirationDate {  get; set; }
+        public string CredentialUrl { get; set; } = null!;
     }
 }
