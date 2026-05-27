@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using LearningHub.API.Contracts.Users;
+﻿using LearningHub.API.Contracts.Users;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
@@ -17,20 +16,6 @@ namespace LearningHub.API.Controllers
         public UserController(IUserService userService)
         {
             _userService = userService;
-        }
-
-        //[Authorize]
-        [HttpPost]
-        [Route("profile")]
-        public async Task<IActionResult> CreateUserProfile([FromBody] CreateUserProfileCommand request, Guid testUserId)
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //{
-            //    return BadRequest();
-            //}
-            await _userService.CreateUserProfile(request, testUserId);
-            return Ok();
         }
 
         //[Authorize]
@@ -124,7 +109,7 @@ namespace LearningHub.API.Controllers
         //[Authorize]
         [HttpPost]
         [Route("profile/status")]
-        public async Task<IActionResult> ToggleUserStatus(Guid testUserId)
+        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, Guid testUserId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //if (userId == null)
@@ -132,7 +117,7 @@ namespace LearningHub.API.Controllers
             //    return BadRequest();
             //} 
 
-            Result<string> result = await _userService.ToggleUserStatus(testUserId);
+            Result<string> result = await _userService.ChangeUserStatus(request, testUserId);
 
             if (!result.IsSuccess)
             {

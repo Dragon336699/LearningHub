@@ -25,51 +25,6 @@ namespace LearningHub.Application.Services
             _fileStorageService = fileStorageService;
         }
 
-        //Create user profile
-        public async Task CreateUserProfile(CreateUserProfileCommand command, Guid userId)
-        {
-            var user = await _userManager.Users
-                .Include(x => x.Experiences)
-                .Include(x => x.Expertises)
-                .FirstOrDefaultAsync(x => x.Id == userId);
-
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User can't be found");
-            }
-
-            if (await _userManager.IsInRoleAsync(user, "Mentor"))
-            {
-                user.CoachCost = command.CoachCost ?? 0;
-            }
-
-            user.Bio = command.Bio;
-            user.Skills = command.Skills;
-
-            var experiences = command.Experiences.Select(x => new Experience
-            {
-                Title = x.Title,
-                Description = x.Description,
-                StartDate = DateOnly.FromDateTime(x.StartDate),
-                EndDate = DateOnly.FromDateTime(x.EndDate),
-                UserId = userId
-            }).ToList();
-
-            await _unitOfWork.Experiences.AddRangeAsync(experiences);
-
-            var expertises = await _unitOfWork.Expertises.GetByIdsAsync(command.Expertises);
-            user.Expertises = expertises;
-
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded)
-            {
-                throw new Exception("Create user profile failed");
-            }
-
-            await _unitOfWork.CompleteAsync();
-        }
-
         //Read user profile
            
         public async Task<UserDto> GetUserProfile(Guid userId)
@@ -102,6 +57,11 @@ namespace LearningHub.Application.Services
             List<Guid> expertiseIds = command.ExpertiseIds;
 
             var usersFilteredByKeyword = users.Where(u => u.Expertises.Any(e => e.ExpertiseName.Contains(command.Keyword)));
+
+            if (command.ExpertiseIds?.Count == 0)
+            {
+                return _mapper.Map<List<UserDto>>(usersFilteredByKeyword);
+            }
 
             var usersFiltered = usersFilteredByKeyword.Where(u => u.Expertises.Any(e => expertiseIds.Contains(e.Id)));
 
@@ -191,11 +151,16 @@ namespace LearningHub.Application.Services
 
             if (avatarUrl == null)
             {
-                throw new Exception("Upload avatar url");
+                throw new Exception("Failed to upload avatar to storage");
             }
 
             user.AvatarUrl = avatarUrl;
-            await _userManager.UpdateAsync(user);
+            var updateResult = await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                throw new Exception("Update user fail");
+            }
 
             UploadAvatarResponse response = new UploadAvatarResponse { AvatarUrl = avatarUrl };
 
@@ -225,7 +190,7 @@ namespace LearningHub.Application.Services
         }
 
         // ACTIVE/DEACTIVE USER
-        public async Task<Result<string>> ToggleUserStatus(Guid userId)
+        public async Task<Result<string>> ChangeUserStatus(UpdateUserStatusCommand command, Guid userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
@@ -234,13 +199,12 @@ namespace LearningHub.Application.Services
                 throw new KeyNotFoundException("User can't be found");
             }
 
-            if (user.Status == UserStatusEnum.Active)
+            if (user.Status == command.UserStatus)
             {
-                user.Status = UserStatusEnum.Deactivated;
-            } else
-            {
-                user.Status = UserStatusEnum.Active;
+                return Result<string>.Failure(new List<string> { "User status has been updated" });
             }
+
+            user.Status = command.UserStatus;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded) return Result<string>.Failure(new List<string> { "Update user failed." });

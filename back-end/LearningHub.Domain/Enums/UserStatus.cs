@@ -1,6 +1,6 @@
 ﻿namespace LearningHub.Domain.Enums
 {
-    public enum UserStatusEnum
+    public enum UserStatus
     {
         Active,
         Deactivated
