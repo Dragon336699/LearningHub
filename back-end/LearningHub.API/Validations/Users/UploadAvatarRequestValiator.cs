@@ -11,7 +11,7 @@ namespace LearningHub.API.Validations.Users
             RuleFor(u => u.AvatarFile)
                 .Must(BeValidFileExtensions)
                 .When(u => u.AvatarFile != null)
-                .WithMessage("Only pdf, jpg, jpeg, png files are allowed.");
+                .WithMessage("Only jpg, jpeg, png files are allowed.");
 
             RuleFor(u => u.AvatarFile)
                 .Must(BeValidFileSize)
