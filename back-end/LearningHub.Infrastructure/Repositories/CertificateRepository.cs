@@ -4,9 +4,9 @@ using LearningHub.Infrastructure.Data;
 
 namespace LearningHub.Infrastructure.Repositories
 {
-    public class ExperienceRepository : GenericRepository<Experience>, IExperienceRepository
+    public class CertificateRepository : GenericRepository<Certificate>, ICertificateRepository
     {
-        public ExperienceRepository(LearningHubDbContext context): base(context)
+        public CertificateRepository(LearningHubDbContext context) : base(context)
         {
             
         }
