@@ -5,7 +5,6 @@ using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
-using LearningHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +25,7 @@ namespace LearningHub.Application.Services
         }
 
         //Read user profile
-           
+
         public async Task<UserDto> GetUserProfile(Guid userId)
         {
             var user = await _userManager.Users
@@ -69,7 +68,7 @@ namespace LearningHub.Application.Services
         }
 
         //Update user profile
-        public async Task UpdateUserProfile(UpdateUserProfileCommand command, Guid userId)
+        public async Task<Result<UserDto>> UpdateUserProfile(UpdateUserProfileCommand command, Guid userId)
         {
             var user = await _userManager.Users
                 .Include(u => u.Expertises)
@@ -85,6 +84,8 @@ namespace LearningHub.Application.Services
                 user.CoachCost = command.CoachCost ?? 0;
             }
 
+            user.FirstName = command.FirstName;
+            user.LastName = command.LastName;
             user.Bio = command.Bio;
             user.Skills = command.Skills;
 
@@ -133,7 +134,14 @@ namespace LearningHub.Application.Services
             {
                 throw new Exception("Update user profile failed");
             }
-            await _unitOfWork.CompleteAsync();
+            int rowEffected = await _unitOfWork.CompleteAsync();
+
+            if (rowEffected == 0)
+            {
+                throw new Exception("No changes were saved");
+            }
+
+            return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
         }
 
         // AVATAR //
