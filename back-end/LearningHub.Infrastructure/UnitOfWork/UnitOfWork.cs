@@ -9,15 +9,18 @@ namespace LearningHub.Infrastructure.UnitOfWork
         private readonly LearningHubDbContext _context;
         public IExpertiseRepository Expertises { get; }
         public IExperienceRepository Experiences { get; }
+        public ICertificateRepository Certificates { get; }
         public UnitOfWork(
             LearningHubDbContext context,
             IExpertiseRepository expertiseRepository,
-            IExperienceRepository experienceRepository
+            IExperienceRepository experienceRepository,
+            ICertificateRepository certificateRepository
         )
         {
             _context = context;
             Expertises = expertiseRepository;
             Experiences = experienceRepository;
+            Certificates = certificateRepository;
         }
 
         public int Complete()
