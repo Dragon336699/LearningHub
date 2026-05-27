@@ -5,6 +5,7 @@ namespace LearningHub.Application.Interfaces.Repositories
     public interface IGenericRepository<T> where T : class
     {
         IEnumerable<T> Find(Expression<Func<T, bool>> expression);
+        Task<List<T>> FindAllAsync(Expression<Func<T, bool>> expression);
         Task AddRangeAsync(IEnumerable<T> entities);
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);

@@ -6,8 +6,8 @@ using LearningHub.Application.Mappers;
 using LearningHub.Application.Services;
 using LearningHub.Infrastructure.Persistence.Seed;
 using LearningHub.Infrastructure.Repositories;
+using LearningHub.Infrastructure.Services;
 using LearningHub.Infrastructure.UnitOfWork;
-using RetailSystem.Infrastructure.Repositories;
 
 namespace LearningHub.API.Configs
 {
@@ -19,12 +19,16 @@ namespace LearningHub.API.Configs
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IExpertiseRepository, ExpertiseRepository>();
             services.AddScoped<IExperienceRepository, ExperienceRepository>();
+            services.AddScoped<ICertificateRepository, CertificateRepository>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICertificateService, CertificateService>();
+            services.AddScoped<IFileStorageService, FileStorageService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
             services.AddScoped<IDataSeeder, RoleSeeder>();
+            services.AddScoped<IDataSeeder, UserSeeder>();
         }
     }
 }
