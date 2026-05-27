@@ -134,12 +134,7 @@ namespace LearningHub.Application.Services
             {
                 throw new Exception("Update user profile failed");
             }
-            int rowEffected = await _unitOfWork.CompleteAsync();
-
-            if (rowEffected == 0)
-            {
-                throw new Exception("No changes were saved");
-            }
+            await _unitOfWork.CompleteAsync();
 
             return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
         }

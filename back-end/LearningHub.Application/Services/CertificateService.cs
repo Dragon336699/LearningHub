@@ -47,12 +47,7 @@ namespace LearningHub.Application.Services
             }
 
             await _unitOfWork.Certificates.AddAsync(certificate);
-            var rowEffected = await _unitOfWork.CompleteAsync();
-
-            if (rowEffected == 0)
-            {
-                throw new Exception("No changes were saved");
-            }
+            await _unitOfWork.CompleteAsync();
 
             return Result<CertificateDto>.Success(_mapper.Map<CertificateDto>(certificate));
         }
@@ -87,12 +82,7 @@ namespace LearningHub.Application.Services
                 certificate.CredentialUrl = uploadUrl;
             }
 
-            var rowEffected = await _unitOfWork.CompleteAsync();
-
-            if (rowEffected == 0)
-            {
-                throw new Exception("No changes were saved");
-            }
+            await _unitOfWork.CompleteAsync();
 
             return Result<CertificateDto>.Success(_mapper.Map<CertificateDto>(certificate));
         }
