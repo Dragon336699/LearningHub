@@ -436,7 +436,7 @@ export const UserProfilePage = () => {
                 <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Basic Information</h3>
                 <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
                   {/* Avatar Upload Container */}
-                  <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center h-[200px]">
+                  <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center h-50">
                     <div className="relative mb-3 flex h-24 w-24 items-center justify-center rounded-full border border-dashed border-slate-600 bg-slate-900 text-slate-500">
                       <span className="text-3xl font-bold">{fullName.charAt(0)}</span>
                     </div>
