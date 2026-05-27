@@ -1,9 +1,12 @@
-﻿using LearningHub.Application.Interfaces.Repositories;
+﻿using FluentValidation;
+using LearningHub.API.Contracts.Certificates;
+using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.Seeder;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Application.Mappers;
 using LearningHub.Application.Services;
+using LearningHub.Application.Validation.User;
 using LearningHub.Infrastructure.Persistence.Seed;
 using LearningHub.Infrastructure.Repositories;
 using LearningHub.Infrastructure.Services;
@@ -28,6 +31,16 @@ namespace LearningHub.API.Configs
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
             services.AddScoped<IDataSeeder, RoleSeeder>();
+
+
+            //Add DI for validation
+            services.AddScoped<IValidationService, ValidationService>();
+            
+            //Add assembly validator project Application
+            services.AddValidatorsFromAssemblyContaining<UpdateUserProfileCommandValidator>();
+
+            //Add assembly validator project API
+            services.AddValidatorsFromAssemblyContaining<CreateCertificateRequest>();
             services.AddScoped<IDataSeeder, UserSeeder>();
         }
     }

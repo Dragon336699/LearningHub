@@ -5,7 +5,6 @@ using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
-using LearningHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,8 +25,8 @@ namespace LearningHub.Application.Services
         }
 
         //Read user profile
-           
-        public async Task<UserDto> GetUserProfile(Guid userId)
+
+        public async Task<Result<UserDto>> GetUserProfile(Guid userId)
         {
             var user = await _userManager.Users
                 .AsSplitQuery()
@@ -41,35 +40,51 @@ namespace LearningHub.Application.Services
                 throw new KeyNotFoundException("User can't be found");
             }
 
-            return _mapper.Map<UserDto>(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var roleName = roles.FirstOrDefault();
+
+            UserDto userDto = _mapper.Map<UserDto>(user);
+            userDto.RoleName = roleName;
+
+            return Result<UserDto>.Success(userDto);
         }
 
         //Search user profile 
 
-        public async Task<List<UserDto>> SearchUserProfile(SearchUserProfileCommand command)
+        public async Task<Result<List<UserDto>>> SearchUserProfile(SearchUserProfileCommand command)
         {
             var users = await _userManager.Users.Include(u => u.Expertises).ToListAsync();
+            var userDtos = _mapper.Map<List<UserDto>>(users);
+
+            foreach (var dto in userDtos)
+            {
+                var user = users.First(x => x.Id == dto.Id);
+
+                var roles = await _userManager.GetRolesAsync(user);
+                dto.RoleName = roles.FirstOrDefault();
+            }
+
             if (string.IsNullOrEmpty(command.Keyword) && command.ExpertiseIds?.Count == 0)
             {
-                return _mapper.Map<List<UserDto>>(users);
+                return Result<List<UserDto>>.Success(userDtos);
             }
 
             List<Guid> expertiseIds = command.ExpertiseIds;
 
-            var usersFilteredByKeyword = users.Where(u => u.Expertises.Any(e => e.ExpertiseName.Contains(command.Keyword)));
+            var usersFilteredByKeyword = userDtos.Where(u => u.Expertises.Any(e => e.ExpertiseName.Contains(command.Keyword)));
 
             if (command.ExpertiseIds?.Count == 0)
             {
-                return _mapper.Map<List<UserDto>>(usersFilteredByKeyword);
+                return Result<List<UserDto>>.Success(usersFilteredByKeyword.ToList());
             }
 
             var usersFiltered = usersFilteredByKeyword.Where(u => u.Expertises.Any(e => expertiseIds.Contains(e.Id)));
 
-            return _mapper.Map<List<UserDto>>(usersFiltered);
+            return Result<List<UserDto>>.Success(usersFiltered.ToList());
         }
 
         //Update user profile
-        public async Task UpdateUserProfile(UpdateUserProfileCommand command, Guid userId)
+        public async Task<Result<UserDto>> UpdateUserProfile(UpdateUserProfileCommand command, Guid userId)
         {
             var user = await _userManager.Users
                 .Include(u => u.Expertises)
@@ -85,6 +100,8 @@ namespace LearningHub.Application.Services
                 user.CoachCost = command.CoachCost ?? 0;
             }
 
+            user.FirstName = command.FirstName;
+            user.LastName = command.LastName;
             user.Bio = command.Bio;
             user.Skills = command.Skills;
 
@@ -134,6 +151,8 @@ namespace LearningHub.Application.Services
                 throw new Exception("Update user profile failed");
             }
             await _unitOfWork.CompleteAsync();
+
+            return Result<UserDto>.Success(_mapper.Map<UserDto>(user));
         }
 
         // AVATAR //
