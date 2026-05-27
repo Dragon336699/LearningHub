@@ -15,6 +15,16 @@ http.interceptors.response.use(
       window.location.href = "/login";
     }
 
-    return Promise.reject(error);
+    const customErrors = error.response?.data?.errors;
+    
+    let errorMessage;
+
+    if (Array.isArray(customErrors) && customErrors.length > 0) {
+      errorMessage = customErrors[0]; 
+    } else if (error.message) {
+      errorMessage = error.message; 
+    }
+
+    return Promise.reject(errorMessage);
   }
 );

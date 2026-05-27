@@ -57,8 +57,7 @@ export const UserProfilePage = () => {
   const [formState, setFormState] = useState({
     firstName: "",
     lastName: "",
-    phoneNumber: "",
-    description: "",
+    bio: "",
     skills: "",
     industryExperience: "",
     selectedExpertiseNames: [] as string[],
@@ -95,8 +94,7 @@ export const UserProfilePage = () => {
     setFormState({
       firstName: fName,
       lastName: lName,
-      phoneNumber: user.phoneNumber || "",
-      description: user.description || "",
+      bio: user.bio || "",
       skills: user.skills || "",
       industryExperience: user.experiences?.[0]?.title || "",
       selectedExpertiseNames: user.expertises?.map((expertise) => expertise.expertiseName) || [],
@@ -179,7 +177,7 @@ export const UserProfilePage = () => {
           {
             id: getRandomId(),
             title: formState.industryExperience || "Industry Experience",
-            description: "",
+            bio: "",
             startDate: new Date().toISOString(),
             endDate: new Date().toISOString(),
           },
@@ -189,8 +187,7 @@ export const UserProfilePage = () => {
       ...user,
       firstName: formState.firstName,
       lastName: formState.lastName,
-      phoneNumber: formState.phoneNumber,
-      description: formState.description,
+      bio: formState.bio,
       skills: formState.skills,
       expertises: updatedExpertises,
       experiences: newExperiences,
@@ -329,8 +326,8 @@ export const UserProfilePage = () => {
         <section>
           <h2 className="mb-3 text-lg font-bold text-white">About {fullName}</h2>
           <p className="mb-6 text-sm text-slate-300 leading-relaxed">
-            {user.description || 
-              "This user has not provided a description yet. They are a highly skilled professional ready to help you achieve your goals."}
+            {user.bio || 
+              "This user has not provided a bio yet. They are a highly skilled professional ready to help you achieve your goals."}
           </p>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -481,20 +478,6 @@ export const UserProfilePage = () => {
                       />
                     </div>
 
-                    <div>
-                      {/* TODO: Extend Backend UpdateUserProfileCommand properties to persist PhoneNumber data column */}
-                      <label className="label text-xs font-semibold text-slate-300" htmlFor="phoneNumber">
-                        Phone Number <span className="text-amber-500 font-normal text-[11px] ml-1">(Coming Soon [Global])</span>
-                      </label>
-                      <input
-                        id="phoneNumber"
-                        type="tel"
-                        value={formState.phoneNumber}
-                        onChange={(event) => updateFormField("phoneNumber", event.target.value)}
-                        className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
-                        placeholder="Your phone number"
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -505,8 +488,8 @@ export const UserProfilePage = () => {
                   <label className="label text-xs font-semibold text-slate-300" htmlFor="bio">Bio</label>
                   <textarea
                     id="bio"
-                    value={formState.description}
-                    onChange={(event) => updateFormField("description", event.target.value)}
+                    value={formState.bio}
+                    onChange={(event) => updateFormField("bio", event.target.value)}
                     className="textarea w-full h-24 bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                     placeholder="Tell us about yourself..."
                   />
