@@ -1,9 +1,9 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import AuthBootstrap from "../providers/AuthBootstrap";
-import { UserProfilePage } from "../features/users/components/UserProfilePage";
+import { UserProfilePage } from "../features/users/pages/UserProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
 import { URL_ROUTES } from "../configs/url_routes";
-import CreateProfilePage from "../features/users/components/CreateProfilePage";
+import CreateProfilePage from "../features/users/pages/CreateProfilePage";
 
 export const router = createBrowserRouter([
   {

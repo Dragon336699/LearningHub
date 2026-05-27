@@ -15,7 +15,7 @@ export interface User {
   coachCost: number;
 
   avatarUrl?: string;
-  description?: string;
+  bio?: string;
   skills?: string;
 
   experiences: Experience[];
