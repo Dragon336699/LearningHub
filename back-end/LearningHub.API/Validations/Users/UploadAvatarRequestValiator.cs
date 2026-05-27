@@ -5,7 +5,7 @@ namespace LearningHub.API.Validations.Users
 {
     public class UploadAvatarRequestValiator : AbstractValidator<UploadAvatarRequest>
     {
-        private readonly string[] _allowedExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+        private readonly string[] _allowedExtensions = [".jpg", ".jpeg", ".png"];
         public UploadAvatarRequestValiator()
         {
             RuleFor(u => u.AvatarFile)
