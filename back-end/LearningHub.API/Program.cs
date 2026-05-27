@@ -1,8 +1,8 @@
 using LearningHub.API.Common.Middlewares;
 using LearningHub.API.Configs;
+using LearningHub.Application.Interfaces.Seeder;
 using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using LearningHub.Application.Interfaces.Seeder;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +15,12 @@ builder.WebHost.ConfigureKestrel((context, options) =>
 });
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
 builder.Services.AddEndpointsApiExplorer();
@@ -26,12 +31,6 @@ builder.Services.AddInfrastructure();
 builder.Services.AddDbContext<LearningHubDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
 
 var app = builder.Build();
 

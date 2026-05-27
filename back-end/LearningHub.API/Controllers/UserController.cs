@@ -3,6 +3,7 @@ using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -13,9 +14,11 @@ namespace LearningHub.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly IValidationService _validationService;
+        public UserController(IUserService userService, IValidationService validationService)
         {
             _userService = userService;
+            _validationService = validationService;
         }
 
         //[Authorize]
@@ -28,8 +31,14 @@ namespace LearningHub.API.Controllers
             //{
             //    return BadRequest();
             //}
-            var userDto = await _userService.GetUserProfile(testUserId);
-            return Ok(userDto);
+            Result<UserDto> result = await _userService.GetUserProfile(testUserId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
         //[Authorize]
@@ -37,8 +46,14 @@ namespace LearningHub.API.Controllers
         [Route("profile/filter")]
         public async Task<IActionResult> SearchUsersProfile([FromQuery] SearchUserProfileCommand request)
         {
-            var userDto = await _userService.SearchUserProfile(request);
-            return Ok(userDto);
+            Result<List<UserDto>> result = await _userService.SearchUserProfile(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
         //[Authorize]
@@ -46,13 +61,26 @@ namespace LearningHub.API.Controllers
         [Route("profile")]
         public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileCommand request, Guid testUserId)
         {
+            var validationResult = await _validationService.ValidateAsync(request);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //if (userId == null)
             //{
             //    return BadRequest();
             //}
-            await _userService.UpdateUserProfile(request, testUserId);
-            return Ok();
+            Result<UserDto> updateResult = await _userService.UpdateUserProfile(request, testUserId);
+
+            if (!updateResult.IsSuccess)
+            {
+                return BadRequest(updateResult);
+            }
+
+            return Ok(updateResult);
         }
 
 
@@ -71,7 +99,14 @@ namespace LearningHub.API.Controllers
 
             if (request.AvatarFile == null || request.AvatarFile.Length == 0)
             {
-                return BadRequest(Result<object>.Failure(new List<string> { "Avatar file is required" } ));
+                return BadRequest(Result<object>.Failure(new List<string> { "Avatar file is required" }));
+            }
+
+            var validationResult = await _validationService.ValidateAsync(request);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
             }
 
             FileUploadDto avatarFileUpload = new FileUploadDto
@@ -82,6 +117,12 @@ namespace LearningHub.API.Controllers
             };
 
             Result<UploadAvatarResponse> response = await _userService.UploadAvatarFile(avatarFileUpload, testUserId);
+
+            if (!response.IsSuccess)
+            {
+                return BadRequest(response);
+            }
+
             return Ok(response);
         }
 
@@ -116,6 +157,13 @@ namespace LearningHub.API.Controllers
             //{
             //    return BadRequest();
             //} 
+
+            var validationResult = await _validationService.ValidateAsync(request);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
 
             Result<string> result = await _userService.ChangeUserStatus(request, testUserId);
 

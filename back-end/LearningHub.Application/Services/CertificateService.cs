@@ -1,4 +1,6 @@
-﻿using LearningHub.Application.Dtos.Certificates;
+﻿using AutoMapper;
+using LearningHub.Application.Common;
+using LearningHub.Application.Dtos.Certificates;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
@@ -9,13 +11,15 @@ namespace LearningHub.Application.Services
     {
         private readonly IFileStorageService _fileStorateService;
         private readonly IUnitOfWork _unitOfWork;
-        public CertificateService(IFileStorageService fileStorateService, IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public CertificateService(IFileStorageService fileStorateService, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _fileStorateService = fileStorateService;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task CreateCertificateAsync(CreateCertificateCommand command, Guid userId)
+        public async Task<Result<CertificateDto>> CreateCertificateAsync(CreateCertificateCommand command, Guid userId)
         {
             string? uploadUrl = null;
             if (command.CredentialFile != null)
@@ -44,9 +48,11 @@ namespace LearningHub.Application.Services
 
             await _unitOfWork.Certificates.AddAsync(certificate);
             await _unitOfWork.CompleteAsync();
+
+            return Result<CertificateDto>.Success(_mapper.Map<CertificateDto>(certificate));
         }
 
-        public async Task UpdateCertificateAsync(UpdateCertificateCommand command, Guid userId)
+        public async Task<Result<CertificateDto>> UpdateCertificateAsync(UpdateCertificateCommand command, Guid userId)
         {
             string? uploadUrl = null;
 
@@ -77,6 +83,8 @@ namespace LearningHub.Application.Services
             }
 
             await _unitOfWork.CompleteAsync();
+
+            return Result<CertificateDto>.Success(_mapper.Map<CertificateDto>(certificate));
         }
 
         public async Task DeleteCertificateAsync(Guid certificateId)
