@@ -3,7 +3,7 @@ using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace RetailSystem.Infrastructure.Repositories
+namespace LearningHub.Infrastructure.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
@@ -26,6 +26,11 @@ namespace RetailSystem.Infrastructure.Repositories
         public IEnumerable<T> Find(Expression<Func<T, bool>> expression)
         {
             return _context.Set<T>().Where(expression);
+        }
+
+        public async Task<List<T>> FindAllAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _context.Set<T>().Where(expression).ToListAsync();
         }
 
         public void Remove(T entity)

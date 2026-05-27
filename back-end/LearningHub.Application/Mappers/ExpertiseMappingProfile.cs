@@ -9,6 +9,7 @@ namespace LearningHub.Application.Mappers
         public ExpertiseMappingProfile()
         {
             CreateMap<ExpertiseDto, Expertise>();
+            CreateMap<Expertise, ExpertiseDto>();
         }
     }
 }

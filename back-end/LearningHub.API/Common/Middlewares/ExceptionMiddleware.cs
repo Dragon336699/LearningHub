@@ -1,5 +1,5 @@
-﻿using LearningHub.API.Common.Responses;
-using FluentValidation;
+﻿using FluentValidation;
+using LearningHub.Application.Common;
 
 namespace LearningHub.API.Common.Middlewares
 {
@@ -28,34 +28,35 @@ namespace LearningHub.API.Common.Middlewares
         private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
-            var response = new ErrorResponse();
-
+            Result<object> response;
 
             switch (exception)
             {
                 case ValidationException ex:
-                    response.StatusCode = StatusCodes.Status400BadRequest;
-                    response.Message = "Validation failed";
-                    response.Errors = ex.Errors.Select(x => x.ErrorMessage).ToList();
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    response = Result<object>.Failure(
+                            ex.Errors
+                                .Select(x => x.ErrorMessage)
+                                .Distinct()
+                                .ToList()
+                        );
                     break;
 
                 case KeyNotFoundException ex:
-                    response.StatusCode = StatusCodes.Status404NotFound;
-                    response.Message = ex.Message;
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                    response = Result<object>.Failure([ex.Message]);
                     break;
 
                 case UnauthorizedAccessException ex:
-                    response.StatusCode = StatusCodes.Status401Unauthorized;
-                    response.Message = ex.Message;
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    response = Result<object>.Failure([ex.Message]);
                     break;
 
                 default:
-                    response.StatusCode = StatusCodes.Status500InternalServerError;
-                    response.Message = "An unexpected error occurred.";
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    response = Result<object>.Failure(["An unexpected error occurred"]);
                     break;
             };
-
-            context.Response.StatusCode = response.StatusCode;
 
             return context.Response.WriteAsJsonAsync(response);
         }
