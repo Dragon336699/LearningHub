@@ -20,13 +20,14 @@ namespace LearningHub.Infrastructure.Persistence.Seed
 
         public async Task SeedAsync()
         {
+            if (await _userManager.Users.AnyAsync()) return;
 
             var backendEx = await _context.Set<Expertise>().FirstOrDefaultAsync(e => e.Id == Guid.Parse("11111111-1111-1111-1111-111111111111"));
             var frontendEx = await _context.Set<Expertise>().FirstOrDefaultAsync(e => e.Id == Guid.Parse("22222222-2222-2222-2222-222222222222"));
 
             var admin = new User
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 UserName = "admin@learninghub.com",
                 Email = "admin@learninghub.com",
                 FirstName = "System",
@@ -38,15 +39,10 @@ namespace LearningHub.Infrastructure.Persistence.Seed
             var createAdminResult = await _userManager.CreateAsync(admin, "Admin@123");
             if (!createAdminResult.Succeeded)
             {
-                var errors = string.Join(", ", createAdminResult.Errors.Select(e => e.Description));
-                throw new Exception($"[USER SEEDER ERROR] Không thể tạo Admin do: {errors}");
-            }
-            else
-            {
                 await _userManager.AddToRoleAsync(admin, "Admin");
             }
 
-            var mentorId = Guid.NewGuid();
+            var mentorId = Guid.CreateVersion7();
             var mentor = new User
             {
                 Id = mentorId,
@@ -94,7 +90,7 @@ namespace LearningHub.Infrastructure.Persistence.Seed
             
             var trainee = new User
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 UserName = "trainee.hoa@learninghub.com",
                 Email = "trainee.hoa@learninghub.com",
                 FirstName = "Hoa",
