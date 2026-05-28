@@ -1,0 +1,18 @@
+﻿using LearningHub.Application.Common;
+using LearningHub.Application.Dtos.Auth;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace LearningHub.Application.Interfaces.Services;
+
+public interface IAuthService
+{
+    Task<Result<string>> RegisterAsync(RegisterRequest request);
+    Task<Result<string>> VerifyOtpAsync(VerifyOtpRequestDto request);
+    Task<Result<string>> ResendOtpAsync(ResendOtpRequest request);
+    Task<Result<LoginResponse>> LoginAsync(LoginRequest request);
+    Task<Result<string>> RefreshTokenAsync(string refreshToken);
+    Task<Result<string>> LogoutAsync(string refreshToken);
+
+}
