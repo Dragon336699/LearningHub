@@ -38,6 +38,30 @@ namespace LearningHub.Infrastructure.Repositories
             return _context.Set<T>().AsQueryable();
         }
 
+        public async Task<List<T>> GetPagedAsync(int page, int pageSize, Expression<Func<T,bool>>? filter)
+        {
+            IQueryable<T> query = _context.Set<T>();
+            if (filter != null)
+                query.Where(filter);
+
+            return await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalItems(int page, int pageSize, Expression<Func<T, bool>>? filter)
+        {
+            IQueryable<T> query = _context.Set<T>();
+            if (filter != null)
+                query.Where(filter);
+
+            return await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .CountAsync();
+        }
+
         public void Remove(T entity)
         {
             _context.Set<T>().Remove(entity);

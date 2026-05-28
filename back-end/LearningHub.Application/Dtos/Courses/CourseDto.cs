@@ -6,7 +6,7 @@ namespace LearningHub.Application.Dtos.Courses
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         public string? LearningObjectives { get; set; }
         public CourseStatus Status { get; set; }
     }

@@ -1,4 +1,5 @@
-﻿using LearningHub.Application.Common;
+﻿using LearningHub.API.Contracts.Common;
+using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LearningHub.API.Controllers
 {
     [ApiController]
-    [Route("course")]
+    [Route("courses")]
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
@@ -38,9 +39,16 @@ namespace LearningHub.API.Controllers
 
         //[Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetPagedCourses([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<IActionResult> GetPagedCourses([FromQuery] GetPageQuery query)
         {
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPagedCourses(page, pageSize);
+            var validationResult = await _validationService.ValidateAsync(query);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPagedCourses(query.Page, query.PageSize);
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 
@@ -50,9 +58,16 @@ namespace LearningHub.API.Controllers
         //[Authorize]
         [HttpGet]
         [Route("published")]
-        public async Task<IActionResult> GetPublishedCourses([FromQuery] int page, [FromQuery] int pageSize)
+        public async Task<IActionResult> GetPublishedCourses([FromQuery] GetPageQuery query)
         {
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPublishedCourses(page, pageSize);
+            var validationResult = await _validationService.ValidateAsync(query);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPublishedCourses(query.Page, query.PageSize);
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 
@@ -70,11 +85,11 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<CourseDto> createResult = await _courseService.UpdateCourseAsync(command, testUserId);
+            Result<CourseDto> updateResult = await _courseService.UpdateCourseAsync(command, testUserId);
 
-            if (!createResult.IsSuccess) return BadRequest(createResult);
+            if (!updateResult.IsSuccess) return BadRequest(updateResult);
 
-            return Ok(createResult);
+            return Ok(updateResult);
         }
 
         //[Authorize(Roles="Admin")]
@@ -89,11 +104,11 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<CourseDto> createResult = await _courseService.UpdateCourseStatusAsync(command);
+            Result<CourseDto> updateResult = await _courseService.UpdateCourseStatusAsync(command);
 
-            if (!createResult.IsSuccess) return BadRequest(createResult);
+            if (!updateResult.IsSuccess) return BadRequest(updateResult);
 
-            return Ok(createResult);
+            return Ok(updateResult);
         }
 
         //[Authorize(Roles="Trainer")]

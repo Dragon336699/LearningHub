@@ -5,7 +5,6 @@ using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 
 namespace LearningHub.Application.Services
 {
@@ -27,18 +26,19 @@ namespace LearningHub.Application.Services
             await _unitOfWork.Courses.AddAsync(course);
             int rowAffected = await _unitOfWork.CompleteAsync();
 
+            if (rowAffected == 0)
+            {
+                throw new Exception("No changes were saved");
+            }
+
             return Result<CourseDto>.Success(_mapper.Map<CourseDto>(course));
         }
 
         public async Task<Result<PagedResult<CourseDto>>> GetPagedCourses(int page, int pageSize)
         {
-            List<Course> courses = await _unitOfWork.Courses
-                .Query()
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize);
 
-            int totalCourses = _unitOfWork.Courses.Query().Count();
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems(page, pageSize);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 
@@ -55,14 +55,9 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<PagedResult<CourseDto>>> GetPublishedCourses(int page, int pageSize)
         {
-            List<Course> courses = await _unitOfWork.Courses
-                .Query()
-                .Where(c => c.Status == CourseStatus.Published)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize, c => c.Status == CourseStatus.Published);
 
-            int totalCourses = _unitOfWork.Courses.Query().Count();
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems(page, pageSize, c => c.Status == CourseStatus.Published);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 

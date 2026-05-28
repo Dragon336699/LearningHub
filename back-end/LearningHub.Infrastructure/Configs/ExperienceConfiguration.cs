@@ -10,11 +10,11 @@ namespace LearningHub.Infrastructure.Configs
         {
             builder.HasKey(exp => exp.Id);
 
-            builder.Property(c => c.Title)
+            builder.Property(exp => exp.Title)
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(c => c.Description)
+            builder.Property(exp => exp.Description)
                 .HasMaxLength(500);
 
             builder.HasOne(exp => exp.User)
