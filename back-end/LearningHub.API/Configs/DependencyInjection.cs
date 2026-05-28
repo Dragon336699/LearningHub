@@ -26,6 +26,7 @@ namespace LearningHub.API.Configs
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICertificateService, CertificateService>();
+            services.AddScoped<IExpertiseService, ExpertiseService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
