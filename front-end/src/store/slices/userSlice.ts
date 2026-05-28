@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { fetchUserById } from "../thunks/userThunks"; 
+import { fetchUserById, updateUserProfile } from "../thunks/userThunks"; 
 
 interface UserState {
   profileUser: User | null; 
@@ -32,11 +32,28 @@ const userSlice = createSlice({
       .addCase(fetchUserById.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;      
         state.profileUser = action.payload; 
+        console.log(state.profileUser)
       })
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;     
         state.error = action.payload as string || "Can not fetch user data";
-      });
+      })
+
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        if (state.profileUser) {
+          state.profileUser = { ...state.profileUser, ...action.payload };
+          localStorage.setItem("user", JSON.stringify(state.profileUser));
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action: any) => {
+        state.loading = false;
+        state.error = action.payload?.[0] || "Update failed";
+      })
   },
 });
 
