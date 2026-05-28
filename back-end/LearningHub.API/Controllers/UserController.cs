@@ -3,6 +3,7 @@ using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -30,8 +31,14 @@ namespace LearningHub.API.Controllers
             //{
             //    return BadRequest();
             //}
-            var userDto = await _userService.GetUserProfile(testUserId);
-            return Ok(userDto);
+            Result<UserDto> result = await _userService.GetUserProfile(testUserId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
         //[Authorize]
@@ -39,8 +46,14 @@ namespace LearningHub.API.Controllers
         [Route("profile/filter")]
         public async Task<IActionResult> SearchUsersProfile([FromQuery] SearchUserProfileCommand request)
         {
-            var userDto = await _userService.SearchUserProfile(request);
-            return Ok(userDto);
+            Result<List<UserDto>> result = await _userService.SearchUserProfile(request);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
         //[Authorize]
