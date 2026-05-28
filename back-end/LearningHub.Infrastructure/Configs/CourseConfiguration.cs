@@ -4,25 +4,25 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LearningHub.Infrastructure.Configs
 {
-    public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
+    public class CourseConfiguration : IEntityTypeConfiguration<Course>
     {
-        public void Configure(EntityTypeBuilder<Certificate> builder)
+        public void Configure(EntityTypeBuilder<Course> builder)
         {
             builder.HasKey(c => c.Id);
 
-            builder.Property(c => c.CertificateName)
+            builder.Property(c => c.Title)
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(c => c.Organization)
+            builder.Property(c => c.Description)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(500);
 
-            builder.Property(c => c.CredentialUrl)
-                .HasMaxLength(2048);
+            builder.Property(c => c.LearningObjectives)
+                .HasMaxLength(200);
 
             builder.HasOne(c => c.User)
-                .WithMany(u => u.Certificates)
+                .WithMany(u => u.Courses)
                 .HasForeignKey(c => c.UserId);
         }
     }

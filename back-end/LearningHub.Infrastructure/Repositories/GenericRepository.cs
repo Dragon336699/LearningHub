@@ -33,6 +33,11 @@ namespace LearningHub.Infrastructure.Repositories
             return await _context.Set<T>().Where(expression).ToListAsync();
         }
 
+        public IQueryable<T> Query()
+        {
+            return _context.Set<T>().AsQueryable();
+        }
+
         public void Remove(T entity)
         {
             _context.Set<T>().Remove(entity);

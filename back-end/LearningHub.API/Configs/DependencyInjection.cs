@@ -23,11 +23,13 @@ namespace LearningHub.API.Configs
             services.AddScoped<IExpertiseRepository, ExpertiseRepository>();
             services.AddScoped<IExperienceRepository, ExperienceRepository>();
             services.AddScoped<ICertificateRepository, CertificateRepository>();
+            services.AddScoped<ICourseRepository, CourseRepository>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICertificateService, CertificateService>();
             services.AddScoped<IExpertiseService, ExpertiseService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
+            services.AddScoped<ICourseService, CourseService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
