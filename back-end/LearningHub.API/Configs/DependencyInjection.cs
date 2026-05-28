@@ -34,6 +34,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ICertificateService, CertificateService>();
+            services.AddScoped<IExpertiseService, ExpertiseService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<ICacheService, MemoryCacheService>();
 
