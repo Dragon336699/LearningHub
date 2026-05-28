@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { fetchUserById } from "../thunks/userThunks"; 
+import { fetchUserById, updateUserProfile } from "../thunks/userThunks"; 
 
 interface UserState {
   user: User | null;
@@ -53,6 +53,22 @@ const userSlice = createSlice({
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;     
         state.error = action.error.message || "Không thể tải thông tin người dùng";
+      })
+
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        if (state.user) {
+          state.user = { ...state.user, ...action.payload };
+          localStorage.setItem("user", JSON.stringify(state.user));
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action: any) => {
+        state.loading = false;
+        state.error = action.payload?.[0] || "Update failed";
       });
   },
 });

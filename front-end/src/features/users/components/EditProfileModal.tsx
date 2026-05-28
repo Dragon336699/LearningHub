@@ -1,16 +1,8 @@
-import { ChevronLeft, MessageSquare } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Experience } from "../../../types/experience";
-
-export interface FormState {
-  firstName: string;
-  lastName: string;
-  bio: string;
-  skills: string;
-  industryExperience: string;
-  selectedExpertiseIds: string[];
-  experiences: Experience[];
-}
+import { ExpertiseResponse, expertiseService } from "../../../services/expertise.service";
+import { FormState } from "../types";
+import { ExperienceFormList } from "./ExperienceFormList";
 
 interface EditProfileModalProps {
   initialFormState: FormState;
@@ -18,33 +10,45 @@ interface EditProfileModalProps {
   onSave: (updatedForm: FormState) => void; // Bỏ tham số settings thừa
 }
 
-const expertiseDatabaseOptions = [
-  { id: "4a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d", name: "Programming" },
-  { id: "5b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e", name: "Design" },
-  { id: "6c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f", name: "Leadership" },
-  { id: "7d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a", name: "Data Science" },
-  { id: "8e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b", name: "Project Management" },
-  { id: "9f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c", name: "Marketing" },
-  { id: "0a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d", name: "Business" },
-  { id: "1b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e", name: "Communication" },
-];
-
 export const EditProfileModal = ({
   initialFormState,
   onCancel,
   onSave,
 }: EditProfileModalProps) => {
   const [localForm, setLocalForm] = useState<FormState>({ ...initialFormState });
-  const [nameInputValue, setNameInputValue] = useState("");
+
+  const [expertises, setExpertises] = useState<ExpertiseResponse[]>([]);
+  const [isLoadingExpertises, setIsLoadingExpertises] = useState(false);
+  const [expertiseError, setExpertiseError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fName = initialFormState.firstName || "";
-    const lName = initialFormState.lastName || "";
-    setNameInputValue(lName ? `${fName} ${lName}` : fName);
-  }, [initialFormState.firstName, initialFormState.lastName]);
+    const loadExpertises = async () => {
+      setIsLoadingExpertises(true);
+      setExpertiseError(null);
+      try {
+        const data = await expertiseService.getAll();
+        setExpertises(data);
+      } catch (err: any) {
+        setExpertiseError("Cannot fetch expertises.");
+        console.error("Error fetching expertises:", err);
+      } finally {
+        setIsLoadingExpertises(false);
+      }
+    };
+
+    loadExpertises();
+  }, []);
 
   const updateField = (field: keyof FormState, value: any) => {
     setLocalForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    if (!localForm.firstName.trim()) {
+      alert("First Name is required!");
+      return;
+    }
+    onSave(localForm);
   };
 
   return (
@@ -58,10 +62,6 @@ export const EditProfileModal = ({
               <ChevronLeft className="h-4 w-4" /> Back
             </button>
             <h2 className="text-2xl font-bold text-white">Edit Your Profile</h2>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-2.5 text-amber-400">
-            <MessageSquare className="h-4 w-4" />
-            <span className="text-xs font-medium">100% Backend Connected</span>
           </div>
         </div>
 
@@ -81,31 +81,27 @@ export const EditProfileModal = ({
 
               <div className="grid gap-4">
                 <div>
-                  <label className="label text-xs font-semibold text-slate-300" htmlFor="fullName">Full Name *</label>
+                  <label className="label text-xs font-semibold text-slate-300" htmlFor="firstName">First Name <span className="text-red-500 text-xs font-medium">*</span></label>
                   <input
-                    id="fullName"
-                    value={nameInputValue}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (value === " ") return;
-                      setNameInputValue(value);
-
-                      if (value === "") {
-                        setLocalForm((prev) => ({ ...prev, firstName: "", lastName: "" }));
-                        return;
-                      }
-
-                      const firstSpaceIndex = value.indexOf(" ");
-                      if (firstSpaceIndex === -1) {
-                        setLocalForm((prev) => ({ ...prev, firstName: value, lastName: "" }));
-                      } else {
-                        const firstName = value.substring(0, firstSpaceIndex);
-                        const lastName = value.substring(firstSpaceIndex + 1);
-                        setLocalForm((prev) => ({ ...prev, firstName, lastName }));
-                      }
-                    }}
+                    id="firstName"
+                    type="text"
+                    value={localForm.firstName}
+                    onChange={(event) => updateField("firstName", event.target.value)}
                     className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
-                    placeholder="Trương Trịnh Văn"
+                    placeholder="John"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="label text-xs font-semibold text-slate-300" htmlFor="lastName">Last Name</label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={localForm.lastName}
+                    onChange={(event) => updateField("lastName", event.target.value)}
+                    className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
+                    placeholder="Doe"
                   />
                 </div>
               </div>
@@ -135,26 +131,22 @@ export const EditProfileModal = ({
                 placeholder="React, .NET, C#"
               />
             </div>
-
-            <div>
-              <label className="label text-xs font-semibold text-slate-300" htmlFor="industryExperience">
-                Industry Experience <span className="text-blue-500 font-normal text-[11px] ml-1">[For Mentor]</span>
-              </label>
-              <input
-                id="industryExperience"
-                value={localForm.industryExperience}
-                onChange={(event) => updateField("industryExperience", event.target.value)}
-                className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
-                placeholder="e.g. 5 years in SE"
-              />
-            </div>
           </div>
 
           {/* Areas of Expertise */}
           <div>
-            <p className="label text-xs font-semibold text-slate-300 mb-2">Areas of Expertise / Interest *</p>
+            <p className="label text-xs font-semibold text-slate-300 mb-2">Areas of Expertise <span className="text-red-500 text-xs font-medium">*</span></p>
+            {isLoadingExpertises && (
+              <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span>Loading expertise capabilities from database...</span>
+              </div>
+            )}
+
+            {expertiseError && <p className="text-xs text-red-400 py-1">{expertiseError}</p>}
+
             <div className="flex flex-wrap gap-2">
-              {expertiseDatabaseOptions.map((option) => {
+              {!isLoadingExpertises && Array.isArray(expertises) && expertises.map((option) => {
                 const selected = localForm.selectedExpertiseIds.includes(option.id);
                 return (
                   <button
@@ -171,20 +163,27 @@ export const EditProfileModal = ({
                     }}
                     className={`rounded-xl px-4 py-2 text-xs font-medium transition ${selected ? "bg-primary text-white" : "bg-slate-900 text-slate-400 border border-slate-800/60 hover:bg-slate-800 hover:text-slate-200"}`}
                   >
-                    {option.name}
+                    {option.expertiseName}
                   </button>
                 );
               })}
             </div>
+
           </div>
-        </div>
+          
+          {/* Experience */}
+          <ExperienceFormList 
+            experiences={localForm.experiences} 
+            onChange={(updatedExperiences) => updateField("experiences", updatedExperiences)}
+          />
 
-        {/* Modal Actions */}
-        <div className="mt-8 flex flex-col gap-3 border-t border-slate-900 pt-6 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onCancel} className="btn btn-outline border-slate-800 text-slate-300 rounded-xl text-sm w-full sm:w-auto">Cancel</button>
-          <button type="button" onClick={() => onSave(localForm)} className="btn btn-primary bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-sm w-full sm:w-auto px-6">Save Changes</button>
-        </div>
+          {/* Modal Actions */}
+          <div className="mt-8 flex flex-col gap-3 border-t border-slate-900 pt-6 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onCancel} className="btn btn-outline border-slate-800 text-slate-300 rounded-xl text-sm w-full sm:w-auto">Cancel</button>
+            <button type="button" onClick={handleSubmit} className="btn btn-primary bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-sm w-full sm:w-auto px-6">Save Changes</button>
+          </div>
 
+        </div>
       </div>
     </div>
   );
