@@ -10,17 +10,20 @@ namespace LearningHub.Infrastructure.UnitOfWork
         public IExpertiseRepository Expertises { get; }
         public IExperienceRepository Experiences { get; }
         public ICertificateRepository Certificates { get; }
+        public ICourseRepository Courses { get; }
         public UnitOfWork(
             LearningHubDbContext context,
             IExpertiseRepository expertiseRepository,
             IExperienceRepository experienceRepository,
-            ICertificateRepository certificateRepository
+            ICertificateRepository certificateRepository,
+            ICourseRepository courseRepository
         )
         {
             _context = context;
             Expertises = expertiseRepository;
             Experiences = experienceRepository;
             Certificates = certificateRepository;
+            Courses = courseRepository;
         }
 
         public int Complete()

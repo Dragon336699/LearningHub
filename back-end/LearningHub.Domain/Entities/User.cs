@@ -17,5 +17,6 @@ namespace LearningHub.Domain.Entities
         public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
         public ICollection<Expertise> Expertises { get; set; } = new List<Expertise>();
+        public ICollection<Course> Courses { get; set; } = new List<Course>();
     }
 }

@@ -8,7 +8,13 @@ namespace LearningHub.Infrastructure.Configs
     {
         public void Configure(EntityTypeBuilder<Expertise> builder)
         {
-            builder.HasMany(ex => ex.User)
+            builder.HasKey(ex => ex.Id);
+
+            builder.Property(ex => ex.ExpertiseName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            builder.HasMany(ex => ex.Users)
                 .WithMany(u => u.Expertises);
         }
     }

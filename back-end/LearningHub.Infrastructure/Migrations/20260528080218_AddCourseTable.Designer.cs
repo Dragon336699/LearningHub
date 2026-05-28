@@ -4,6 +4,7 @@ using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearningHubDbContext))]
-    partial class LearningHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528080218_AddCourseTable")]
+    partial class AddCourseTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,12 +30,12 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Property<Guid>("ExpertisesId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("UsersId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("ExpertisesId", "UsersId");
+                    b.HasKey("ExpertisesId", "UserId");
 
-                    b.HasIndex("UsersId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("ExpertiseUser");
                 });
@@ -45,12 +48,10 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.Property<string>("CertificateName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CredentialUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateOnly?>("ExpirationDate")
                         .HasColumnType("date");
@@ -60,8 +61,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.Property<string>("Organization")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -80,21 +80,17 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LearningObjectives")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -113,8 +109,7 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
@@ -124,8 +119,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -145,8 +139,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.Property<string>("ExpertiseName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -253,15 +246,12 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("AvatarUrl")
-                        .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Bio")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("CoachCost")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -277,12 +267,10 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -307,18 +295,11 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RefreshTokenExpiryTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Skills")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -456,7 +437,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasOne("LearningHub.Domain.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("UsersId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
