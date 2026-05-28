@@ -8,3 +8,4 @@ export const fetchUserById = createAsyncThunk<User, string>(
     return await userService.getById(id);
   }
 );
+
