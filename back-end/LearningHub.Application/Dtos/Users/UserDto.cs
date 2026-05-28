@@ -5,18 +5,17 @@ using LearningHub.Domain.Enums;
 
 namespace LearningHub.Application.Dtos.Users
 {
-    public record UserDto
+    public class UserDto
     {
-        public Guid Id { get; init; }
-        public string FirstName { get; init; } = null!;
-        public string? LastName { get; init; }
-        public string? Bio { get; init; }
-        public decimal? CoachCost {  get; init; }
-        public string? AvatarUrl { get; set; }
-        public UserStatus Status { get; set; }
-        public string? Skills { get; init; }
-        public List<ExpertiseDto> Expertises { get; init; } = new List<ExpertiseDto>();
-        public List<ExperienceDto> Experiences { get; init; } = new List<ExperienceDto>(); 
-        public List<CertificateDto> Certificates { get; init; } = new List<CertificateDto>(); 
+        public string? RoleName { get; set; }
+        public Guid Id { get; set; }
+        public string FirstName { get; set; } = null!;
+        public string? LastName { get; set; }
+        public string? Bio { get; set; }
+        public decimal? CoachCost {  get; set; }
+        public string? Skills { get; set; }
+        public List<ExpertiseDto> Expertises { get; set; } = new List<ExpertiseDto>();
+        public List<ExperienceDto> Experiences { get; set; } = new List<ExperienceDto>(); 
+        public List<CertificateDto> Certificates { get; set; } = new List<CertificateDto>(); 
     }
 }
