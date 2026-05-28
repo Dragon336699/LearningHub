@@ -1,17 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { fetchUserById } from "../thunks/userThunks"; 
+import { fetchUserById, updateUserProfile } from "../thunks/userThunks"; 
 
 interface UserState {
-  user: User | null;
-  isAuthenticated: boolean;
+  profileUser: User | null; 
   loading: boolean;
   error: string | null;
 }
 
 const initialState: UserState = {
-  user: null,
-  isAuthenticated: false,
+  profileUser: null,
   loading: false,
   error: null,
 };
@@ -20,26 +18,11 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
-      localStorage.setItem("user", JSON.stringify(action.payload));
-    },
-    updateUser: (state, action: PayloadAction<Partial<User>>) => {
-      if (!state.user) return;
-      state.user = {
-        ...state.user,
-        ...action.payload,
-      };
-      localStorage.setItem("user", JSON.stringify(state.user));
-    },
-    clearUser: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      localStorage.removeItem("user");
+    clearProfile: (state) => {
+      state.profileUser = null;
+      state.error = null;
     },
   },
-
   extraReducers: (builder) => {
     builder
       .addCase(fetchUserById.pending, (state) => {
@@ -48,14 +31,31 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserById.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;      
-        state.user = action.payload; 
+        state.profileUser = action.payload; 
+        console.log(state.profileUser)
       })
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;     
-        state.error = action.error.message || "Không thể tải thông tin người dùng";
-      });
+        state.error = action.payload as string || "Can not fetch user data";
+      })
+
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<User>) => {
+        state.loading = false;
+        if (state.profileUser) {
+          state.profileUser = { ...state.profileUser, ...action.payload };
+          localStorage.setItem("user", JSON.stringify(state.profileUser));
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action: any) => {
+        state.loading = false;
+        state.error = action.payload?.[0] || "Update failed";
+      })
   },
 });
 
-export const { setUser, updateUser, clearUser } = userSlice.actions;
+export const { clearProfile } = userSlice.actions;
 export default userSlice.reducer;

@@ -31,6 +31,7 @@ export default function Step1Form({ onNext }: Step1FormProps) {
             <User className="h-8 w-8 text-slate-400" />
           </div>
           <button
+            title="Upload Avatar"
             type="button"
             className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-primary ring-2 ring-card hover:bg-primary-hover"
           >

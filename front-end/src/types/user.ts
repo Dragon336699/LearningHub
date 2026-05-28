@@ -11,6 +11,7 @@ export interface User {
   coachCost: number;
 
   avatarUrl?: string;
+  roleName: string;
   bio?: string;
   skills?: string;
 
