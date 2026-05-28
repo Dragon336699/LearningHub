@@ -5,10 +5,6 @@ import { Expertise } from "./expertise";
 export interface User {
   id: string;
 
-  email: string;
-  userName?: string;
-  phoneNumber?: string;
-
   firstName: string;
   lastName?: string;
 

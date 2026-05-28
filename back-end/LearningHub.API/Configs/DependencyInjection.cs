@@ -31,6 +31,7 @@ namespace LearningHub.API.Configs
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
             services.AddScoped<IDataSeeder, RoleSeeder>();
+            services.AddScoped<IDataSeeder, UserSeeder>();
 
 
             //Add DI for validation

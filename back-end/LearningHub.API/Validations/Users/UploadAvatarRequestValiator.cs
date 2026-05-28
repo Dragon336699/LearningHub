@@ -5,13 +5,13 @@ namespace LearningHub.API.Validations.Users
 {
     public class UploadAvatarRequestValiator : AbstractValidator<UploadAvatarRequest>
     {
-        private readonly string[] _allowedExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+        private readonly string[] _allowedExtensions = [".jpg", ".jpeg", ".png"];
         public UploadAvatarRequestValiator()
         {
             RuleFor(u => u.AvatarFile)
                 .Must(BeValidFileExtensions)
                 .When(u => u.AvatarFile != null)
-                .WithMessage("Only pdf, jpg, jpeg, png files are allowed.");
+                .WithMessage("Only jpg, jpeg, png files are allowed.");
 
             RuleFor(u => u.AvatarFile)
                 .Must(BeValidFileSize)
