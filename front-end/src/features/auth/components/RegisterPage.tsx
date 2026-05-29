@@ -27,7 +27,7 @@ export const RegisterPage: React.FC = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    roleId: "", 
+    roleName: "", 
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [localValidationError, setLocalValidationError] = useState<string | null>(null);
@@ -38,10 +38,10 @@ export const RegisterPage: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (roles.length > 0 && !formData.roleId) {
-      setFormData((prev) => ({ ...prev, roleId: roles[0].id }));
+    if (roles.length > 0 && !formData.roleName) {
+      setFormData((prev) => ({ ...prev, roleName: roles[0].name }));
     }
-  }, [roles, formData.roleId]);
+  }, [roles, formData.roleName]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -68,7 +68,7 @@ export const RegisterPage: React.FC = () => {
     try {
       await dispatch(registerUser(formData)).unwrap();
       dispatch(clearAuthMessages());
-      navigate(`${URL_ROUTES.VERIFY_OTP}`, { state: { email: formData.email } });
+      navigate(`${URL_ROUTES.CHECK_EMAIL}`, { state: { email: formData.email } });
     } catch (err) {
     }
   };
@@ -157,12 +157,12 @@ export const RegisterPage: React.FC = () => {
             </label>
             <CustomSelect
                 options={roles}                             
-                value={formData.roleId}                   
+                value={formData.roleName}                   
                 placeholder="I want to join as..."
                 getLabel={(role) => role.name}             
-                getValue={(role) => role.id}               
+                getValue={(role) => role.name}               
                 onChange={(value) => {
-                  setFormData(prev => ({ ...prev, roleId: value }));
+                  setFormData(prev => ({ ...prev, roleName: value }));
                   if (localValidationError) setLocalValidationError(null);
                 }}
             />

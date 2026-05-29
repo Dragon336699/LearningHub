@@ -41,10 +41,11 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("verify-otp")]
-    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestDto request)
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
     {
-        Result<string> result = await _authService.VerifyOtpAsync(request);
+        Result<string> result = await _authService.VerifyEmailAsync(request
+        );
 
         if (!result.IsSuccess)
         {
@@ -54,14 +55,15 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("resend-otp")]
-    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequest request)
+    [HttpPost("resend-verification-email")]
+    public async Task<IActionResult> ResendVerificationEmail([FromBody] ResendVerifyRequest request)
     {
         if(!MailAddress.TryCreate(request.Email, out _))
         {
             return BadRequest(Result<string>.Failure(new List<string> { "Invalid email format." }));
         }
-        var result = await _authService.ResendOtpAsync(request);
+        
+        var result = await _authService.ResendVerificationEmailAsync(request);
 
         if (!result.IsSuccess)
         {

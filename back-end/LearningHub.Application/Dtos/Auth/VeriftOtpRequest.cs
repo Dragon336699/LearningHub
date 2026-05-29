@@ -1,7 +1,7 @@
 ﻿namespace LearningHub.Application.Dtos.Auth;
 
-public class VerifyOtpRequestDto
+public class VerifyEmailRequest
 {
     public string Email { get; init; }
-    public string OtpCode { get; init; }
+    public string Token { get; set; }
 }
