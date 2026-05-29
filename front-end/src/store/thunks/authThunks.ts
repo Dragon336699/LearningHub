@@ -18,23 +18,23 @@ export const registerUser = createAsyncThunk<string, any, { rejectValue: string 
   }
 );
 
-export const verifyOtp = createAsyncThunk<string, { email: string; otpCode: string }, { rejectValue: string }>(
-  "auth/verifyOtp",
-  async (otpData, { rejectWithValue }) => {
+export const verifyEmail = createAsyncThunk<string, { email: string; token: string }, { rejectValue: string }>(
+  "auth/verifyEmail",
+  async (verifyData, { rejectWithValue }) => {
     try {
-      const response = await HttpClient.post<Result<string>>(`${API_ROUTES.AUTH.VERIFY_OTP}`, otpData);
+      const response = await HttpClient.post<Result<string>>(`${API_ROUTES.AUTH.VERIFY_EMAIL}`, verifyData);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error || "Verify");
+      return rejectWithValue(error || "Verify failed");
     }
   }
 );
 
-export const resendOtp = createAsyncThunk<string, string, { rejectValue: string }>(
+export const resendVerify = createAsyncThunk<string, string, { rejectValue: string }>(
   "auth/resendOtp",
   async (email, { rejectWithValue }) => {
     try {
-      const response = await HttpClient.post<Result<string>>(`${API_ROUTES.AUTH.RESEND_OTP}`, { email });
+      const response = await HttpClient.post<Result<string>>(`${API_ROUTES.AUTH.RESEND_VERIFY}`, { email });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error || "Resend failed");

@@ -25,7 +25,7 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
                 .NotEmpty().WithMessage("Please confirm password")
                 .Equal(rq => rq.Password).WithMessage("Confirmation password does not match");
 
-        RuleFor(rq => rq.RoleId)
+        RuleFor(rq => rq.RoleName)
             .NotEmpty().WithMessage("Role is required");
     }
 }

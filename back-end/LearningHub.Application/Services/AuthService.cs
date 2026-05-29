@@ -47,25 +47,20 @@ public class AuthService : IAuthService
         var userExists = await _userManager.FindByEmailAsync(request.Email);
         if (userExists != null)
         {
-            return Result<string>.Failure(new List<string> { "Email already exists." });
+            return Result<string>.Failure(new List<string> { "An account may already exist for this email. Please sign in or use a different email address." });
         }
 
-        string roleName = "Trainee";
+        string roleName = string.IsNullOrWhiteSpace(request.RoleName) ? "Trainee" : request.RoleName;
 
-        if (request.RoleId != Guid.Empty)
+        if (roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
         {
-            var targetRole = await _roleManager.FindByIdAsync(request.RoleId.ToString());
-            if (targetRole == null)
-            {
-                return Result<string>.Failure(new List<string> { "Role does not exist." });
-            }
+            return Result<string>.Failure(new List<string> { "Invalid role selection" });
+        }
 
-            if (targetRole.Name!.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                return Result<string>.Failure(new List<string> { "Invalid role selection." });
-            }
-
-            roleName = targetRole.Name;
+        var targetRole = await _roleManager.FindByNameAsync(roleName);
+        if (targetRole == null)
+        {
+            return Result<string>.Failure(new List<string> { $"Role does not exist." });
         }
 
         var newUser = new User
@@ -84,61 +79,54 @@ public class AuthService : IAuthService
             return Result<string>.Failure(createResult.Errors.Select(e => e.Description).ToList());
         }
 
-        var roleResult = await _userManager.AddToRoleAsync(newUser, roleName);
+        var roleResult = await _userManager.AddToRoleAsync(newUser, targetRole.Name!);
         if (!roleResult.Succeeded)
         {
             return Result<string>.Failure(roleResult.Errors.Select(e => e.Description).ToList());
         }
 
         await _unitOfWork.CompleteAsync();
-        
-        await GenerateAndSendOtpAsync(newUser, "Confirm your account - LearningHub", "Welcome to LearningHub!");
 
-        return Result<string>.Success("Register Success. Please check your email to verify OTP.");
+        await GenerateAndSendVerificationLinkAsync(newUser, "Confirm your account - LearningHub", "Welcome to LearningHub!");
+
+        return Result<string>.Success("Register successfully!");
     }
 
-    public async Task<Result<string>> VerifyOtpAsync(VerifyOtpRequestDto request)
+    public async Task<Result<string>> VerifyEmailAsync(VerifyEmailRequest request)
+{
+    if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Token))
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null)
-        {
-            return Result<string>.Failure(new List<string> { "User does not exist." });
-        }
-
-        if (user.EmailConfirmed)
-        {
-            return Result<string>.Success("Your email has been confirmed already.");
-        }
-
-        string cacheKey = $"otp:{user.Id}";
-        var savedOtp = await _cacheService.GetAsync<string>(cacheKey);
-
-        if (savedOtp == null)
-        {
-            return Result<string>.Failure(new List<string> { "OTP expired. Please request a new one." });
-        }
-
-        if (savedOtp != request.OtpCode)
-        {
-            return Result<string>.Failure(new List<string> { "Invalid OTP." });
-        }
-
-        user.EmailConfirmed = true;
-        var updateResult = await _userManager.UpdateAsync(user);
-
-        if (!updateResult.Succeeded)
-        {
-            return Result<string>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
-        }
-
-        await _unitOfWork.CompleteAsync();
-
-        await _cacheService.RemoveAsync(cacheKey);
-
-        return Result<string>.Success("Verify success! Please login to continue.");
+        return Result<string>.Failure(new List<string> { "Invalid verification link." });
     }
 
-    public async Task<Result<string>> ResendOtpAsync(ResendOtpRequest request)
+    string cacheKey = $"verify:{request.Email}";
+    var savedToken = await _cacheService.GetAsync<string>(cacheKey);
+
+    if (string.IsNullOrEmpty(savedToken))
+    {
+        return Result<string>.Failure(new List<string> { "Verification link has expired. Please request a new one." });
+    }
+
+    if (savedToken != request.Token)
+    {
+        return Result<string>.Failure(new List<string> { "Verification link is invalid. It may have been replaced by a newer link." });
+    }
+
+    var user = await _userManager.FindByEmailAsync(request.Email);
+    if (user == null) return Result<string>.Failure(new List<string> { "User does not exist." });
+    if (user.EmailConfirmed) return Result<string>.Success("Your email has been confirmed already.");
+
+    user.EmailConfirmed = true;
+    var updateResult = await _userManager.UpdateAsync(user);
+    if (!updateResult.Succeeded) return Result<string>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
+
+
+    await _cacheService.RemoveAsync(cacheKey);
+
+    return Result<string>.Success("Verify success! Please login to continue.");
+}
+
+    public async Task<Result<string>> ResendVerificationEmailAsync(ResendVerifyRequest request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
@@ -151,24 +139,70 @@ public class AuthService : IAuthService
             return Result<string>.Failure(new List<string> { "This email has already been verified." });
         }
 
-        await GenerateAndSendOtpAsync(user, "Your new OTP - LearningHub", "LearningHub - Request Resend OTP");
+        await GenerateAndSendVerificationLinkAsync(user, "Your new verification link - LearningHub", "LearningHub - Verify Your Email");
 
-        return Result<string>.Success("A new OTP has been sent to your email. Please check your inbox.");
+        return Result<string>.Success("A new verification link has been sent to your email. Please check your inbox.");
     }
 
-    private async Task GenerateAndSendOtpAsync(User user, string emailSubject, string titleHeader)
+    private async Task GenerateAndSendVerificationLinkAsync(User user, string emailSubject, string titleHeader)
+{
+    string verificationToken = Guid.NewGuid().ToString("N");
+
+    string cacheKey = $"verify:{user.Email}";
+
+    await _cacheService.SetAsync(cacheKey, verificationToken, TimeSpan.FromMinutes(15));
+
+    var clientUrl = _configuration["ClientUrl"];
+    
+    var verifyLink = $"{clientUrl}/verify-email?email={user.Email}&token={verificationToken}";
+
+    var emailBody = $@"
+        <h3>{titleHeader}</h3>
+        <p>Please click the link below to verify your account:</p>
+        <p><a href='{verifyLink}'><strong>Verify My Account</strong></a></p>
+        <p>This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>";
+
+    _ = _otpService.SendOtpAsync(user.Email!, emailSubject, emailBody);
+}
+
+    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request)
     {
-        var otpCode = new Random().Next(100000, 999999).ToString();
+        var user = await _userManager.FindByEmailAsync(request.Email);
 
-        string cacheKey = $"otp:{user.Id}";
-        await _cacheService.SetAsync(cacheKey, otpCode, TimeSpan.FromMinutes(15));
+        if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
+        {
+            return Result<LoginResponse>.Failure(new List<string> { "Invalid email or password." });
+        }
 
-        var emailBody = $@"
-            <h3>{titleHeader}</h3>
-            <p>Your OTP is: <strong>{otpCode}</strong></p>
-            <p>This OTP will expire in 15 minutes. Please do not share this email with anyone.</p>";
+        if (!user.EmailConfirmed)
+        {
+            return Result<LoginResponse>.Failure(new List<string> { "We've sent a verification link to your email. Please verify your account before signing in" });
+        }
 
-        _ = _otpService.SendOtpAsync(user.Email!, emailSubject, emailBody);
+        var userRoles = await _userManager.GetRolesAsync(user);
+        string accessToken = GenerateJwtToken(user, userRoles);
+
+        string refreshToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return Result<LoginResponse>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
+        }
+
+        await _unitOfWork.CompleteAsync();
+
+        return Result<LoginResponse>.Success(new LoginResponse
+        {
+            UserId = user.Id,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(_jwtDurationInMinutes),
+            RefreshTokenExpiresAt = user.RefreshTokenExpiryTime.Value
+        });
     }
 
     public async Task<Result<string>> RefreshTokenAsync(string refreshToken)
@@ -190,39 +224,6 @@ public class AuthService : IAuthService
         return Result<string>.Success(newAccessToken);
     }
 
-    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request)
-    {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null || !user.EmailConfirmed || !await _userManager.CheckPasswordAsync(user, request.Password))
-        {
-            return Result<LoginResponse>.Failure(new List<string> { "Invalid email or password." });
-        }
-
-        var userRoles = await _userManager.GetRolesAsync(user);
-        string accessToken = GenerateJwtToken(user, userRoles); 
-        
-        string refreshToken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-
-        var updateResult = await _userManager.UpdateAsync(user);
-        if (!updateResult.Succeeded)
-        {
-            return Result<LoginResponse>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
-        }
-
-        await _unitOfWork.CompleteAsync();
-
-        return Result<LoginResponse>.Success(new LoginResponse
-        {
-            UserId = user.Id,
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            AccessTokenExpiresAt= DateTime.UtcNow.AddMinutes(_jwtDurationInMinutes),
-            RefreshTokenExpiresAt = user.RefreshTokenExpiryTime.Value
-        });
-    }
 
     public async Task<Result<string>> LogoutAsync(string refreshToken)
     {

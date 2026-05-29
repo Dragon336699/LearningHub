@@ -9,8 +9,8 @@ export const API_ROUTES = {
     REGISTER: "/auth/register",
     LOGOUT: "/auth/logout",
     REFRESH_TOKEN:"/auth/refresh-token",
-    VERIFY_OTP:"/auth/verify-otp",
-    RESEND_OTP:"/auth/resend-otp"
+    VERIFY_EMAIL:"/auth/verify-email",
+    RESEND_VERIFY:"/auth/resend-verification-email"
   },
   ROLES:{
     ALL:"/role"

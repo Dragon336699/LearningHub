@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearningHubDbContext))]
-    [Migration("20260528133413_Refresh_Token")]
-    partial class Refresh_Token
+    [Migration("20260529050004_AddRefreshTokenColumns")]
+    partial class AddRefreshTokenColumns
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

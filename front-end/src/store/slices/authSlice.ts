@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { loginUser, logoutUser, registerUser, verifyOtp, refreshUserToken } from "../thunks/authThunks";
+import { loginUser, logoutUser, registerUser, verifyEmail, refreshUserToken } from "../thunks/authThunks";
 
 interface AuthState {
   currentUser: User | null;
@@ -46,14 +46,14 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      .addCase(verifyOtp.pending, (state) => {
+      .addCase(verifyEmail.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(verifyOtp.fulfilled, (state) => {
+      .addCase(verifyEmail.fulfilled, (state) => {
         state.loading = false;
       })
-      .addCase(verifyOtp.rejected, (state, action) => {
+      .addCase(verifyEmail.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

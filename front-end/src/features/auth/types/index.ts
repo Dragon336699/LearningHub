@@ -11,7 +11,7 @@ export const registerSchema = z.object({
       "Password must contain uppercase, lowercase, number and special character"
     ),
   confirmPassword: z.string().min(1, "Please confirm your password."),
-  roleId: z.string().min(1, "Please select role."),
+  roleName: z.string().min(1, "Please select role."),
   agreeTerms: z.literal(true, {
     message: "You must agree with our term of services and policies.",
   }),

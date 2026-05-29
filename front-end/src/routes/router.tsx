@@ -8,6 +8,8 @@ import { RegisterPage } from "../features/auth/components/RegisterPage";
 import { VerifyOtpPage } from "../features/auth/components/VerifyOtpPage";
 import { LoginPage } from "../features/auth/components/LoginPage";
 import { UserProfilePage } from "../features/users/pages/UserProfilePage";
+import { CheckEmailPage } from "../features/auth/components/CheckEmailPage";
+import { VerifyEmailPage } from "../features/auth/components/VerifyEmailPage";
 // import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 
 export const router = createBrowserRouter([
@@ -27,8 +29,12 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
-        path: URL_ROUTES.VERIFY_OTP,
-        element: <VerifyOtpPage />
+        path: URL_ROUTES.CHECK_EMAIL,
+        element: <CheckEmailPage />
+      },
+      {
+        path: URL_ROUTES.VERIFY_EMAIL,
+        element: < VerifyEmailPage />
       },
 
       {
