@@ -8,7 +8,7 @@ namespace LearningHub.Application.Interfaces.Repositories
         Task<List<T>> FindAllAsync(Expression<Func<T, bool>> expression);
         IQueryable<T> Query();
         Task<List<T>> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? filter = null);
-        Task<int> GetTotalItems(int page, int pageSize, Expression<Func<T, bool>>? filter = null);
+        Task<int> GetTotalItems(Expression<Func<T, bool>>? filter = null);
         Task AddRangeAsync(IEnumerable<T> entities);
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);

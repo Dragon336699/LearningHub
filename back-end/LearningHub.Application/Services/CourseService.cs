@@ -34,11 +34,30 @@ namespace LearningHub.Application.Services
             return Result<CourseDto>.Success(_mapper.Map<CourseDto>(course));
         }
 
-        public async Task<Result<PagedResult<CourseDto>>> GetPagedCourses(int page, int pageSize)
+        public async Task<Result<PagedResult<CourseDto>>> GetPagedAllCourses(int page, int pageSize)
         {
             List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize);
 
-            int totalCourses = await _unitOfWork.Courses.GetTotalItems(page, pageSize);
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems();
+
+            List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
+
+            PagedResult<CourseDto> pageCourses = new PagedResult<CourseDto>
+            {
+                Items = coursesDto,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCourses
+            };
+
+            return Result<PagedResult<CourseDto>>.Success(pageCourses);
+        }
+
+        public async Task<Result<PagedResult<CourseDto>>> GetCoursesByUserId(int page, int pageSize, Guid userId)
+        {
+            List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize, (c) => c.UserId == userId);
+
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == userId);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 
@@ -57,7 +76,7 @@ namespace LearningHub.Application.Services
         {
             List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize, c => c.Status == CourseStatus.Published);
 
-            int totalCourses = await _unitOfWork.Courses.GetTotalItems(page, pageSize, c => c.Status == CourseStatus.Published);
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems(c => c.Status == CourseStatus.Published);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 
@@ -78,7 +97,7 @@ namespace LearningHub.Application.Services
 
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course with id {command.Id} not found.");
+                throw new KeyNotFoundException($"Course not found.");
             }
 
             if (course.UserId != userId)
@@ -101,7 +120,7 @@ namespace LearningHub.Application.Services
 
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course with id {command.Id} not found.");
+                throw new KeyNotFoundException($"Course not found.");
             }
 
             course.Status = command.Status;
@@ -117,7 +136,7 @@ namespace LearningHub.Application.Services
 
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course with id {courseId} not found.");
+                throw new KeyNotFoundException($"Course not found.");
             }
 
             if (course.UserId != userId)

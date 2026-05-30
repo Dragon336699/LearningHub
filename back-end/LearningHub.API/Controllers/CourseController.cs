@@ -4,6 +4,7 @@ using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LearningHub.API.Controllers
 {
@@ -19,9 +20,9 @@ namespace LearningHub.API.Controllers
             _validationService = validationService;
         }
 
-        //[Authorize(Roles="Trainer")]
+        [Authorize(Roles="Mentor")]
         [HttpPost]
-        public async Task<IActionResult> CreateCourse(CreateCourseCommand command, Guid testUserId)
+        public async Task<IActionResult> CreateCourse(CreateCourseCommand command)
         {
             var validationResult = await _validationService.ValidateAsync(command);
 
@@ -30,7 +31,13 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<CourseDto> createResult = await _courseService.CreateNewCourseAsync(command, testUserId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
+            }
+
+            Result<CourseDto> createResult = await _courseService.CreateNewCourseAsync(command, Guid.Parse(userId));
 
             if (!createResult.IsSuccess) return BadRequest(createResult);
 
@@ -39,7 +46,7 @@ namespace LearningHub.API.Controllers
 
         //[Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetPagedCourses([FromQuery] GetPageQuery query)
+        public async Task<IActionResult> GetPagedAllCourses([FromQuery] GetPageQuery query)
         {
             var validationResult = await _validationService.ValidateAsync(query);
 
@@ -48,7 +55,32 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPagedCourses(query.Page, query.PageSize);
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPagedAllCourses(query.Page, query.PageSize);
+
+            if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
+
+            return Ok(getCoursesResult);
+        }
+
+        [Authorize(Roles = "Mentor")]
+        [HttpGet]
+        [Route("mentor")]
+        public async Task<IActionResult> GetCoursesByUser([FromQuery] GetPageQuery query)
+        {
+            var validationResult = await _validationService.ValidateAsync(query);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
+            }
+
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetCoursesByUserId(query.Page, query.PageSize, Guid.Parse(userId));
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 
@@ -74,9 +106,9 @@ namespace LearningHub.API.Controllers
             return Ok(getCoursesResult);
         }
 
-        //[Authorize(Roles="Trainer")]
+        [Authorize(Roles="Mentor")]
         [HttpPut]
-        public async Task<IActionResult> UpdateCourse(UpdateCourseCommand command, Guid testUserId)
+        public async Task<IActionResult> UpdateCourse(UpdateCourseCommand command)
         {
             var validationResult = await _validationService.ValidateAsync(command);
 
@@ -85,14 +117,20 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<CourseDto> updateResult = await _courseService.UpdateCourseAsync(command, testUserId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
+            }
+
+            Result<CourseDto> updateResult = await _courseService.UpdateCourseAsync(command, Guid.Parse(userId));
 
             if (!updateResult.IsSuccess) return BadRequest(updateResult);
 
             return Ok(updateResult);
         }
 
-        //[Authorize(Roles="Admin")]
+        [Authorize(Roles="Admin")]
         [HttpPut]
         [Route("status")]
         public async Task<IActionResult> UpdateCourseStatus(UpdateCourseStatusCommand command)
@@ -111,11 +149,17 @@ namespace LearningHub.API.Controllers
             return Ok(updateResult);
         }
 
-        //[Authorize(Roles="Trainer")]
+        [Authorize(Roles="Mentor")]
         [HttpDelete("{courseId}")]
-        public async Task<IActionResult> DeleteCourse(Guid courseId, Guid testUserId)
+        public async Task<IActionResult> DeleteCourse(Guid courseId)
         {
-            await _courseService.DeleteCourseAsync(courseId, testUserId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
+            }
+
+            await _courseService.DeleteCourseAsync(courseId, Guid.Parse(userId));
 
             return NoContent();
         }
