@@ -45,7 +45,7 @@ export const Pagination = ({
                         Math.max(currentPage - 1, 1)
                     )
                 }
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || totalPages === 0}
                 className="
                     rounded-lg border border-gray-600
                     px-4 py-2 text-sm text-white
@@ -104,7 +104,7 @@ export const Pagination = ({
                     )
                 }
                 disabled={
-                    currentPage === totalPages
+                    currentPage === totalPages || totalPages === 0
                 }
                 className="
                     rounded-lg border border-gray-600

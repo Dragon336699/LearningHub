@@ -4,11 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateCourseForm, CreateCourseSchema } from "../schemas/CreateCourseSchema";
 
 type CreateCourseModalProps = {
+    isLoading: boolean;
     onClose: () => void;
     onCreate: (data: CreateCourseForm) => void;
 }
 
-export const CreateCourseModal = ({ onClose, onCreate }: CreateCourseModalProps) => {
+export const CreateCourseModal = ({isLoading, onClose, onCreate }: CreateCourseModalProps) => {
     const {
         register,
         handleSubmit,
@@ -19,6 +20,7 @@ export const CreateCourseModal = ({ onClose, onCreate }: CreateCourseModalProps)
 
     return (
         <DialogShell
+            isLoading={isLoading}
             open={true}
             title="Create New Course"
             onClose={onClose}
@@ -78,7 +80,7 @@ export const CreateCourseModal = ({ onClose, onCreate }: CreateCourseModalProps)
                 </div>
                 <div className="flex gap-4 justify-end mt-6">
                     <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-                    <button type="submit" className="btn btn-primary">Create Course</button>
+                    <button type="submit" className="btn btn-primary">Save</button>
                 </div>
             </form>
         </DialogShell>
