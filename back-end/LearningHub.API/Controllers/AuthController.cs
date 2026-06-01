@@ -87,7 +87,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true, 
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.None,
             Expires = result.Data.RefreshTokenExpiresAt 
         };
 
@@ -95,7 +95,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.None,
             Expires = result.Data.AccessTokenExpiresAt
         });
 
@@ -121,7 +121,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.AddMinutes(15)
         });
 
@@ -140,7 +140,7 @@ public class AuthController : ControllerBase
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax
+            SameSite = SameSiteMode.None
         };
 
         Response.Cookies.Delete("X-Access-Token", cookieOptions);

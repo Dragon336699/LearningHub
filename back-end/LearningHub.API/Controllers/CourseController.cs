@@ -80,14 +80,14 @@ namespace LearningHub.API.Controllers
                 return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
             }
 
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetCoursesByUserId(query.Page, query.PageSize, Guid.Parse(userId));
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetCoursesByMentor(query.Page, query.PageSize, Guid.Parse(userId));
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 
             return Ok(getCoursesResult);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         [Route("published")]
         public async Task<IActionResult> GetPublishedCourses([FromQuery] GetPageQuery query)

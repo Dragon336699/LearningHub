@@ -15,16 +15,16 @@ http.interceptors.response.use(
       window.location.href = "/login";
     }
 
-    const customErrors = error.response?.data?.errors;
+    // const customErrors = error.response?.data?.errors;
     
-    let errorMessage;
+    // let errorMessage;
 
-    if (Array.isArray(customErrors) && customErrors.length > 0) {
-      errorMessage = customErrors[0]; 
-    } else if (error.message) {
-      errorMessage = error.message; 
-    }
+    // if (Array.isArray(customErrors) && customErrors.length > 0) {
+    //   errorMessage = customErrors[0]; 
+    // } else if (error.message) {
+    //   errorMessage = error.message; 
+    // }
 
-    return Promise.reject(errorMessage);
+    return Promise.reject(error.response?.data);
   }
 );

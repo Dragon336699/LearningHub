@@ -36,7 +36,7 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<PagedResult<CourseDto>>> GetPagedAllCourses(int page, int pageSize)
         {
-            List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize);
+            List<Course> courses = await _unitOfWork.Courses.GetAllCourses(page, pageSize);
 
             int totalCourses = await _unitOfWork.Courses.GetTotalItems();
 
@@ -53,11 +53,11 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<CourseDto>>.Success(pageCourses);
         }
 
-        public async Task<Result<PagedResult<CourseDto>>> GetCoursesByUserId(int page, int pageSize, Guid userId)
+        public async Task<Result<PagedResult<CourseDto>>> GetCoursesByMentor(int page, int pageSize, Guid mentorId)
         {
-            List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize, (c) => c.UserId == userId);
+            List<Course> courses = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, mentorId);
 
-            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == userId);
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == mentorId);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 
@@ -74,7 +74,7 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<PagedResult<CourseDto>>> GetPublishedCourses(int page, int pageSize)
         {
-            List<Course> courses = await _unitOfWork.Courses.GetPagedAsync(page, pageSize, c => c.Status == CourseStatus.Published);
+            List<Course> courses = await _unitOfWork.Courses.GetCoursesByTrainee(page, pageSize);
 
             int totalCourses = await _unitOfWork.Courses.GetTotalItems(c => c.Status == CourseStatus.Published);
 
@@ -108,6 +108,7 @@ namespace LearningHub.Application.Services
             course.Title = command.Title;
             course.Description = command.Description;
             course.LearningObjectives = command.LearningObjectives;
+            course.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _unitOfWork.CompleteAsync();
 
@@ -124,6 +125,7 @@ namespace LearningHub.Application.Services
             }
 
             course.Status = command.Status;
+            course.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _unitOfWork.CompleteAsync();
 
