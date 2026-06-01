@@ -44,7 +44,7 @@ namespace LearningHub.API.Controllers
             return Ok(createResult);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetPagedAllCourses([FromQuery] GetPageQuery query)
         {
@@ -65,7 +65,7 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Mentor")]
         [HttpGet]
         [Route("mentor")]
-        public async Task<IActionResult> GetCoursesByUser([FromQuery] GetPageQuery query)
+        public async Task<IActionResult> GetCoursesByMentor([FromQuery] GetPageQuery query)
         {
             var validationResult = await _validationService.ValidateAsync(query);
 

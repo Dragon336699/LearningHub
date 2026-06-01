@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pagination } from "../../../shared/ui/components/Pagination";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -8,11 +8,10 @@ import { Result } from "../../../types/result";
 import { toast } from "sonner";
 import { ViewCourseDetailModal } from "../components/ViewCourseDetailModal";
 import { CreateCourseModal } from "../components/CreateCourseModal";
-import { courseService } from "../services/Course.service";
 import { CreateCourseForm } from "../schemas/CreateCourseSchema";
 import { UpdateCourseModal } from "../components/UpdateCourseModal";
 import { UpdateCourseForm } from "../schemas/UpdateCourseSchema";
-import { useMentorCourses } from "../hooks/Course.hook";
+import { useCreateCourse, useDeleteCourse, useMentorCourses, useUpdateCourse } from "../hooks/Course.hook";
 import { Course } from "../types/Course.types";
 
 const statusColors = {
@@ -33,6 +32,10 @@ export const MentorCoursesPage = () => {
 
     const { data: pagedCourses } = useMentorCourses(page, pageSize);
 
+    const createCourseMutation = useCreateCourse();
+    const updateCourseMutation = useUpdateCourse();
+    const deleteCourseMutation = useDeleteCourse();
+
     const totalPages = Math.ceil(
         (pagedCourses?.totalCount ?? 0) / pageSize
     );
@@ -40,16 +43,12 @@ export const MentorCoursesPage = () => {
     //Create course
     const handleCreateCourse = async (course: CreateCourseForm) => {
         try {
-            await courseService.createCourse(course);
-            queryClient.invalidateQueries({
-                queryKey: ["mentor-courses"],
-            });
-
+            await createCourseMutation.mutateAsync(course);
             toast.success(`Course ${course.title} was created successfully`);
             setIsCreateModalOpen(false);
-        } catch (error: Result<any> | any) {
-            if (error?.errors) {
-                error.errors.forEach((err: string) => toast.error(err));
+        } catch (errors: Result<any> | any) {
+            if (errors) {
+                errors.forEach((err: string) => toast.error(err));
                 return;
             }
 
@@ -60,16 +59,7 @@ export const MentorCoursesPage = () => {
     //Update course
     const handleUpdateCourse = async (course: UpdateCourseForm) => {
         try {
-            const updatedCourse = await courseService.updateCourse(course);
-            queryClient.setQueryData(["mentor-courses", page, pageSize], (oldData: any) => {
-                if (!oldData) return oldData;
-
-                return {
-                    ...oldData,
-                    items: oldData.items.map((item: Course) => item.id === updatedCourse.id ? updatedCourse : item)
-                };
-            });
-
+            await updateCourseMutation.mutateAsync(course);
             toast.success(`Course ${course.title} was updated successfully`);
             setIsUpdateModalOpen(false);
         } catch (error: Result<any> | any) {
@@ -85,13 +75,14 @@ export const MentorCoursesPage = () => {
     // Delete course
     const handleDeleteCourse = async (course: Course) => {
         try {
-            await courseService.deleteCourse(course.id);
-            queryClient.invalidateQueries({
-                queryKey: ["mentor-courses"],
-            });
-
+            await deleteCourseMutation.mutateAsync(course.id);
             toast.success(`Course ${course.title} was deleted successfully`);
             setIsConfirmDeleteModalOpen(false);
+
+            if (pagedCourses?.items.length === 1 && page > 1) {
+                setPage(page - 1);
+            }
+            await queryClient.invalidateQueries({ queryKey: ["mentor-courses"] });
         } catch (error: Result<any> | any) {
             if (error?.errors) {
                 error.errors.forEach((err: string) => toast.error(err));
@@ -107,7 +98,7 @@ export const MentorCoursesPage = () => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Course Management</h1>
                 <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover active:scale-95" onClick={() => setIsCreateModalOpen(true)}>
-                    Create new course
+                    Create New Course
                 </button>
             </div>
 
@@ -219,6 +210,7 @@ export const MentorCoursesPage = () => {
 
             {isCreateModalOpen && (
                 <CreateCourseModal
+                    isLoading={createCourseMutation.isPending}
                     onClose={() => setIsCreateModalOpen(false)}
                     onCreate={((data: CreateCourseForm) => handleCreateCourse(data))}
                 />
@@ -233,6 +225,7 @@ export const MentorCoursesPage = () => {
 
             {isUpdateModalOpen && (
                 <UpdateCourseModal
+                    isLoading={updateCourseMutation.isPending}
                     data={selectedCourse!}
                     onClose={() => setIsUpdateModalOpen(false)}
                     onUpdate={(data: UpdateCourseForm) => handleUpdateCourse(data)}
@@ -241,6 +234,7 @@ export const MentorCoursesPage = () => {
 
             {isConfirmDeleteModalOpen && (
                 <ConfirmModal
+                    isLoading={deleteCourseMutation.isPending}
                     onConfirm={() => handleDeleteCourse(selectedCourse!)}
                     onCancel={() => {
                         setIsConfirmDeleteModalOpen(false);

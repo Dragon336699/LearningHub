@@ -22,17 +22,7 @@ http.interceptors.response.use(
     }
 
     const customErrors = error.response?.data?.errors;
-    console.log(customErrors)
-    
-    let errorMessage;
 
-    if (Array.isArray(customErrors) && customErrors.length > 0) {
-      errorMessage = customErrors[0]; 
-    } else if (error.message) {
-      errorMessage = error.message; 
-    }
-
-    console.log(errorMessage)
-    return Promise.reject(errorMessage);
+    return Promise.reject(customErrors);
   }
 );

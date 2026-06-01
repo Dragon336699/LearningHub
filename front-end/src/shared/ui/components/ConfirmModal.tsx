@@ -1,10 +1,14 @@
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 type ConfirmModalProps<T> = {
+    isLoading?: boolean;
     data?: T;
     onConfirm: (data?: T) => void;
     onCancel: () => void;
 }
 
-export const ConfirmModal = <T,>({ data, onConfirm, onCancel }: ConfirmModalProps<T>) => {
+export const ConfirmModal = <T,>({ isLoading, data, onConfirm, onCancel }: ConfirmModalProps<T>) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
@@ -36,6 +40,19 @@ export const ConfirmModal = <T,>({ data, onConfirm, onCancel }: ConfirmModalProp
                         Confirm
                     </button>
                 </div>
+                
+                {isLoading && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg z-50">
+                        <div className="flex flex-col items-center gap-2 text-white">
+                            <FontAwesomeIcon
+                                icon={faSpinner}
+                                spin
+                                className="text-xl"
+                            />
+                            <span className="text-sm">Processing...</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

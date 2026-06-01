@@ -14,7 +14,7 @@ const statusColors = {
 
 export const ViewCourseDetailModal = ({ course, onClose }: ViewCourseDetailModalProps) => {
     return (
-        <DialogShell open={true} title="Course Details" onClose={onClose}>
+        <DialogShell open={true} title={course.title} onClose={onClose}>
 
             <div className="flex flex-col space-y-4">
                 <div className="flex flex-col space-y-1">

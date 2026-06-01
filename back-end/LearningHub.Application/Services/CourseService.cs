@@ -20,7 +20,8 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<CourseDto>> CreateNewCourseAsync(CreateCourseCommand command, Guid userId)
         {
-            Course course = _mapper.Map<Course>(command);
+            CreateCourseCommand commandNormalized = command.Normalize();
+            Course course = _mapper.Map<Course>(commandNormalized);
             course.UserId = userId;
 
             await _unitOfWork.Courses.AddAsync(course);
@@ -105,9 +106,9 @@ namespace LearningHub.Application.Services
                 throw new UnauthorizedAccessException("You are not authorized to update this course.");
             }
 
-            course.Title = command.Title;
-            course.Description = command.Description;
-            course.LearningObjectives = command.LearningObjectives;
+            course.Title = command.Title.Trim();
+            course.Description = command.Description.Trim();
+            course.LearningObjectives = command.LearningObjectives?.Trim();
             course.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _unitOfWork.CompleteAsync();

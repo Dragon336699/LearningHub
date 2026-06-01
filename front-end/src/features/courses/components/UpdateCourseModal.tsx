@@ -6,11 +6,12 @@ import { Course } from "../types/Course.types";
 
 type UpdateCourseModalProps = {
     data: Course,
+    isLoading: boolean;
     onClose: () => void;
     onUpdate: (data: UpdateCourseForm) => void;
 }
 
-export const UpdateCourseModal = ({ data, onClose, onUpdate }: UpdateCourseModalProps) => {
+export const UpdateCourseModal = ({ data, isLoading, onClose, onUpdate }: UpdateCourseModalProps) => {
     const {
         register,
         handleSubmit,
@@ -27,6 +28,7 @@ export const UpdateCourseModal = ({ data, onClose, onUpdate }: UpdateCourseModal
 
     return (
         <DialogShell
+            isLoading={isLoading}
             open={true}
             title="Update Course"
             onClose={onClose}
@@ -87,7 +89,7 @@ export const UpdateCourseModal = ({ data, onClose, onUpdate }: UpdateCourseModal
                 </div>
                 <div className="flex gap-4 justify-end mt-6">
                     <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-                    <button type="submit" className="btn btn-primary">Save changes</button>
+                    <button type="submit" className="btn btn-primary">Save</button>
                 </div>
             </form>
         </DialogShell>

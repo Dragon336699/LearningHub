@@ -13,8 +13,6 @@ export default function ProtectedRoute({ allowedRoles, children }: Props) {
   const user = useAppSelector((state: any) => state.auth.currentUser);
 
   const role = user?.roleName;
-  console.log(role);
-  console.log(allowedRoles);
   
   if (!user) {
     return <Navigate to={URL_ROUTES.LOGIN} replace />;
