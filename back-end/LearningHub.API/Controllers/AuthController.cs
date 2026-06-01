@@ -83,24 +83,6 @@ public class AuthController : ControllerBase
             return BadRequest(new { isSuccess = false, errors = result.Errors });
         }
 
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true, 
-            SameSite = SameSiteMode.None,
-            Expires = result.Data.RefreshTokenExpiresAt 
-        };
-
-        Response.Cookies.Append("X-Access-Token", result.Data.AccessToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = result.Data.AccessTokenExpiresAt
-        });
-
-        Response.Cookies.Append("X-Refresh-Token", result.Data.RefreshToken, cookieOptions);
-
         return Ok(result);
     }
 
@@ -108,22 +90,12 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> RefreshToken()
     {
-        string refreshToken = Request.Cookies["X-Refresh-Token"] ?? string.Empty;
-
-        Result<string> result = await _authService.RefreshTokenAsync(refreshToken);
+        Result<string> result = await _authService.RefreshTokenAsync();
 
         if (!result.IsSuccess)
         {
             return BadRequest(new { isSuccess = false, errors = result.Errors });
         }
-
-        Response.Cookies.Append("X-Access-Token", result.Data, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddMinutes(15)
-        });
 
         return Ok();
     }
@@ -132,19 +104,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout()
     {
-        string refreshToken = Request.Cookies["X-Refresh-Token"] ?? string.Empty;
-
-        Result<string> result = await _authService.LogoutAsync(refreshToken);
-
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.None
-        };
-
-        Response.Cookies.Delete("X-Access-Token", cookieOptions);
-        Response.Cookies.Delete("X-Refresh-Token", cookieOptions);
+        Result<string> result = await _authService.LogoutAsync();
 
         if (!result.IsSuccess)
         {
