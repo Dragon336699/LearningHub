@@ -31,6 +31,7 @@ public class AuthService : IAuthService
     private readonly string _jwtSecretKey;
     private readonly string _jwtIssuer;
     private readonly string _jwtAudience;
+    private readonly string _clientUrl;
 
     public AuthService(
         UserManager<User> userManager,
@@ -52,7 +53,7 @@ public class AuthService : IAuthService
         _jwtSecretKey = _configuration["JwtSettings:SecretKey"];
         _jwtIssuer = _configuration["JwtSettings:Issuer"];
         _jwtAudience = _configuration["JwtSettings:Audience"];
-
+        _clientUrl= _configuration["ClientUrl"];
     }
 
     public async Task<Result<string>> RegisterAsync(RegisterRequest request)
@@ -164,10 +165,8 @@ public class AuthService : IAuthService
     string cacheKey = $"verify:{user.Email}";
 
     await _cacheService.SetAsync(cacheKey, verificationToken, TimeSpan.FromMinutes(15));
-
-    var clientUrl = _configuration["ClientUrl"];
     
-    var verifyLink = $"{clientUrl}/verify-email?email={user.Email}&token={verificationToken}";
+    var verifyLink = $"{_clientUrl}/verify-email?email={user.Email}&token={verificationToken}";
 
     var emailBody = $@"
         <h3>{titleHeader}</h3>
