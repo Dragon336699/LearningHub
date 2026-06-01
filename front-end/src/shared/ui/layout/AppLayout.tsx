@@ -34,7 +34,7 @@ export const AppLayout = () => {
             <div className="w-[20%] min-h-screen bg-card p-4 text-white text-center">
                 <nav>
                     <header className="mb-4">
-                        <h1 className="text-2xl font-bold text-primary">
+                        <h1 onClick={() => navigate('/')} className="cursor-pointer text-2xl font-bold text-primary">
                             Learning Hub
                         </h1>
                     </header>
