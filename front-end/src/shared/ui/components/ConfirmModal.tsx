@@ -6,9 +6,11 @@ type ConfirmModalProps<T> = {
     data?: T;
     onConfirm: (data?: T) => void;
     onCancel: () => void;
+    title?: string;
+    description?: string;
 }
 
-export const ConfirmModal = <T,>({ isLoading, data, onConfirm, onCancel }: ConfirmModalProps<T>) => {
+export const ConfirmModal = <T,>({ isLoading, data, onConfirm, onCancel, title, description }: ConfirmModalProps<T>) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
@@ -18,24 +20,24 @@ export const ConfirmModal = <T,>({ isLoading, data, onConfirm, onCancel }: Confi
 
             <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
                 <h1 className="text-xl font-semibold text-gray-900">
-                    Are you sure you want to delete this?
+                    {title || "Are you sure you want to delete this?"}
                 </h1>
 
                 <p className="mt-2 text-sm text-gray-600">
-                    Do you want to delete this item? This process cannot be undone.
+                    {description || "Do you want to delete this item? This process cannot be undone."}
                 </p>
 
                 <div className="mt-6 flex justify-end gap-3">
                     <button
                         onClick={onCancel}
-                        className="rounded-lg px-4 py-2 text-sm bg-sidebar hover:bg-sidebar-hover"
+                        className="cursor-pointer rounded-lg px-4 py-2 text-sm bg-sidebar hover:bg-sidebar-hover"
                     >
                         Cancel
                     </button>
 
                     <button
                         onClick={() => onConfirm(data)}
-                        className="rounded-lg px-4 py-2 text-sm bg-danger text-white hover:bg-danger-hover"
+                        className="cursor-pointer rounded-lg px-4 py-2 text-sm bg-danger text-white hover:bg-danger-hover"
                     >
                         Confirm
                     </button>

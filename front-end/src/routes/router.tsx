@@ -1,9 +1,7 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import AuthBootstrap from "../providers/AuthBootstrap";
-// import { UserProfilePage } from "../features/users/components/UserProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
 import { URL_ROUTES } from "../configs/url_routes";
-// import CreateProfilePage from "../features/users/components/CreateProfilePage";
 import { RegisterPage } from "../features/auth/components/RegisterPage";
 import { LoginPage } from "../features/auth/components/LoginPage";
 import { UserProfilePage } from "../features/users/pages/UserProfilePage";
@@ -14,6 +12,7 @@ import { MentorCoursesPage } from "../features/courses/pages/MentorCoursesPage";
 import { AdminCoursesPage } from "../features/courses/pages/AdminCoursesPage";
 import { TraineeCoursesPage } from "../features/courses/pages/TraineeCoursesPage";
 import { DashboardPage } from "../features/dashboard/components/DashboardPage";
+import ProtectedLoginRoute from "./ProtectedAuthRoute";
 
 export const router = createBrowserRouter([
   {
@@ -25,11 +24,13 @@ export const router = createBrowserRouter([
     children: [
       {
         path: URL_ROUTES.LOGIN,
-        element: <LoginPage />
+        element:
+          <ProtectedLoginRoute><LoginPage /></ProtectedLoginRoute>
       },
       {
         path: URL_ROUTES.REGISTER,
-        element: <RegisterPage />,
+        element:
+          <ProtectedLoginRoute><RegisterPage /></ProtectedLoginRoute>,
       },
       {
         path: URL_ROUTES.CHECK_EMAIL,
@@ -41,11 +42,11 @@ export const router = createBrowserRouter([
       },
 
       {
-        element: <ProtectedRoute><AppLayout /></ProtectedRoute>, 
+        element: <ProtectedRoute><AppLayout /></ProtectedRoute>,
         children: [
           {
             path: URL_ROUTES.HOME,
-            element: <DashboardPage /> 
+            element: <DashboardPage />
           },
           {
             path: URL_ROUTES.PROFILE,
@@ -66,7 +67,7 @@ export const router = createBrowserRouter([
           {
             path: URL_ROUTES.TRAINEE_COURSES,
             element: (
-              <ProtectedRoute allowedRoles={["Trainee", "Admin"]}><TraineeCoursesPage /></ProtectedRoute>
+              <ProtectedRoute allowedRoles={["Trainee"]}><TraineeCoursesPage /></ProtectedRoute>
             ),
           },
         ]
