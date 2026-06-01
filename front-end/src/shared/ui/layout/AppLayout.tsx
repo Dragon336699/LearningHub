@@ -14,7 +14,7 @@ export const AppLayout = () => {
     const location = useLocation();
 
     const navigateItems = [
-        { name: 'Dashboard', icon: <FontAwesomeIcon className="mr-2" icon={faGauge} />, path: '/dashboard' },
+        { name: 'Dashboard', icon: <FontAwesomeIcon className="mr-2" icon={faGauge} />, path: '' },
         { name: 'My Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBook} />, path: URL_ROUTES.MENTOR_COURSE, roles: ['Mentor'] },
         { name: 'Find Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBook} />, path: URL_ROUTES.TRAINEE_COURSES, roles: ['Trainee', 'Admin'] },
         { name: 'All Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBook} />, path: URL_ROUTES.All_COURSES, roles: ['Admin'] },

@@ -13,7 +13,7 @@ import { AppLayout } from "../shared/ui/layout/AppLayout";
 import { MentorCoursesPage } from "../features/courses/pages/MentorCoursesPage";
 import { AdminCoursesPage } from "../features/courses/pages/AdminCoursesPage";
 import { TraineeCoursesPage } from "../features/courses/pages/TraineeCoursesPage";
-// import { DashboardPage } from "../features/dashboard/components/DashboardPage";
+import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -37,63 +37,32 @@ export const router = createBrowserRouter([
       },
       {
         path: URL_ROUTES.VERIFY_EMAIL,
-        element: < VerifyEmailPage />
+        element: <VerifyEmailPage />
       },
 
-
-      // {
-      //   path: URL_ROUTES.LOGIN,
-      //   element: <Login />,
-      // },
-
       {
-        element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+        element: <ProtectedRoute><AppLayout /></ProtectedRoute>, 
         children: [
           {
             path: URL_ROUTES.HOME,
-            // element:<DashboardPage/>
+            element: <DashboardPage /> 
           },
-          // {
-          //   path: "profile/create",
-          //   element: <CreateProfilePage />,
-          // },
-          // {
-          //   path: "/profile/:id",
-          //   element: <UserProfilePage />,
-          // },
-          // {
-          //   path: "/",
-          //   element: <Home />,
-          // }
-        ]
-      }
-    ],
-  },
-  {
-    path: '/',
-    children: [
-      {
-        element: <AppLayout />,
-        children: [
           {
             path: URL_ROUTES.PROFILE,
             element: <UserProfilePage />,
           },
-
           {
             path: URL_ROUTES.MENTOR_COURSE,
             element: (
               <ProtectedRoute allowedRoles={["Mentor"]}><MentorCoursesPage /></ProtectedRoute>
             ),
           },
-
           {
             path: URL_ROUTES.All_COURSES,
             element: (
               <ProtectedRoute allowedRoles={["Admin"]}><AdminCoursesPage /></ProtectedRoute>
             ),
           },
-
           {
             path: URL_ROUTES.TRAINEE_COURSES,
             element: (
@@ -102,6 +71,6 @@ export const router = createBrowserRouter([
           },
         ]
       }
-    ]
+    ],
   }
 ]);
