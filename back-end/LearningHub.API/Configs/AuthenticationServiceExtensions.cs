@@ -1,6 +1,9 @@
 ﻿using LearningHub.Domain.Entities;
 using LearningHub.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace LearningHub.API.Configs
 {
@@ -20,6 +23,38 @@ namespace LearningHub.API.Configs
                 .AddRoles<Role>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<LearningHubDbContext>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                    .AddJwtBearer(options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = configuration["JwtSettings:Issuer"],
+                            ValidAudience = configuration["JwtSettings:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:SecretKey"]!)),
+                            ClockSkew = TimeSpan.Zero
+                        };
+
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context =>
+                            {
+                                if (context.Request.Cookies.TryGetValue("X-Access-Token", out var token))
+                                {
+                                    context.Token = token;
+                                }
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
         }
     }
 }

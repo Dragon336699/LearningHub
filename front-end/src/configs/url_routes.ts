@@ -3,6 +3,9 @@ export const URL_ROUTES = {
     LOGIN: "/login",
     REGISTER: "/register",
     VERIFY_EMAIL:"/verify-email",
-    CHECK_EMAIL: "/check-email"
-  
+    CHECK_EMAIL: "/check-email",
+    PROFILE: "/profile/:id",
+    MENTOR_COURSE: "mentor/courses",
+    All_COURSES: "admin/courses",
+    TRAINEE_COURSES: "find/courses",
 };
