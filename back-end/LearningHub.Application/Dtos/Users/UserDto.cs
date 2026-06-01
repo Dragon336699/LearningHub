@@ -11,6 +11,7 @@ namespace LearningHub.Application.Dtos.Users
         public Guid Id { get; set; }
         public string FirstName { get; set; } = null!;
         public string? LastName { get; set; }
+        public string? AvatarUrl { get; set; }
         public string? Bio { get; set; }
         public decimal? CoachCost {  get; set; }
         public string? Skills { get; set; }

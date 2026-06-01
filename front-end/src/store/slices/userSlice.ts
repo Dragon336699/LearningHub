@@ -22,6 +22,20 @@ const userSlice = createSlice({
       state.profileUser = null;
       state.error = null;
     },
+    // Update avatar in store
+    updateAvatarSuccess: (state, action: PayloadAction<string>) => {
+      if (state.profileUser) {
+        state.profileUser.avatarUrl = action.payload;
+        localStorage.setItem("user", JSON.stringify(state.profileUser));
+      }
+    },
+    // Synchronize certificate list from API
+    updateCertificatesSuccess: (state, action: PayloadAction<any[]>) => {
+      if (state.profileUser) {
+        state.profileUser.certificates = action.payload;
+        localStorage.setItem("user", JSON.stringify(state.profileUser));
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -46,7 +60,14 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;
         if (state.profileUser) {
-          state.profileUser = { ...state.profileUser, ...action.payload };
+          const currentRole = state.profileUser.roleName;
+          const currentCerts = state.profileUser.certificates;
+          state.profileUser = { 
+            ...state.profileUser, 
+            ...action.payload, 
+            roleName: currentRole, 
+            certificates: currentCerts 
+          };
           localStorage.setItem("user", JSON.stringify(state.profileUser));
         }
       })
@@ -57,5 +78,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { clearProfile } = userSlice.actions;
+export const { clearProfile, updateAvatarSuccess, updateCertificatesSuccess } = userSlice.actions;
 export default userSlice.reducer;
