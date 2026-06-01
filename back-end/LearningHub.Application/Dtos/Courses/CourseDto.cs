@@ -7,6 +7,8 @@ namespace LearningHub.Application.Dtos.Courses
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
         public string? LearningObjectives { get; set; }
         public CourseStatus Status { get; set; }
     }

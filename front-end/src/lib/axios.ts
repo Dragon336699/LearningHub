@@ -1,4 +1,7 @@
 import axios from "axios";
+import { store } from "../store";
+import { logoutUser } from "../store/thunks/authThunks";
+import { URL_ROUTES } from "../configs/url_routes";
 
 export const apiBaseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,10 +15,14 @@ http.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      window.location.href = "/login";
+      
+      localStorage.removeItem("user");
+      store.dispatch(logoutUser());
+      window.location.href = URL_ROUTES.LOGIN;
     }
 
     const customErrors = error.response?.data?.errors;
+    console.log(customErrors)
     
     let errorMessage;
 
@@ -25,6 +32,7 @@ http.interceptors.response.use(
       errorMessage = error.message; 
     }
 
+    console.log(errorMessage)
     return Promise.reject(errorMessage);
   }
 );

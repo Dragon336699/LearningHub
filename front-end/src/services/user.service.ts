@@ -1,5 +1,4 @@
 import { API_ROUTES } from "../configs/api_routes";
-import { http } from "../lib/axios";
 import { HttpClient } from "../lib/client";
 import { User } from "../types/user";
 
@@ -19,13 +18,13 @@ export const userService = {
   },
 
   // POST: /user/profile/avatar?testUserId={id}
-  // uploadAvatar: (id: string, file: File) => {
-  //   const formData = new FormData();
-  //   formData.append("AvatarFile", file);
+  uploadAvatar: (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("AvatarFile", file);
     
-  //   return HttpClient.post<{ isSuccess: boolean; data: { avatarUrl: string } }>(
-  //     `/user/profile/avatar?testUserId=${id}`, 
-  //     formData
-  //   );
-  // }
+    return HttpClient.post<{ isSuccess: boolean; data: { avatarUrl: string } }>(
+      `/user/profile/avatar?testUserId=${id}`, 
+      formData
+    );
+  }
 };

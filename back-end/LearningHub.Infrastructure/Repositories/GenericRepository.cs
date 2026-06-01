@@ -50,15 +50,13 @@ namespace LearningHub.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> GetTotalItems(int page, int pageSize, Expression<Func<T, bool>>? filter)
+        public async Task<int> GetTotalItems(Expression<Func<T, bool>>? filter)
         {
             IQueryable<T> query = _context.Set<T>();
             if (filter != null)
                 query.Where(filter);
 
             return await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .CountAsync();
         }
 

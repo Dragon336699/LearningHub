@@ -9,8 +9,17 @@ interface AuthState {
   error: string | null; 
 }
 
-const savedUser = localStorage.getItem("user");
-const initialUser = savedUser ? JSON.parse(savedUser) : null;
+const getInitialUser = (): User | null => {
+  try {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  } catch (error) {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
+
+const initialUser = getInitialUser();
 
 const initialState: AuthState = {
   currentUser: initialUser,

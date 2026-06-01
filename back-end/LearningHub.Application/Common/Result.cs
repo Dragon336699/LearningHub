@@ -6,5 +6,7 @@
         public static Result<T> Success(T data) => new(true, data, null);
 
         public static Result<T> Failure(List<string> errors) => new(false, default, errors);
+        public static Result<T> Failure(string error) => Result<T>.Failure(new List<string> {error});
+        
     }
 }

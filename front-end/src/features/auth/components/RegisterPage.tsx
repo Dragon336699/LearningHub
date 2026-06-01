@@ -6,7 +6,7 @@ import { AppDispatch, RootState } from "../../../store";
 import { registerUser } from "../../../store/thunks/authThunks";
 import { fetchRoles } from "../../../store/thunks/roleThunks"; 
 import { clearAuthMessages } from "../../../store/slices/authSlice";
-import { CustomSelect } from "../../../components/common/CustomSelect";
+import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
 import { API_ROUTES } from "../../../configs/api_routes";
 import { URL_ROUTES } from "../../../configs/url_routes";
 import { registerSchema } from "../types";

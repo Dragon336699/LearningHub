@@ -3,6 +3,7 @@ using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ namespace LearningHub.API.Controllers
 {
     [ApiController]
     [Route("user")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

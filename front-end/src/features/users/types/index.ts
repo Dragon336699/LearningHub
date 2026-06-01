@@ -3,6 +3,9 @@ import { Experience } from "../../../types/experience";
 export interface FormState {
   firstName: string;
   lastName: string;
+  avatarUrl: string;
+  coachCost: number;
+  roleName: string;
   bio: string;
   skills: string;
   selectedExpertiseIds: string[];

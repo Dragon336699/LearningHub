@@ -1,10 +1,12 @@
 ﻿using LearningHub.Application.Common;
+using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Dtos.Auth;
 using LearningHub.Application.Interfaces;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +25,13 @@ public class AuthService : IAuthService
     private readonly IConfiguration _configuration;
     private readonly IUnitOfWork _unitOfWork;
     private readonly double _jwtDurationInMinutes;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly string _accessTokenCookieName = "X-Access-Token";
+    private readonly string _refreshTokenCookieName = "X-Refresh-Token";
+    private readonly string _jwtSecretKey;
+    private readonly string _jwtIssuer;
+    private readonly string _jwtAudience;
+    private readonly string _clientUrl;
 
     public AuthService(
         UserManager<User> userManager,
@@ -30,7 +39,8 @@ public class AuthService : IAuthService
         ICacheService cacheService,
         IOtpService otpService,
         IConfiguration configuration,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -38,8 +48,12 @@ public class AuthService : IAuthService
         _otpService = otpService;
         _configuration = configuration;
         _unitOfWork = unitOfWork;
-        var durationStr = _configuration["JwtSettings:DurationInMinutes"];
-        _jwtDurationInMinutes = double.TryParse(durationStr, out var minutes) ? minutes : 15;
+        _jwtDurationInMinutes = _configuration.GetValue<double>("JwtSettings:DurationInMinutes", 15);
+        _httpContextAccessor = httpContextAccessor;
+        _jwtSecretKey = _configuration["JwtSettings:SecretKey"];
+        _jwtIssuer = _configuration["JwtSettings:Issuer"];
+        _jwtAudience = _configuration["JwtSettings:Audience"];
+        _clientUrl= _configuration["ClientUrl"];
     }
 
     public async Task<Result<string>> RegisterAsync(RegisterRequest request)
@@ -47,20 +61,20 @@ public class AuthService : IAuthService
         var userExists = await _userManager.FindByEmailAsync(request.Email);
         if (userExists != null)
         {
-            return Result<string>.Failure(new List<string> { "An account may already exist for this email. Please sign in or use a different email address." });
+            return Result<string>.Failure( Messages.Auth.UserAlreadyExists );
         }
 
         string roleName = string.IsNullOrWhiteSpace(request.RoleName) ? "Trainee" : request.RoleName;
 
         if (roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
         {
-            return Result<string>.Failure(new List<string> { "Invalid role selection" });
+            return Result<string>.Failure( Messages.Auth.InvalidRole );
         }
 
         var targetRole = await _roleManager.FindByNameAsync(roleName);
         if (targetRole == null)
         {
-            return Result<string>.Failure(new List<string> { $"Role does not exist." });
+            return Result<string>.Failure(Messages.Auth.RoleNotFound );
         }
 
         var newUser = new User
@@ -89,14 +103,14 @@ public class AuthService : IAuthService
 
         await GenerateAndSendVerificationLinkAsync(newUser, "Confirm your account - LearningHub", "Welcome to LearningHub!");
 
-        return Result<string>.Success("Register successfully!");
+        return Result<string>.Success(Messages.Auth.RegisterSuccess);
     }
 
     public async Task<Result<string>> VerifyEmailAsync(VerifyEmailRequest request)
 {
     if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Token))
     {
-        return Result<string>.Failure(new List<string> { "Invalid verification link." });
+        return Result<string>.Failure(Messages.Auth.InvalidLink);
     }
 
     string cacheKey = $"verify:{request.Email}";
@@ -104,17 +118,17 @@ public class AuthService : IAuthService
 
     if (string.IsNullOrEmpty(savedToken))
     {
-        return Result<string>.Failure(new List<string> { "Verification link has expired. Please request a new one." });
+        return Result<string>.Failure(Messages.Auth.LinkExpired);
     }
 
     if (savedToken != request.Token)
     {
-        return Result<string>.Failure(new List<string> { "Verification link is invalid. It may have been replaced by a newer link." });
+        return Result<string>.Failure(Messages.Auth.LinkInvalid);
     }
 
     var user = await _userManager.FindByEmailAsync(request.Email);
-    if (user == null) return Result<string>.Failure(new List<string> { "User does not exist." });
-    if (user.EmailConfirmed) return Result<string>.Success("Your email has been confirmed already.");
+    if (user == null) return Result<string>.Failure(Messages.Auth.UserNotFound);
+    if (user.EmailConfirmed) return Result<string>.Success(Messages.Auth.EmailConfirmed);
 
     user.EmailConfirmed = true;
     var updateResult = await _userManager.UpdateAsync(user);
@@ -123,7 +137,7 @@ public class AuthService : IAuthService
 
     await _cacheService.RemoveAsync(cacheKey);
 
-    return Result<string>.Success("Verify success! Please login to continue.");
+    return Result<string>.Success(Messages.Auth.VerifySuccess);
 }
 
     public async Task<Result<string>> ResendVerificationEmailAsync(ResendVerifyRequest request)
@@ -131,17 +145,17 @@ public class AuthService : IAuthService
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
-            return Result<string>.Failure(new List<string> { "User does not exist." });
+            return Result<string>.Failure(Messages.Auth.UserNotFound);
         }
 
         if (user.EmailConfirmed)
         {
-            return Result<string>.Failure(new List<string> { "This email has already been verified." });
+            return Result<string>.Failure(Messages.Auth.EmailConfirmed);
         }
 
         await GenerateAndSendVerificationLinkAsync(user, "Your new verification link - LearningHub", "LearningHub - Verify Your Email");
 
-        return Result<string>.Success("A new verification link has been sent to your email. Please check your inbox.");
+        return Result<string>.Success(Messages.Auth.EmailSent);
     }
 
     private async Task GenerateAndSendVerificationLinkAsync(User user, string emailSubject, string titleHeader)
@@ -151,10 +165,8 @@ public class AuthService : IAuthService
     string cacheKey = $"verify:{user.Email}";
 
     await _cacheService.SetAsync(cacheKey, verificationToken, TimeSpan.FromMinutes(15));
-
-    var clientUrl = _configuration["ClientUrl"];
     
-    var verifyLink = $"{clientUrl}/verify-email?email={user.Email}&token={verificationToken}";
+    var verifyLink = $"{_clientUrl}/verify-email?email={user.Email}&token={verificationToken}";
 
     var emailBody = $@"
         <h3>{titleHeader}</h3>
@@ -171,12 +183,13 @@ public class AuthService : IAuthService
 
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
         {
-            return Result<LoginResponse>.Failure(new List<string> { "Invalid email or password." });
+            return Result<LoginResponse>.Failure(Messages.Auth.InvalidCredentials);
         }
 
         if (!user.EmailConfirmed)
         {
-            return Result<LoginResponse>.Failure(new List<string> { "We've sent a verification link to your email. Please verify your account before signing in" });
+            await GenerateAndSendVerificationLinkAsync(user, "Your new verification link - LearningHub", "LearningHub - Verify Your Email");
+            return Result<LoginResponse>.Failure(Messages.Auth.EmailSent);
         }
 
         var userRoles = await _userManager.GetRolesAsync(user);
@@ -193,7 +206,25 @@ public class AuthService : IAuthService
             return Result<LoginResponse>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
         }
 
-        await _unitOfWork.CompleteAsync();
+        var accessTokenExpiry = DateTime.UtcNow.AddMinutes(_jwtDurationInMinutes);
+
+        var responseCookies = _httpContextAccessor.HttpContext.Response.Cookies;
+
+        responseCookies.Append(_accessTokenCookieName, accessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = accessTokenExpiry
+        });
+
+        responseCookies.Append(_refreshTokenCookieName, refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = user.RefreshTokenExpiryTime.Value
+        });
 
         return Result<LoginResponse>.Success(new LoginResponse
         {
@@ -205,34 +236,46 @@ public class AuthService : IAuthService
         });
     }
 
-    public async Task<Result<string>> RefreshTokenAsync(string refreshToken)
+    public async Task<Result<string>> RefreshTokenAsync()
     {
+        string refreshToken = _httpContextAccessor.HttpContext.Request.Cookies[_refreshTokenCookieName] ?? string.Empty;
+        var responseCookies = _httpContextAccessor.HttpContext.Response.Cookies;
+      
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Result<string>.Failure(new List<string> { "Refresh Token is required." });
+            return Result<string>.Failure(Messages.Auth.RefreshTokenRequired);
         }
         var user = _userManager.Users.FirstOrDefault(u => u.RefreshToken == refreshToken);
 
         if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            return Result<string>.Failure(new List<string> { "Invalid or expired refresh token. Please login again." });
+            return Result<string>.Failure(Messages.Auth.RefreshInvalidOrExpired);
         }
 
         var userRoles = await _userManager.GetRolesAsync(user);
         string newAccessToken = GenerateJwtToken(user, userRoles);
+        responseCookies.Append(_accessTokenCookieName, newAccessToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddMinutes(_jwtDurationInMinutes)
+        });
 
         return Result<string>.Success(newAccessToken);
     }
 
 
-    public async Task<Result<string>> LogoutAsync(string refreshToken)
+    public async Task<Result<string>> LogoutAsync()
     {
+        string refreshToken = _httpContextAccessor.HttpContext.Request.Cookies[_refreshTokenCookieName] ?? string.Empty;
+        var responseCookies = _httpContextAccessor.HttpContext.Response.Cookies;
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Result<string>.Failure(new List<string> { "Refresh Token is required." });
+            return Result<string>.Failure(Messages.Auth.RefreshTokenRequired);
         }
 
-        var user = _userManager.Users.FirstOrDefault(u => u.RefreshToken == refreshToken);
+        User? user = _userManager.Users.FirstOrDefault(u => u.RefreshToken == refreshToken);
 
         if (user != null)
         {
@@ -244,9 +287,12 @@ public class AuthService : IAuthService
             {
                 return Result<string>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
             }
+
+            responseCookies.Delete(_accessTokenCookieName);
+            responseCookies.Delete(_refreshTokenCookieName);
         }
 
-        return Result<string>.Success("Logout success.");
+        return Result<string>.Success(Messages.Auth.LogoutSuccess);
     }
 
 
@@ -264,17 +310,14 @@ public class AuthService : IAuthService
             authClaims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var secretKey = _configuration["JwtSettings:SecretKey"]
-            ?? throw new ArgumentNullException("JWT Secret Key is missing!");
-
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecretKey));
 
         var tokenDescription = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(authClaims),
             Expires = DateTime.UtcNow.AddMinutes(_jwtDurationInMinutes),
-            Issuer = _configuration["JwtSettings:Issuer"],
-            Audience = _configuration["JwtSettings:Audience"],
+            Issuer = _jwtIssuer,
+            Audience = _jwtAudience,
             SigningCredentials = new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
         };
 
