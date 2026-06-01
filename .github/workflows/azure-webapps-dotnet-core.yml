@@ -63,7 +63,7 @@ jobs:
         
       - name: Publish the APP
         run: 
-             dotnet publish Presentation/Presentation.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+             dotnet publish LearningHub.API/LearningHub.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
