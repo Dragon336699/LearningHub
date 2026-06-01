@@ -5,7 +5,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import { URL_ROUTES } from "../configs/url_routes";
 // import CreateProfilePage from "../features/users/components/CreateProfilePage";
 import { RegisterPage } from "../features/auth/components/RegisterPage";
-import { VerifyOtpPage } from "../features/auth/components/VerifyOtpPage";
 import { LoginPage } from "../features/auth/components/LoginPage";
 import { UserProfilePage } from "../features/users/pages/UserProfilePage";
 import { CheckEmailPage } from "../features/auth/components/CheckEmailPage";
