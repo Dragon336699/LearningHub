@@ -8,6 +8,8 @@ namespace LearningHub.Domain.Entities
         public required string Title { get; set; }
         public required string Description { get; set; }
         public string? LearningObjectives {  get; set; }
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
         public CourseStatus Status { get; set; } = CourseStatus.Draft;
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;

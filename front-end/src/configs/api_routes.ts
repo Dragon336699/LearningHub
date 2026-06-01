@@ -16,7 +16,10 @@ export const API_ROUTES = {
     ALL:"/role"
   },
   COURSE: {
-    GET_LIST: "/courses",
+    COMMON: "/courses",
+    CHANGE_STATUS: "/courses/status",
+    MENTOR: "/courses/mentor",
+    TRAINEE: "/courses/published",
     GET_DETAIL: (id: string) => `/courses/${id}`, 
-  }
+  },
 };
