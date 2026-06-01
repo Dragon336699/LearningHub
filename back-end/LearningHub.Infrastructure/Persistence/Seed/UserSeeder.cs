@@ -37,7 +37,7 @@ namespace LearningHub.Infrastructure.Persistence.Seed
             };
 
             var createAdminResult = await _userManager.CreateAsync(admin, "Admin@123");
-            if (!createAdminResult.Succeeded)
+            if (createAdminResult.Succeeded)
             {
                 await _userManager.AddToRoleAsync(admin, "Admin");
             }
