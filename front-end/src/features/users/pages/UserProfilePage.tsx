@@ -6,6 +6,12 @@ import {
   DollarSign,
   Award,
   Briefcase,
+  User2,
+  ArrowUpRight,
+  Camera,
+  Plus,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
@@ -15,6 +21,11 @@ import {
 import { Experience } from "../../../types/experience";
 import { FormState } from "../types";
 import { EditProfileModal } from "../components/EditProfileModal";
+import { AvatarUploadModal } from "../components/AvatarUploadModal";
+import { Certificate } from "../../../types/certificate";
+import { updateAvatarSuccess } from "../../../store/slices/userSlice";
+import { certificateService } from "../../../services/certificate.service";
+import { CertificateEditModal } from "../components/CertificateEditModal";
 
 type TabType = "about" | "experience" | "certificates";
 
@@ -29,10 +40,18 @@ export const UserProfilePage = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>("about");
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAvatarPopupOpen, setIsAvatarPopupOpen] = useState(false);
+  const [liveAvatar, setLiveAvatar] = useState("");
+
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [selectedCertForEdit, setSelectedCertForEdit] = useState<Certificate | null>(null);
 
   const [formState, setFormState] = useState<FormState>({
     firstName: "",
     lastName: "",
+    avatarUrl: "",
+    coachCost: 0,
+    roleName: "",
     bio: "",
     skills: "",
     selectedExpertiseIds: [] as string[],
@@ -44,6 +63,9 @@ export const UserProfilePage = () => {
     setFormState({
       firstName: user.firstName || (user as any).FirstName || "",
       lastName: user.lastName || (user as any).LastName || "",
+      avatarUrl: user.avatarUrl || (user as any).AvatarUrl || "",
+      coachCost: user.coachCost || (user as any).CoachCost || 0,
+      roleName: user.roleName || (user as any).RoleName || "",
       bio: user.bio || (user as any).Bio || "",
       skills: user.skills || (user as any).Skills || "",
       selectedExpertiseIds:
@@ -52,6 +74,7 @@ export const UserProfilePage = () => {
         [],
       experiences: user.experiences || (user as any).Experiences || [],
     });
+    setLiveAvatar(user.avatarUrl || "");
   };
 
   useEffect(() => {
@@ -62,10 +85,46 @@ export const UserProfilePage = () => {
     if (user) resetFormState();
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      setLiveAvatar(user.avatarUrl || "");
+    }
+  }, [user?.avatarUrl, user]);
+
+  const handleRefresh = () => {
+    if (id) dispatch(fetchUserById(id));
+  };
+
   const handleCancel = () => {
     resetFormState();
     setIsEditOpen(false);
   };
+
+  const handleDeleteCertificate = async (certId: string) => {
+    if (!globalThis.confirm("Are you sure you want to permanently delete this certificate?")) return;
+    try {
+      await certificateService.delete(certId);
+      handleRefresh(); // Re-fetch dữ liệu thô sạch từ DB về Redux
+    } catch (err) {
+      alert("Failed to delete certificate.");
+    }
+  };
+
+  const handleOpenAddCert = () => {
+    setSelectedCertForEdit(null); // Set về null để Popup hiểu là thêm mới
+    setIsCertModalOpen(true);
+  };
+
+  const handleOpenEditCert = (cert: Certificate) => {
+    setSelectedCertForEdit(cert); // Truyền object sang để Popup hiểu là chỉnh sửa
+    setIsCertModalOpen(true);
+  };
+
+  const handleAvatarSuccess = (newAvatarUrl: string) => {
+    setFormState((prev) => ({ ...prev, avatarUrl: newAvatarUrl }));
+    setLiveAvatar(newAvatarUrl);
+    dispatch(updateAvatarSuccess(newAvatarUrl));
+  }
 
   const handleSaveModal = (updatedForm: FormState) => {
     if (!user) return;
@@ -85,11 +144,12 @@ export const UserProfilePage = () => {
           }))
         : [];
 
+
     const apiPayload = {
-      userAvatar: null,
+      userAvatar: updatedForm.avatarUrl || null,
       firstName: updatedForm.firstName,
       lastName: updatedForm.lastName,
-      coachCost: user.coachCost || 0,
+      coachCost: Number(updatedForm.coachCost) || 0,
       bio: updatedForm.bio,
       skills: updatedForm.skills,
       expertises: updatedForm.selectedExpertiseIds,
@@ -114,7 +174,19 @@ export const UserProfilePage = () => {
   };
 
   const isCurrentUser = user?.id == currentUser?.id;
-  const isMentor = user?.roleName==='Mentor';
+
+  const currentUserRole = String(currentUser?.roleName || (currentUser as any)?.RoleName || "").toLowerCase();
+  const currentIsAdmin = currentUserRole === "admin";
+  const currentIsMentor = currentUserRole === "mentor";
+  const currentIsTrainee = currentUserRole === "trainee";
+
+  const profileUserRole = String(user?.roleName || (user as any)?.RoleName || "").toLowerCase();
+  const profileIsMentor = profileUserRole === "mentor";
+  const profileIsTrainee = profileUserRole === "trainee";
+
+  const canEditProfile = isCurrentUser || (currentIsAdmin && (profileIsMentor || profileIsTrainee));
+
+  const canViewCoachCost = profileIsMentor && (currentIsAdmin || currentIsMentor);
 
   if (loading || !user) {
     return (
@@ -147,16 +219,16 @@ export const UserProfilePage = () => {
 
   const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
   const currentTitle =
-    user.experiences?.length > 0 ? user.experiences[0].title : "Expert";
+    user.experiences?.length > 0 ? user.experiences[0].title : "";
   const avatarUrl =
-    user.avatarUrl ||
+    liveAvatar || user.avatarUrl ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=f97316&color=fff`;
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
       <header className="p-4 border-b border-gray-800">
         <div className="container mx-auto">
-          <h1 className="text-xl font-semibold">Mentor Profile</h1>
+          <h1 className="text-xl font-semibold">Profile</h1>
         </div>
       </header>
 
@@ -179,13 +251,26 @@ export const UserProfilePage = () => {
           {/* Profile Header Card */}
           <div className="p-6">
             <div className="flex flex-col md:flex-row mb-8 gap-6">
-              <div className="flex-shrink-0">
-                <img
-                  src={avatarUrl}
-                  alt={fullName}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-orange-500"
-                />
+              {/* Avatar */}
+              <div 
+                onClick={() => canEditProfile && setIsAvatarPopupOpen(true)}
+                className={`group relative w-32 h-32 shrink-0 rounded-full object-cover border-4 border-orange-500 overflow-hidden bg-gray-900 flex items-center justify-center text-3xl font-bold ${canEditProfile ? "cursor-pointer" : ""}`}
+              >
+                {liveAvatar || user.avatarUrl ? (
+                  <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover transition group-hover:scale-105" />
+                ) : (
+                  <span>{(user.firstName || "U").charAt(0)}</span>
+                )}
+
+                {canEditProfile && (
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-1 select-none">
+                    <Camera className="h-5 w-5 text-white" />
+                    <span className="text-[10px] font-bold text-gray-200 uppercase">Change</span>
+                  </div>
+                )}
               </div>
+
+              {/* Details */}
               <div className="flex-grow">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
@@ -194,40 +279,40 @@ export const UserProfilePage = () => {
                     </h2>
                     <p className="text-gray-400 text-lg mt-1">{currentTitle}</p>
 
-                    <div className="flex items-center space-x-6 mt-4">
-                      <div className="flex items-center text-gray-300">
-                        <DollarSign className="h-4 w-4 mr-1 text-green-400" />
-                        <span className="font-medium">
-                          ${user.coachCost} / hour
-                        </span>
+                    {canViewCoachCost && (
+                      <div className="flex items-center space-x-6 mt-4">
+                        <div className="flex items-center text-gray-300">
+                          <DollarSign className="h-4 w-4 mr-1 text-green-400" />
+                          <span className="font-medium">
+                            {user.coachCost && user.coachCost > 0 ? `$${user.coachCost} / hour` : "Free Mentorship"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="mt-6 md:mt-0 flex gap-3">
-                    {!isCurrentUser && isMentor &&(
-                      <>
-                      <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20">
-                      Book a Session
-                    </button>
+                    )}
                     
-                      </>
+                  </div>
+
+                  <div className="mt-6 md:mt-0 flex gap-3">
+                    
+                    {!isCurrentUser && profileIsMentor && (
+                      <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20">
+                        Book a Session
+                      </button>
                     )}
-                    {!isCurrentUser &&(
-                      <>
+
+                    {!isCurrentUser && (
                       <button className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 border border-gray-600">
-                      Message
-                    </button>
-                      </>
+                        Message
+                      </button>
                     )}
-                    {isCurrentUser&&(
-                      <>
+
+                    {canEditProfile && (
                       <button
-                      onClick={() => setIsEditOpen(true)}
-                      className="bg-orange-500 hover:bg-orange-600 transition-colors text-white px-4 py-2 rounded-md text-sm font-medium"
-                    >
-                      Edit Profile
-                    </button>
-                      </>
+                        onClick={() => setIsEditOpen(true)}
+                        className="bg-orange-500 hover:bg-orange-600 transition-colors text-white px-4 py-2 rounded-md text-sm font-medium"
+                      >
+                        Edit Profile
+                      </button>
                     )}
                   </div>
                 </div>
@@ -267,7 +352,7 @@ export const UserProfilePage = () => {
               onClick={() => setActiveTab("experience")}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "experience" ? "border-orange-500 text-orange-500" : "border-transparent text-gray-400 hover:text-gray-200"}`}
             >
-              Experience
+              Experiences
             </button>
             <button
               onClick={() => setActiveTab("certificates")}
@@ -282,18 +367,18 @@ export const UserProfilePage = () => {
         <div className="mb-12">
           {activeTab === "about" && (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <h3 className="text-xl font-semibold mb-4 text-white">
-                About {fullName}
-              </h3>
-              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 leading-relaxed text-gray-300 whitespace-pre-wrap">
+              
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-gray-300">
+                <h4 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
+                  <User2 className="h-5 w-5 text-orange-500" /> About {fullName}
+                </h4>
                 {user.bio || "No bio provided yet."}
               </div>
 
               {user.skills && (
                 <div className="mt-6 bg-gray-800 p-6 rounded-xl border border-gray-700">
-                  <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
-                    <Award className="h-5 w-5 text-orange-500" /> Additional
-                    Skills
+                  <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <Award className="h-5 w-5 text-orange-500" /> Professional Skills
                   </h4>
                   <p className="text-gray-300">{user.skills}</p>
                 </div>
@@ -301,6 +386,7 @@ export const UserProfilePage = () => {
             </div>
           )}
 
+          {/* Tab Experience */}
           {activeTab === "experience" && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               {user.experiences && user.experiences.length > 0 ? (
@@ -335,46 +421,88 @@ export const UserProfilePage = () => {
             </div>
           )}
 
+          {/* Tab Certificates */}
           {activeTab === "certificates" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              {user.certificates && user.certificates.length > 0 ? (
-                user.certificates.map((cert) => (
-                  <div
-                    key={cert.id}
-                    className="bg-gray-800 p-5 rounded-xl border border-gray-700 flex flex-col justify-between"
-                  >
-                    <div>
-                      <h4 className="font-bold text-white text-lg">
-                        {cert.certificateName}
-                      </h4>
-                      <p className="text-orange-400 font-medium text-sm mt-1">
-                        {cert.organization}
-                      </p>
-                    </div>
-                    <div className="mt-4 flex justify-between items-center border-t border-gray-700 pt-3">
-                      <span className="text-xs text-gray-400">
-                        Issued: {formatTimelineDate(cert.issueDate)}
-                      </span>
-                      {cert.credentialUrl && (
-                        <a
-                          href={cert.credentialUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs text-blue-400 hover:underline"
-                        >
-                          View Credential ↗
-                        </a>
-                      )}
-                    </div>
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="mb-3 font-semibold text-white text-xl">Certificates</h3>
+                {/* Only allow add certificate if viewing own profile */}
+                {canEditProfile && (
+                  <div className="flex justify-end">
+                    <button
+                      title="Add New Certificate"
+                      onClick={handleOpenAddCert}
+                      className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl text-xs font-bold text-white transition shadow-lg shadow-orange-500/10"
+                    >
+                      <Plus className="h-4 w-4" /> 
+                    </button>
                   </div>
-                ))
-              ) : (
-                <div className="col-span-full bg-gray-800 p-8 rounded-xl border border-gray-700 text-center">
-                  <p className="text-gray-400 italic">
-                    No certificate records found.
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
+              
+              
+              {/* Display certificates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {user.certificates && user.certificates.length > 0 ? (
+                  user.certificates.map((cert) => (
+                    <div
+                      key={cert.id}
+                      className="bg-gray-800 p-5 rounded-xl border border-gray-700 flex flex-col justify-between relative group hover:border-gray-600 transition-all duration-200"
+                    >
+                      {/* Current user can open the edit certificate modal */}
+                      {canEditProfile && (
+                        <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+                          <button
+                            onClick={() => handleOpenEditCert(cert)}
+                            className="p-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg hover:text-white transition shadow-md"
+                            title="Edit Certificate"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCertificate(cert.id)}
+                            className="p-1.5 bg-gray-700 hover:bg-gray-600 text-red-400 rounded-lg hover:text-red-300 transition shadow-md"
+                            title="Delete Certificate"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* General View for all accounts */}
+                      <div>
+                        <h4 className="font-bold text-white text-lg">
+                          {cert.certificateName}
+                        </h4>
+                        <p className="text-orange-400 font-medium text-sm mt-1">
+                          {cert.organization}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex justify-between items-center border-t border-gray-700 pt-3">
+                        <span className="text-xs text-gray-400">
+                          Issued: {formatTimelineDate(cert.issueDate)}
+                        </span>
+                        {cert.credentialUrl && (
+                          <a
+                            href={cert.credentialUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-400 hover:underline"
+                          >
+                            <ArrowUpRight className="h-4 w-4" /> <span>View Credential</span> 
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-full bg-gray-800 p-8 rounded-xl border border-gray-700 text-center">
+                    <p className="text-gray-400 italic">
+                      No certificate records found.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -388,6 +516,28 @@ export const UserProfilePage = () => {
           onSave={handleSaveModal}
         />
       )}
+
+      {/* Avatar Upload Modal */}
+      {isAvatarPopupOpen && (
+        <AvatarUploadModal
+          userId={id || ""}
+          currentAvatar={avatarUrl}
+          userLetter={(user.firstName || "U").charAt(0)}
+          onClose={() => setIsAvatarPopupOpen(false)}
+          onSuccess={handleAvatarSuccess}
+        />
+      )}
+
+      {/* Certificate Upload Modal */}
+      {isCertModalOpen && (
+        <CertificateEditModal
+          userId={id || ""}
+          editingCertificate={selectedCertForEdit}
+          onClose={() => setIsCertModalOpen(false)}
+          onSuccess={handleRefresh} // Tự động làm mới mảng Store bằng dữ liệu DB sạch
+        />
+      )}
+      
     </div>
   );
 };

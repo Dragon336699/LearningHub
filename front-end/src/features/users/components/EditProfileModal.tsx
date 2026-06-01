@@ -17,6 +17,8 @@ export const EditProfileModal = ({
 }: EditProfileModalProps) => {
   const [localForm, setLocalForm] = useState<FormState>({ ...initialFormState });
 
+  const [firstNameError, setFirstNameError] = useState<string | null>(null);
+
   const [expertises, setExpertises] = useState<ExpertiseResponse[]>([]);
   const [isLoadingExpertises, setIsLoadingExpertises] = useState(false);
   const [expertiseError, setExpertiseError] = useState<string | null>(null);
@@ -41,14 +43,27 @@ export const EditProfileModal = ({
 
   const updateField = (field: keyof FormState, value: any) => {
     setLocalForm((prev) => ({ ...prev, [field]: value }));
+    if (field === "firstName" && value.trim()) {
+      setFirstNameError(null);
+    }
   };
 
   const handleSubmit = () => {
     if (!localForm.firstName.trim()) {
-      alert("First Name is required!");
+      setFirstNameError("First name is required.");
+      const inputElement = document.getElementById("firstName") as HTMLInputElement | null;
+      if (inputElement) {
+        inputElement.focus();
+      }
       return;
     }
-    onSave(localForm);
+    const finalizedForm: FormState = {
+      ...localForm,
+      firstName: localForm.firstName.trim(),
+      lastName: localForm.lastName?.trim() || "",
+      coachCost: Number(localForm.coachCost) || 0
+    };
+    onSave(finalizedForm);
   };
 
   return (
@@ -73,15 +88,19 @@ export const EditProfileModal = ({
             <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
               <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center h-[200px]">
                 <div className="relative mb-3 flex h-24 w-24 items-center justify-center rounded-full border border-dashed border-slate-600 bg-slate-900 text-slate-500">
-                  <span className="text-3xl font-bold">{(localForm.firstName || "U").charAt(0)}</span>
+                  {localForm.avatarUrl ? (
+                    <img src={localForm.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <span>{(localForm.firstName || "U").charAt(0)}</span>
+                  )}
                 </div>
-                <p className="text-xs font-medium text-slate-300">Profile Photo</p>
-                <p className="text-[10px] text-amber-500 mt-1">Managed via Avatar API</p>
               </div>
 
               <div className="grid gap-4">
                 <div>
-                  <label className="label text-xs font-semibold text-slate-300" htmlFor="firstName">First Name <span className="text-red-500 text-xs font-medium">*</span></label>
+                  <label className="label text-xs font-semibold text-slate-300" htmlFor="firstName">
+                    First Name <span className="text-red-400">*</span>
+                  </label>
                   <input
                     id="firstName"
                     type="text"
@@ -89,8 +108,12 @@ export const EditProfileModal = ({
                     onChange={(event) => updateField("firstName", event.target.value)}
                     className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                     placeholder="John"
+                    maxLength={50}
                     required
                   />
+                  {firstNameError && (
+                    <p className="text-red-400 text-xs mt-1">{firstNameError}</p>
+                  )}
                 </div>
 
                 <div>
@@ -102,8 +125,26 @@ export const EditProfileModal = ({
                     onChange={(event) => updateField("lastName", event.target.value)}
                     className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                     placeholder="Doe"
+                    maxLength={50}
                   />
                 </div>
+
+                {localForm.roleName === "Mentor" && (
+                  <div className="sm:col-span-2 animate-in fade-in duration-200">
+                    <label className="label text-xs font-semibold text-orange-400" htmlFor="coachCost">
+                      Coach Cost ($ / hour) <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      id="coachCost"
+                      type="number"
+                      min="0"
+                      value={localForm.coachCost}
+                      onChange={(event) => updateField("coachCost", Number(event.target.value))}
+                      className="input w-full bg-gray-900 border-orange-500/30 text-white rounded-xl text-sm focus:border-orange-500"
+                      placeholder="e.g. 50"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -118,6 +159,7 @@ export const EditProfileModal = ({
                 onChange={(event) => updateField("bio", event.target.value)}
                 className="textarea w-full h-24 bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                 placeholder="Tell us about yourself..."
+                maxLength={500}
               />
             </div>
 
@@ -129,13 +171,14 @@ export const EditProfileModal = ({
                 onChange={(event) => updateField("skills", event.target.value)}
                 className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                 placeholder="React, .NET, C#"
+                maxLength={200}
               />
             </div>
           </div>
 
           {/* Areas of Expertise */}
           <div>
-            <p className="label text-xs font-semibold text-slate-300 mb-2">Areas of Expertise <span className="text-red-500 text-xs font-medium">*</span></p>
+            <p className="label text-xs font-semibold text-slate-300 mb-2">Areas of Expertise</p>
             {isLoadingExpertises && (
               <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
