@@ -20,6 +20,7 @@ export const UpdateCourseModal = ({ data, isLoading, onClose, onUpdate }: Update
         resolver: zodResolver(UpdateCourseForm),
         defaultValues: {
             id: data.id,
+            courseCode: data.courseCode,
             title: data.title,
             description: data.description,
             learningObjectives: data.learningObjectives
@@ -36,6 +37,28 @@ export const UpdateCourseModal = ({ data, isLoading, onClose, onUpdate }: Update
             <form onSubmit={handleSubmit(onUpdate)}>
                 <div className="flex flex-col space-y-4">
                     <input type="hidden" {...register("id")} />
+                    <div className="flex flex-col space-y-1">
+                        <label htmlFor="courseCode" className="text-white w-fit">
+                            Code
+                            <span className="text-danger ml-1">*</span>
+                        </label>
+                        <input
+                            disabled
+                            type="text"
+                            id="courseCode"
+                            className="
+                                input
+                                disabled:!text-muted-foreground
+                                disabled:cursor-not-allowed
+                            "
+                            maxLength={20}
+                            {...register("courseCode")}
+                        />
+                        {errors.courseCode && (
+                            <span className="text-sm text-danger">{errors.courseCode.message}</span>
+                        )}
+                    </div>
+
                     <div className="flex flex-col space-y-1">
                         <label htmlFor="title" className="text-white w-fit">
                             Title

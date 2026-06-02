@@ -149,7 +149,7 @@ namespace LearningHub.API.Controllers
             return Ok(updateResult);
         }
 
-        [Authorize(Roles="Mentor")]
+        [Authorize(Roles="Mentor,Admin")]
         [HttpDelete("{courseId}")]
         public async Task<IActionResult> DeleteCourse(Guid courseId)
         {

@@ -13,35 +13,49 @@ const statusColors = {
 };
 
 export const ViewCourseDetailModal = ({ course, onClose }: ViewCourseDetailModalProps) => {
+    const formatDate = (date: Date) => {
+        return new Date(date).toLocaleDateString();
+    }
+    
     return (
         <DialogShell open={true} title={course.title} onClose={onClose}>
 
-            <div className="flex flex-col space-y-4">
-                <div className="flex flex-col space-y-1">
+            <div className="grid grid-cols-2 gap-6">
+                <div>
+                    <p className="text-sm text-title-information">Code</p>
+                    <p>{course.courseCode}</p>
+                </div>
+
+                <div>
                     <p className="text-sm text-title-information">Status</p>
-                    <p className={`text-md ${statusColors[course.status] || 'text-white'}`}>
+                    <p className={statusColors[course.status]}>
                         {course.status}
                     </p>
                 </div>
-                <div className="flex flex-col space-y-1">
-                    <p className="text-sm text-title-information">Description</p>
-                    <p className="text-md break-words">{course.description}</p>
-                </div>
-                <div className="flex flex-col space-y-1">
-                    <p className="text-sm text-title-information">Learning Objectives</p>
-                    <p className="text-md break-words">{course.learningObjectives}</p>
-                </div>
-                <div className="flex">
-                    <div className="flex-1">
-                        <p className="text-sm text-title-information">Created At</p>
-                        <p className="text-md">{new Date(course.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-sm text-title-information">Last Updated</p>
-                        <p className="text-md">{new Date(course.updatedAt).toLocaleDateString()}</p>
-                    </div>
+
+                <div>
+                    <p className="text-sm text-title-information">Created At</p>
+                    <p>{formatDate(course.createdAt)}</p>
                 </div>
 
+                <div>
+                    <p className="text-sm text-title-information">Last Updated</p>
+                    <p>{formatDate(course.updatedAt)}</p>
+                </div>
+            </div>
+
+            <div className="mt-6">
+                <p className="text-sm text-title-information">Description</p>
+                <p className="mt-1 break-words">
+                    {course.description}
+                </p>
+            </div>
+
+            <div className="mt-6">
+                <p className="text-sm text-title-information">Learning Objectives</p>
+                <p className="mt-1 break-words">
+                    {course.learningObjectives}
+                </p>
             </div>
         </DialogShell>
     )
