@@ -178,13 +178,7 @@ namespace LearningHub.Application.Services
 
         public async Task CleanupCourses()
         {
-            var courses = await _unitOfWork.Courses.GetAllAsync();
-
-            foreach (var course in courses)
-            {
-                _unitOfWork.Courses.Remove(course);
-            }
-
+            await _unitOfWork.Courses.RemoveAllCourses();
             await _unitOfWork.CompleteAsync();
         }
     }

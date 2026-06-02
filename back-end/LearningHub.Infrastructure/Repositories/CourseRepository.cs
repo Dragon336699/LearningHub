@@ -41,5 +41,10 @@ namespace LearningHub.Infrastructure.Repositories
                 .Take(pageSize)
                 .ToListAsync();
         }
+
+        public async Task RemoveAllCourses()
+        {
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM Course");
+        }
     }
 }
