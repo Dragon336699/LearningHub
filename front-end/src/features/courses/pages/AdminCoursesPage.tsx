@@ -90,11 +90,13 @@ export const AdminCoursesPage = () => {
                                 className="border-b border-gray-200 bg-table-content"
                             >
                                 <td className="px-6 py-4 text-sm font-medium">
-                                    {course.title}
+                                    <p className="w-64 max-w-xs truncate">
+                                        {course.title}
+                                    </p>
                                 </td>
 
                                 <td className="max-w-md px-6 py-4 text-sm">
-                                    <p className="line-clamp-2">
+                                    <p className="w-64 line-clamp-2 truncate">
                                         {course.description}
                                     </p>
                                 </td>
