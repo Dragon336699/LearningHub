@@ -23,6 +23,8 @@ namespace LearningHub.Application.Services
             CreateCourseCommand commandNormalized = command.Normalize();
             Course course = _mapper.Map<Course>(commandNormalized);
             course.UserId = userId;
+            string courseCode = await CreateCourseCode();
+            course.CourseCode = courseCode;
 
             await _unitOfWork.Courses.AddAsync(course);
             int rowAffected = await _unitOfWork.CompleteAsync();
@@ -33,6 +35,23 @@ namespace LearningHub.Application.Services
             }
 
             return Result<CourseDto>.Success(_mapper.Map<CourseDto>(course));
+        }
+        
+        private async Task<string> CreateCourseCode()
+        {
+            string code;
+            do
+            {
+                code = $"CRS_{GenerateRandomString()}";
+            } while (await _unitOfWork.Courses.FirstOrDefaultAsync(c => c.CourseCode == code) != null);
+
+            return code;
+        }
+
+        private string GenerateRandomString(int length = 6)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Range(0, length).Select(_ => chars[Random.Shared.Next(chars.Length)]).ToArray());
         }
 
         public async Task<Result<PagedResult<CourseDto>>> GetPagedAllCourses(int page, int pageSize)
@@ -123,6 +142,11 @@ namespace LearningHub.Application.Services
             if (course == null)
             {
                 throw new KeyNotFoundException($"Course not found.");
+            }
+
+            if (course.Status == command.Status)
+            {
+                return Result<CourseDto>.Failure($"Course is already in {command.Status} status.");
             }
 
             course.Status = command.Status;

@@ -5,6 +5,7 @@ namespace LearningHub.Domain.Entities
     public class Course
     {
         public Guid Id {  get; set; }
+        public required string CourseCode { get; set; }
         public required string Title { get; set; }
         public required string Description { get; set; }
         public string? LearningObjectives {  get; set; }

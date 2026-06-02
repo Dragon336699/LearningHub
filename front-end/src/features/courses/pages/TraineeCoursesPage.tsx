@@ -26,6 +26,10 @@ export const TraineeCoursesPage = () => {
                     <thead className="bg-table-header">
                         <tr>
                             <th className="px-6 py-4 text-left text-sm font-semibold">
+                                Code
+                            </th>
+
+                            <th className="px-6 py-4 text-left text-sm font-semibold">
                                 Title
                             </th>
 
@@ -46,13 +50,19 @@ export const TraineeCoursesPage = () => {
                                 className="border-b border-gray-200 bg-table-content"
                             >
                                 <td className="px-6 py-4 text-sm font-medium">
-                                    <p className="w-64 max-w-xs truncate">
+                                    <p className="max-w-xs truncate text-muted-foreground">
+                                        {course.courseCode}
+                                    </p>
+                                </td>
+
+                                <td className="px-6 py-4 text-sm font-medium">
+                                    <p className="w-56 max-w-xs truncate">
                                         {course.title}
                                     </p>
                                 </td>
 
                                 <td className="max-w-md px-6 py-4 text-sm">
-                                    <p className="w-64 line-clamp-2 truncate">
+                                    <p className="w-56 line-clamp-2 truncate">
                                         {course.description}
                                     </p>
                                 </td>
