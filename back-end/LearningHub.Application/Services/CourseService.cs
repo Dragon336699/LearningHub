@@ -157,7 +157,7 @@ namespace LearningHub.Application.Services
             return Result<CourseDto>.Success(_mapper.Map<CourseDto>(course));
         }
 
-        public async Task DeleteCourseAsync(Guid courseId, Guid userId)
+        public async Task DeleteCourseAsync(Guid courseId, Guid userId, bool isAdmin)
         {
             Course? course = await _unitOfWork.Courses.GetByIdAsync(courseId);
 
@@ -166,7 +166,7 @@ namespace LearningHub.Application.Services
                 throw new KeyNotFoundException($"Course not found.");
             }
 
-            if (course.UserId != userId)
+            if (!isAdmin && course.UserId != userId)
             {
                 throw new UnauthorizedAccessException("You are not authorized to delete this course.");
             }
