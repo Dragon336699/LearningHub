@@ -14,6 +14,13 @@ namespace LearningHub.Infrastructure.Configs
                 .IsRequired()
                 .HasMaxLength(100);
 
+            builder.Property(c => c.CourseCode)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            builder.HasIndex(c => c.CourseCode)
+                .IsUnique();
+
             builder.Property(c => c.Description)
                 .IsRequired()
                 .HasMaxLength(500);

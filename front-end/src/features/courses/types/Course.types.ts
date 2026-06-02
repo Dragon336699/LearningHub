@@ -1,5 +1,6 @@
 export interface Course {
     id: string;
+    courseCode: string;
     title: string;
     description: string;
     learningObjectives?: string;

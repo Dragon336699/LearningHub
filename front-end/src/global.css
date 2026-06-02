@@ -202,7 +202,7 @@ select {
 }
 
 .textarea {
-  @apply min-h-30 w-full rounded-xl border border-border bg-input px-4 py-3 text-sm text-white outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-orange-500/20;
+  @apply min-h-30 max-h-48 w-full rounded-xl border border-border bg-input px-4 py-3 text-sm text-white outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-orange-500/20;
 }
 
 .select {

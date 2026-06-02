@@ -8,6 +8,7 @@ import { useAdminCourses } from "../hooks/Course.hook";
 import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
 import { Course, CourseStatus } from "../types/Course.types";
 import { ViewCourseDetailModal } from "../components/ViewCourseDetailModal";
+import { ConfirmModal } from "../../../shared/ui/components/ConfirmModal";
 
 const statusColors = {
     "Published": "text-success bg-success-background",
@@ -22,10 +23,23 @@ export const AdminCoursesPage = () => {
     const { data: pagedCourses } = useAdminCourses(page, pageSize);
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [isConfirmChangeStatusOpen, setIsConfirmChangeStatusOpen] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
     const totalPages = Math.ceil(
         (pagedCourses?.totalCount ?? 0) / pageSize
     );
+
+    const openConfirmChangeStatus = (course: Course, newStatus: string) => {
+        if (course.status === newStatus) {
+            toast.error(`Course is already in "${newStatus}" status`);
+            return;
+        }
+
+        setSelectedCourse(course);
+        setPendingStatus(newStatus);
+        setIsConfirmChangeStatusOpen(true);
+    }
 
     const handleChangeStatus = async (course: Course, status: string) => {
         try {
@@ -62,6 +76,10 @@ export const AdminCoursesPage = () => {
                     <thead className="bg-table-header">
                         <tr>
                             <th className="px-6 py-4 text-left text-sm font-semibold">
+                                Code
+                            </th>
+
+                            <th className="px-6 py-4 text-left text-sm font-semibold">
                                 Title
                             </th>
 
@@ -78,7 +96,7 @@ export const AdminCoursesPage = () => {
                             </th>
 
                             <th className="px-6 py-4 text-center text-sm font-semibold">
-                                
+
                             </th>
                         </tr>
                     </thead>
@@ -90,13 +108,19 @@ export const AdminCoursesPage = () => {
                                 className="border-b border-gray-200 bg-table-content"
                             >
                                 <td className="px-6 py-4 text-sm font-medium">
-                                    <p className="w-64 max-w-xs truncate">
+                                    <p className="max-w-xs truncate text-muted-foreground">
+                                        {course.courseCode}
+                                    </p>
+                                </td>
+
+                                <td className="px-6 py-4 text-sm font-medium">
+                                    <p className="w-56 max-w-xs truncate">
                                         {course.title}
                                     </p>
                                 </td>
 
                                 <td className="max-w-md px-6 py-4 text-sm">
-                                    <p className="w-64 line-clamp-2 truncate">
+                                    <p className="w-56 line-clamp-2 truncate">
                                         {course.description}
                                     </p>
                                 </td>
@@ -112,7 +136,7 @@ export const AdminCoursesPage = () => {
                                 <td>
                                     <CustomSelect
                                         options={Object.values(CourseStatus).map((status) => ({ label: status, value: status }))}
-                                        value={course.status} onChange={(value: string) => handleChangeStatus(course, value)}
+                                        value={course.status} onChange={(value: string) => openConfirmChangeStatus(course, value)}
                                         getLabel={(status) => status.label}
                                         getValue={(status) => status.value} />
                                 </td>
@@ -153,6 +177,23 @@ export const AdminCoursesPage = () => {
                 <ViewCourseDetailModal
                     course={selectedCourse!}
                     onClose={() => setIsViewModalOpen(false)}
+                />
+            )}
+
+            {isConfirmChangeStatusOpen && (
+                <ConfirmModal
+                    title="Confirm Change Status"
+                    description={`Are you sure you want to change course status to "${pendingStatus}"?`}
+                    onConfirm={() => {
+                        handleChangeStatus(selectedCourse!, pendingStatus!);
+
+                        setIsConfirmChangeStatusOpen(false);
+                        setPendingStatus(null);
+                    }}
+                    onCancel={() => {
+                        setIsConfirmChangeStatusOpen(false);
+                        setPendingStatus(null);
+                    }}
                 />
             )}
         </div>
