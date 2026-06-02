@@ -24,6 +24,8 @@ namespace LearningHub.Application.Validation.User
                 .MaximumLength(200)
                 .When(u => u.Skills != null)
                 .WithMessage("Skills must not exceed 200 characters");
+            RuleForEach(u => u.Experiences)
+                .SetValidator(new UpdateExperienceCommandValidator());
         }
     }
 }
