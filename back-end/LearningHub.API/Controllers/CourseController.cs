@@ -154,12 +154,14 @@ namespace LearningHub.API.Controllers
         public async Task<IActionResult> DeleteCourse(Guid courseId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+
             if (userId == null)
             {
                 return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
             }
 
-            await _courseService.DeleteCourseAsync(courseId, Guid.Parse(userId));
+            await _courseService.DeleteCourseAsync(courseId, Guid.Parse(userId), isAdmin);
 
             return NoContent();
         }
