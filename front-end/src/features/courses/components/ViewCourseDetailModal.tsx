@@ -25,11 +25,11 @@ export const ViewCourseDetailModal = ({ course, onClose }: ViewCourseDetailModal
                 </div>
                 <div className="flex flex-col space-y-1">
                     <p className="text-sm text-title-information">Description</p>
-                    <p className="text-md">{course.description}</p>
+                    <p className="text-md break-words">{course.description}</p>
                 </div>
                 <div className="flex flex-col space-y-1">
                     <p className="text-sm text-title-information">Learning Objectives</p>
-                    <p className="text-md">{course.learningObjectives}</p>
+                    <p className="text-md break-words">{course.learningObjectives}</p>
                 </div>
                 <div className="flex">
                     <div className="flex-1">

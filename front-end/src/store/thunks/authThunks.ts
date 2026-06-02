@@ -48,7 +48,7 @@ export const loginUser = createAsyncThunk<User, { email: string; password: strin
     try {
       const response = await HttpClient.post<Result<LoginResponse>>(`${API_ROUTES.AUTH.LOGIN}`, loginData);
       
-      const profileResponse = await HttpClient.get<Result<User>>(`${API_ROUTES.USER.PROFILE}?testUserId=${response.data.userId}`);
+      const profileResponse = await HttpClient.get<Result<User>>(`${API_ROUTES.USER.PROFILE}?userId=${response.data.userId}`);
       
       return profileResponse.data; 
     } catch (error: any) {

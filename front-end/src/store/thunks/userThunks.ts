@@ -10,7 +10,7 @@ export const fetchUserById = createAsyncThunk<User, string, { rejectValue: strin
   async (id: string, { rejectWithValue }) => {
     
     try {
-          const response = await HttpClient.get<Result<User>>(`${API_ROUTES.USER.PROFILE}?testUserId=${id}`);
+          const response = await HttpClient.get<Result<User>>(`${API_ROUTES.USER.PROFILE}?userId=${id}`);
           return response.data;
           
         } catch (error: any) {

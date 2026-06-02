@@ -8,6 +8,7 @@ namespace LearningHub.Application.Interfaces.UnitOfWork
         IExperienceRepository Experiences { get; }
         ICertificateRepository Certificates { get; }
         ICourseRepository Courses { get; }
+        IUserRepository Users { get; }
         int Complete();
         Task<int> CompleteAsync();
     }
