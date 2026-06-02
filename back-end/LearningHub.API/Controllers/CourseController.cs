@@ -165,5 +165,14 @@ namespace LearningHub.API.Controllers
 
             return NoContent();
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete]
+        [Route("cleanup")]
+        public async Task<IActionResult> Cleanup()
+        {
+            await _courseService.CleanupCourses();
+            return Ok();
+        }
     }
 }

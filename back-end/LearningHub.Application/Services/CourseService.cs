@@ -5,6 +5,7 @@ using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
+using System.Runtime.CompilerServices;
 
 namespace LearningHub.Application.Services
 {
@@ -36,7 +37,7 @@ namespace LearningHub.Application.Services
 
             return Result<CourseDto>.Success(_mapper.Map<CourseDto>(course));
         }
-        
+
         private async Task<string> CreateCourseCode()
         {
             string code;
@@ -172,6 +173,18 @@ namespace LearningHub.Application.Services
             }
 
             _unitOfWork.Courses.Remove(course);
+            await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task CleanupCourses()
+        {
+            var courses = await _unitOfWork.Courses.GetAllAsync();
+
+            foreach (var course in courses)
+            {
+                _unitOfWork.Courses.Remove(course);
+            }
+
             await _unitOfWork.CompleteAsync();
         }
     }
