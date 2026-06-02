@@ -11,12 +11,14 @@ namespace LearningHub.Infrastructure.UnitOfWork
         public IExperienceRepository Experiences { get; }
         public ICertificateRepository Certificates { get; }
         public ICourseRepository Courses { get; }
+        public IUserRepository Users { get; }
         public UnitOfWork(
             LearningHubDbContext context,
             IExpertiseRepository expertiseRepository,
             IExperienceRepository experienceRepository,
             ICertificateRepository certificateRepository,
-            ICourseRepository courseRepository
+            ICourseRepository courseRepository,
+            IUserRepository userRepository
         )
         {
             _context = context;
@@ -24,6 +26,7 @@ namespace LearningHub.Infrastructure.UnitOfWork
             Experiences = experienceRepository;
             Certificates = certificateRepository;
             Courses = courseRepository;
+            Users = userRepository;
         }
 
         public int Complete()

@@ -5,6 +5,7 @@ using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
+using LearningHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,12 +54,16 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<List<UserDto>>> SearchUserProfile(SearchUserProfileCommand command)
         {
-            var users = await _userManager.Users.Include(u => u.Expertises).ToListAsync();
-            var userDtos = _mapper.Map<List<UserDto>>(users);
+            var mentors = await _userManager.GetUsersInRoleAsync("Mentor");
+
+            IEnumerable<Guid> mentorsIds = mentors.Select(m => m.Id);
+
+            mentors = await _unitOfWork.Users.GetMentorsByIdsAsync(mentorsIds);
+            var userDtos = _mapper.Map<List<UserDto>>(mentors);
 
             foreach (var dto in userDtos)
             {
-                var user = users.First(x => x.Id == dto.Id);
+                var user = mentors.First(x => x.Id == dto.Id);
 
                 var roles = await _userManager.GetRolesAsync(user);
                 dto.RoleName = roles.FirstOrDefault();
@@ -71,7 +76,8 @@ namespace LearningHub.Application.Services
 
             List<Guid> expertiseIds = command.ExpertiseIds;
 
-            var usersFilteredByKeyword = userDtos.Where(u => u.FirstName.Contains(command.Keyword) || u.LastName?.Contains(command.Keyword) == true);
+            var usersFilteredByKeyword = userDtos
+                .Where(u => (u.FirstName.ToLower().Contains(command.Keyword.ToLower()) && !string.IsNullOrEmpty(u.FirstName)) || (u.LastName?.ToLower().Contains(command.Keyword.ToLower()) == true && !string.IsNullOrEmpty(u.LastName)));
 
             if (command.ExpertiseIds?.Count == 0)
             {

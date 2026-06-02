@@ -30,6 +30,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IExperienceRepository, ExperienceRepository>();
             services.AddScoped<ICertificateRepository, CertificateRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();

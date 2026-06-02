@@ -26,14 +26,9 @@ namespace LearningHub.API.Controllers
         //[Authorize]
         [HttpGet]
         [Route("profile")]
-        public async Task<IActionResult> GetUserProfile(Guid testUserId)
+        public async Task<IActionResult> GetUserProfile(Guid userId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //{
-            //    return BadRequest();
-            //}
-            Result<UserDto> result = await _userService.GetUserProfile(testUserId);
+            Result<UserDto> result = await _userService.GetUserProfile(userId);
 
             if (!result.IsSuccess)
             {
@@ -43,11 +38,18 @@ namespace LearningHub.API.Controllers
             return Ok(result);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         [Route("profile/filter")]
         public async Task<IActionResult> SearchUsersProfile([FromQuery] SearchUserProfileCommand request)
         {
+            var validationResult = await _validationService.ValidateAsync(request);
+            
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
             Result<List<UserDto>> result = await _userService.SearchUserProfile(request);
 
             if (!result.IsSuccess)
@@ -58,10 +60,10 @@ namespace LearningHub.API.Controllers
             return Ok(result);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPut]
         [Route("profile")]
-        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileCommand request, Guid testUserId)
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileCommand request)
         {
             var validationResult = await _validationService.ValidateAsync(request);
 
@@ -71,11 +73,11 @@ namespace LearningHub.API.Controllers
             }
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //{
-            //    return BadRequest();
-            //}
-            Result<UserDto> updateResult = await _userService.UpdateUserProfile(request, testUserId);
+            if (userId == null)
+            {
+                return BadRequest();
+            }
+            Result<UserDto> updateResult = await _userService.UpdateUserProfile(request, Guid.Parse(userId));
 
             if (!updateResult.IsSuccess)
             {
@@ -88,16 +90,16 @@ namespace LearningHub.API.Controllers
 
         // AVATAR //
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
         [Route("profile/avatar")]
-        public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request, Guid testUserId)
+        public async Task<IActionResult> UploadAvatar([FromForm] UploadAvatarRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //{
-            //    return BadRequest();
-            //} 
+            if (userId == null)
+            {
+                return BadRequest();
+            }
 
             if (request.AvatarFile == null || request.AvatarFile.Length == 0)
             {
@@ -118,7 +120,7 @@ namespace LearningHub.API.Controllers
                 FileName = request.AvatarFile.FileName,
             };
 
-            Result<UploadAvatarResponse> response = await _userService.UploadAvatarFile(avatarFileUpload, testUserId);
+            Result<UploadAvatarResponse> response = await _userService.UploadAvatarFile(avatarFileUpload, Guid.Parse(userId));
 
             if (!response.IsSuccess)
             {
@@ -128,18 +130,18 @@ namespace LearningHub.API.Controllers
             return Ok(response);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpDelete]
         [Route("profile/avatar")]
-        public async Task<IActionResult> DeleteAvatar(Guid testUserId)
+        public async Task<IActionResult> DeleteAvatar()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //{
-            //    return BadRequest();
-            //} 
+            if (userId == null)
+            {
+                return BadRequest();
+            }
 
-            Result<string> result = await _userService.DeleteAvatar(testUserId);
+            Result<string> result = await _userService.DeleteAvatar(Guid.Parse(userId));
 
             if (!result.IsSuccess)
             {
@@ -149,17 +151,11 @@ namespace LearningHub.API.Controllers
             return NoContent();
         }
 
-        //[Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [Route("profile/status")]
-        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, Guid testUserId)
+        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, Guid userId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (userId == null)
-            //{
-            //    return BadRequest();
-            //} 
-
             var validationResult = await _validationService.ValidateAsync(request);
 
             if (!validationResult.IsSuccess)
@@ -167,7 +163,7 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<string> result = await _userService.ChangeUserStatus(request, testUserId);
+            Result<string> result = await _userService.ChangeUserStatus(request, userId);
 
             if (!result.IsSuccess)
             {
