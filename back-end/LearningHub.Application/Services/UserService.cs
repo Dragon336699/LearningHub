@@ -106,10 +106,10 @@ namespace LearningHub.Application.Services
                 user.CoachCost = command.CoachCost ?? 0;
             }
 
-            user.FirstName = command.FirstName;
-            user.LastName = command.LastName;
-            user.Bio = command.Bio;
-            user.Skills = command.Skills;
+            user.FirstName = command.FirstName.Trim();
+            user.LastName = command.LastName?.Trim();
+            user.Bio = command.Bio?.Trim();
+            user.Skills = command.Skills?.Trim();
 
             //Update experiences
             var existingExperiences = await _unitOfWork.Experiences.FindAllAsync(ex => ex.UserId == userId);
@@ -120,8 +120,8 @@ namespace LearningHub.Application.Services
 
                 if (existExp != null)
                 {
-                    existExp.Title = expDto.Title;
-                    existExp.Description = expDto.Description;
+                    existExp.Title = expDto.Title.Trim();
+                    existExp.Description = expDto.Description?.Trim();
                     existExp.StartDate = DateOnly.FromDateTime(expDto.StartDate);
                     existExp.EndDate = DateOnly.FromDateTime(expDto.EndDate);
                 }
@@ -129,8 +129,8 @@ namespace LearningHub.Application.Services
                 {
                     await _unitOfWork.Experiences.AddAsync(new Experience
                     {
-                        Title = expDto.Title,
-                        Description = expDto.Description,
+                        Title = expDto.Title.Trim(),
+                        Description = expDto.Description?.Trim(),
                         StartDate = DateOnly.FromDateTime(expDto.StartDate),
                         EndDate = DateOnly.FromDateTime(expDto.EndDate),
                         UserId = userId
