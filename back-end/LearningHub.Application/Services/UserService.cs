@@ -237,5 +237,30 @@ namespace LearningHub.Application.Services
             return Result<string>.Success();
         }
 
+        // Get all users for management (Admin)
+        public async Task<Result<List<UserDto>>> GetAllUsersForManagementAsync()
+        {
+            // Exclude all Admin users
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminIds = adminUsers.Select(a => a.Id).ToList();
+
+            var nonAdminUsers = await _userManager.Users
+                .AsNoTracking()
+                .Where(u => !adminIds.Contains(u.Id))
+                .ToListAsync();
+
+            var userDtos = _mapper.Map<List<UserDto>>(nonAdminUsers);
+
+            foreach (var dto in userDtos)
+            {
+                var originalUser = nonAdminUsers.First(x => x.Id == dto.Id);
+                var roles = await _userManager.GetRolesAsync(originalUser);
+                
+                dto.RoleName = roles.FirstOrDefault();
+            }
+
+            return Result<List<UserDto>>.Success(userDtos);
+        }
+
     }
 }

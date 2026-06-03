@@ -6,7 +6,7 @@ interface Step1FormProps {
 }
 
 export default function Step1Form({ onNext }: Step1FormProps) {
-  const [role, setRole] = useState<"learner" | "mentor">("mentor");
+  const [role, setRole] = useState<"trainee" | "mentor">("mentor");
   const [expertises, setExpertises] = useState<string[]>(["Project Management"]);
 
   const expertiseOptions = [
@@ -56,17 +56,17 @@ export default function Step1Form({ onNext }: Step1FormProps) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <button
             type="button"
-            onClick={() => setRole("learner")}
+            onClick={() => setRole("trainee")}
             className={`flex flex-col items-center justify-center gap-2 rounded-xl border p-4 transition-all duration-200 ${
-              role === "learner"
+              role === "trainee"
                 ? "border-primary bg-primary text-white"
                 : "border-transparent bg-slate-700/40 text-slate-300 hover:bg-slate-700/60"
             }`}
           >
-            <GraduationCap className={`h-8 w-8 ${role === "learner" ? "text-white" : "text-yellow-500"}`} />
+            <GraduationCap className={`h-8 w-8 ${role === "trainee" ? "text-white" : "text-yellow-500"}`} />
             <div className="text-center">
-              <div className="font-semibold">Learner</div>
-              <div className={`text-xs ${role === "learner" ? "text-white/80" : "text-slate-400"}`}>
+              <div className="font-semibold">Trainee</div>
+              <div className={`text-xs ${role === "trainee" ? "text-white/80" : "text-slate-400"}`}>
                 I want to find mentors
               </div>
             </div>

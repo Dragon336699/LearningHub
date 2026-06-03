@@ -4,7 +4,7 @@ import { RootState } from "../../../store";
 import { Toaster } from "sonner";
 import { URL_ROUTES } from "../../../configs/url_routes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faGauge, faSignOutAlt, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faBookBookmark, faBookOpenReader, faGauge, faSignOutAlt, faUser, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
@@ -24,10 +24,11 @@ export const AppLayout = () => {
 
     const navigateItems = [
         { name: 'Dashboard', icon: <FontAwesomeIcon className="mr-2" icon={faGauge} />, path: '' },
-        { name: 'My Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBook} />, path: URL_ROUTES.MENTOR_COURSE, roles: ['Mentor'] },
-        { name: 'Find Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBook} />, path: URL_ROUTES.TRAINEE_COURSES, roles: ['Trainee'] },
+        { name: 'My Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBookOpenReader} />, path: URL_ROUTES.MENTOR_COURSE, roles: ['Mentor'] },
+        { name: 'Find Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBookBookmark} />, path: URL_ROUTES.TRAINEE_COURSES, roles: ['Trainee'] },
         { name: 'All Courses', icon: <FontAwesomeIcon className="mr-2" icon={faBook} />, path: URL_ROUTES.All_COURSES, roles: ['Admin'] },
         { name: 'Profile', icon: <FontAwesomeIcon className="mr-2" icon={faUser} />, path: URL_ROUTES.PROFILE },
+        { name: 'User Management', icon: <FontAwesomeIcon className="mr-2" icon={faUserGroup} />, path: URL_ROUTES.ALL_USERS, roles: ['Admin'] },
     ]
 
     const visibleItems = navigateItems.filter((item) => {

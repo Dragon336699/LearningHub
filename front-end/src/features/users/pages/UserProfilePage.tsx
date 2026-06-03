@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ChevronLeft,
   Calendar,
   DollarSign,
   Award,
@@ -10,8 +9,8 @@ import {
   ArrowUpRight,
   Camera,
   Search,
-  AlertTriangle,
   AlertCircle,
+  ChevronLeft,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
@@ -293,23 +292,6 @@ export const UserProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
-      <header className="p-4 border-b border-gray-800 flex items-center">
-        <div className="container mx-auto">
-          <h1 className="text-xl font-semibold">Profile</h1>
-        </div>
-
-        <div className="relative w-full sm:w-100 md:w-200 transition-all duration-300">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-gray-500" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search mentors, skills, expertise..."
-            className="w-full bg-gray-900 border border-gray-800 text-gray-200 placeholder-gray-500 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-orange-500/50 focus:bg-gray-900/80 transition-all"
-          />
-        </div>
-      </header>
-
       <main className="container mx-auto p-4">
         {/* UI Feedback */}
         {uiFeedback && (
@@ -333,7 +315,7 @@ export const UserProfilePage = () => {
 
         <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
           {/* Navigation Bar */}
-          {/* <nav className="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+          <nav className="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
             <div className="flex space-x-4">
               <button
                 onClick={() => navigate(-1)}
@@ -344,7 +326,7 @@ export const UserProfilePage = () => {
                 Back
               </button>
             </div>
-          </nav> */}
+          </nav>
 
           {/* Profile Header Card */}
           <div className="p-6">

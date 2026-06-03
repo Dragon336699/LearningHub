@@ -8,20 +8,21 @@ export const userService = {
     return HttpClient.get<User>(`${API_ROUTES.USER.PROFILE}?userId=${id}`);
   },
   
+  // GET: /user/admin/users (for Admin management)
   getAll: () => {
-    return HttpClient.get<User[]>(API_ROUTES.USER.GET_ALL); 
+    return HttpClient.get<User[]>(API_ROUTES.USER.ADMIN_GET_ALL); 
   },
 
   // POST: /user/profile/status?userId={id}
   changeUserStatus: (userId: string, targetStatus: number) => {
-    return HttpClient.post<any>(`/user/profile/status?userId=${userId}`, {
+    return HttpClient.post<any>(`${API_ROUTES.USER.UPDATE}/status?userId=${userId}`, {
       userStatus: targetStatus
     });
   },
 
   // PUT: /user/profile
   updateProfile: (id: string, payload: any) => {
-    return HttpClient.put<User>(`/user/profile`, payload);
+    return HttpClient.put<User>(`${API_ROUTES.USER.UPDATE}`, payload);
   },
 
   // POST: /user/profile/avatar
@@ -30,8 +31,9 @@ export const userService = {
     formData.append("AvatarFile", file);
     
     return HttpClient.post<{ isSuccess: boolean; data: { avatarUrl: string } }>(
-      `/user/profile/avatar`, 
+      `${API_ROUTES.USER.UPDATE}/avatar`, 
       formData
     );
-  }
+  },
+
 };

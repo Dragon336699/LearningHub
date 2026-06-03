@@ -4,7 +4,6 @@ using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -23,7 +22,7 @@ namespace LearningHub.API.Controllers
             _validationService = validationService;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         [Route("profile")]
         public async Task<IActionResult> GetUserProfile(Guid userId)
@@ -171,6 +170,21 @@ namespace LearningHub.API.Controllers
             }
 
             return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        [Route("admin/users")]
+        public async Task<IActionResult> GetAllUsersForManagement()
+        {
+            Result<List<UserDto>> result = await _userService.GetAllUsersForManagementAsync();
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
     }
 }

@@ -228,7 +228,10 @@ export const EditProfileModal = ({
             certificates={localForm.certificates}
             onChange={(updatedCerts) => updateField("certificates", updatedCerts)}
             onFileChange={(key, file) => setCertificateFiles(prev => ({ ...prev, [key]: file }))}
-            selectedFilesMap={certificateFiles}
+            selectedFilesMap={certificateFiles} 
+            onError={function (errorMsg: string): void {
+              throw new Error("Function not implemented.");
+            }}
           />
 
           {/* Modal Actions */}

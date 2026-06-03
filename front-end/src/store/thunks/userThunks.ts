@@ -36,3 +36,16 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
+
+export const fetchAllUsersForAdmin = createAsyncThunk(
+  "user/fetchAllUsersForAdmin",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await userService.getAll();
+      return (response as any).data ?? response; 
+    } catch (err: any) {
+      console.error("Fetch admin list error:", err);
+      return rejectWithValue(err.response?.data?.errors?.[0] || err.message || "Forbidden Access");
+    }
+  }
+);

@@ -5,6 +5,7 @@ export const URL_ROUTES = {
     VERIFY_EMAIL:"/verify-email",
     CHECK_EMAIL: "/check-email",
     PROFILE: "/profile/:id",
+    ALL_USERS: "admin/users",
     MENTOR_COURSE: "mentor/courses",
     All_COURSES: "admin/courses",
     TRAINEE_COURSES: "find/courses",

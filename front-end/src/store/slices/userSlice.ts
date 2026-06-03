@@ -1,15 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { fetchUserById, updateUserProfile } from "../thunks/userThunks"; 
+import { fetchAllUsersForAdmin, fetchUserById, updateUserProfile } from "../thunks/userThunks"; 
 
 interface UserState {
   profileUser: User | null; 
+  adminUserList: User[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: UserState = {
   profileUser: null,
+  adminUserList: [],
   loading: false,
   error: null,
 };
@@ -75,7 +77,19 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.[0] || "Update failed";
       })
-  },
+      .addCase(fetchAllUsersForAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllUsersForAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.adminUserList = action.payload; // Đổ toàn bộ 112 users từ DB vào Store sạch sẽ
+      })
+      .addCase(fetchAllUsersForAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+    },
 });
 
 export const { clearProfile, updateAvatarSuccess, updateCertificatesSuccess } = userSlice.actions;
