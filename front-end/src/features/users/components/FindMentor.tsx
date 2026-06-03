@@ -146,7 +146,7 @@ const FindMentor = () => {
                     <img
                       src={
                         mentor.avatarUrl ||
-                        "https://randomuser.me/api/portraits/lego/1.jpg"
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(`${mentor.firstName} ${mentor.lastName || ""}`)}&background=f97316&color=fff`
                       }
                       alt={`${mentor.firstName} ${mentor.lastName || ""}`}
                       className="w-16 h-16 rounded-full object-cover mr-4"
