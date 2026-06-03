@@ -8,4 +8,5 @@ export const URL_ROUTES = {
     MENTOR_COURSE: "mentor/courses",
     All_COURSES: "admin/courses",
     TRAINEE_COURSES: "find/courses",
+    FIND_MENTOR: "find/mentors",
 };
