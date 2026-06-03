@@ -12,6 +12,8 @@ import {
   Plus,
   Edit3,
   Trash2,
+  Search,
+  AlertTriangle,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
@@ -26,6 +28,7 @@ import { Certificate } from "../../../types/certificate";
 import { updateAvatarSuccess } from "../../../store/slices/userSlice";
 import { certificateService } from "../../../services/certificate.service";
 import { CertificateEditModal } from "../components/CertificateEditModal";
+import { userService } from "../../../services/user.service";
 
 type TabType = "about" | "experience" | "certificates";
 
@@ -188,6 +191,28 @@ export const UserProfilePage = () => {
 
   const canViewCoachCost = profileIsMentor && (currentIsAdmin || currentIsMentor);
 
+  const handleToggleUserStatus = async () => {
+    if (!user || !id) return;
+
+    const rawStatus = String(user.status ?? (user as any).Status ?? "").toLowerCase();    
+    const isActive = rawStatus === "active" || rawStatus === "0";    
+    const targetStatusNumber = isActive ? 1 : 0; 
+    const targetStatusText = isActive ? "DEACTIVATE" : "ACTIVATE";
+
+    const confirmMessage = `WARNING: Are you sure you want to ${targetStatusText} the profile of ${fullName}?`;
+
+    if (!globalThis.confirm(confirmMessage)) return;
+
+    try {
+      await userService.changeUserStatus(id, targetStatusNumber);
+      handleRefresh(); 
+    } catch (err) {
+      console.error("Admin toggle status error:", err);
+      alert("Failed to update user status due to network or authorization issue: " + err?.message?.toString());
+    }
+  };
+
+
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-900 text-gray-200">
@@ -226,9 +251,20 @@ export const UserProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200">
-      <header className="p-4 border-b border-gray-800">
+      <header className="p-4 border-b border-gray-800 flex items-center">
         <div className="container mx-auto">
           <h1 className="text-xl font-semibold">Profile</h1>
+        </div>
+
+        <div className="relative w-full sm:w-100 md:w-200 transition-all duration-300">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search className="h-4 w-4 text-gray-500" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search mentors, skills, expertise..."
+            className="w-full bg-gray-900 border border-gray-800 text-gray-200 placeholder-gray-500 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-orange-500/50 focus:bg-gray-900/80 transition-all"
+          />
         </div>
       </header>
 
@@ -274,9 +310,29 @@ export const UserProfilePage = () => {
               <div className="flex-grow">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      {fullName}
-                    </h2>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      {/* Full Name Display */}
+                      <h2 className="text-2xl font-bold text-white">
+                        {fullName}
+                      </h2>
+
+                      {/* Role Display */}
+                      {user.roleName && (
+                        <span className="bg-gray-700 text-gray-300 border border-gray-600 px-2.5 py-0.5 rounded-lg text-xs font-medium">
+                          {user.roleName}
+                        </span>
+                      )}
+
+                      {/* Status Display */}
+                      <span className={`font-bold px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider ${
+                        (Number(user.status) === 0 || String(user.status).toLowerCase() === "active")
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                          : "bg-red-500/10 text-red-400 border border-red-500/20"
+                      }`}>
+                        {(Number(user.status) === 0 || String(user.status).toLowerCase() === "active") ? "● Active" : "● Deactivated"}
+                      </span>
+                    </div>
+
                     <p className="text-gray-400 text-lg mt-1">{currentTitle}</p>
 
                     {canViewCoachCost && (
@@ -312,6 +368,17 @@ export const UserProfilePage = () => {
                         className="bg-orange-500 hover:bg-orange-600 transition-colors text-white px-4 py-2 rounded-md text-sm font-medium"
                       >
                         Edit Profile
+                      </button>
+                    )}
+
+                    {!isCurrentUser && currentIsAdmin && (
+                      <button
+                        onClick={handleToggleUserStatus}
+                        className={`
+                          ${Number(user.status) === 0 || String(user.status).toLowerCase() === "active" ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"} 
+                          transition-colors text-white px-4 py-2 rounded-md text-sm font-medium`}
+                      >
+                        {Number(user.status) === 0 || String(user.status).toLowerCase() === "active" ? "Deactivate" : "Activate"}
                       </button>
                     )}
                   </div>

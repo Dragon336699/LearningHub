@@ -154,7 +154,7 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [Route("profile/status")]
-        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, Guid userId)
+        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, [FromQuery] Guid userId)
         {
             var validationResult = await _validationService.ValidateAsync(request);
 

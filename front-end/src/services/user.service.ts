@@ -12,6 +12,13 @@ export const userService = {
     return HttpClient.get<User[]>(API_ROUTES.USER.GET_ALL); 
   },
 
+  // POST: /user/profile/status?userId={id}
+  changeUserStatus: (userId: string, targetStatus: number) => {
+    return HttpClient.post<any>(`/user/profile/status?userId=${userId}`, {
+      userStatus: targetStatus
+    });
+  },
+
   // PUT: /user/profile
   updateProfile: (id: string, payload: any) => {
     return HttpClient.put<User>(`/user/profile`, payload);
