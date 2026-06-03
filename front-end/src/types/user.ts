@@ -20,3 +20,8 @@ export interface User {
 
   expertises: Expertise[];
 }
+
+export interface SearchUserProfileCommand {
+  keyword: string;
+  expertiseIds: string[];
+}
