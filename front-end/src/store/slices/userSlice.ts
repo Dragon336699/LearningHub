@@ -1,14 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { fetchUserById, updateUserProfile } from "../thunks/userThunks"; 
+import { fetchExpertises, fetchUserById, searchMentors, updateUserProfile } from "../thunks/userThunks"; 
+import { Expertise } from "../../types/expertise";
 
 interface UserState {
+  expertises: Expertise[];
+  mentors: User[];
   profileUser: User | null; 
   loading: boolean;
   error: string | null;
 }
 
 const initialState: UserState = {
+  expertises: [],
+  mentors: [],
   profileUser: null,
   loading: false,
   error: null,
@@ -75,6 +80,33 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.[0] || "Update failed";
       })
+
+      .addCase(fetchExpertises.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchExpertises.fulfilled, (state, action: PayloadAction<Expertise[]>) => {
+        state.loading = false;
+        state.expertises = action.payload;
+      })
+      .addCase(fetchExpertises.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || "Can not fetch expertises";
+      })
+
+      .addCase(searchMentors.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(searchMentors.fulfilled, (state, action: PayloadAction<User[]>) => {
+        state.loading = false;
+        state.mentors = action.payload;
+      })
+      .addCase(searchMentors.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string || "Can not search mentors";
+      });
+
   },
 });
 
