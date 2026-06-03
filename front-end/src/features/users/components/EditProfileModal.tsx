@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ExpertiseResponse, expertiseService } from "../../../services/expertise.service";
 import { FormState } from "../types";
 import { ExperienceFormList } from "./ExperienceFormList";
+import { CertificateFormList } from "./CertificateFormList";
 
 interface EditProfileModalProps {
   initialFormState: FormState;
@@ -22,6 +23,8 @@ export const EditProfileModal = ({
   const [expertises, setExpertises] = useState<ExpertiseResponse[]>([]);
   const [isLoadingExpertises, setIsLoadingExpertises] = useState(false);
   const [expertiseError, setExpertiseError] = useState<string | null>(null);
+
+  const [certificateFiles, setCertificateFiles] = useState<Record<string | number, File>>({});
 
   useEffect(() => {
     const loadExpertises = async () => {
@@ -218,6 +221,14 @@ export const EditProfileModal = ({
           <ExperienceFormList 
             experiences={localForm.experiences} 
             onChange={(updatedExperiences) => updateField("experiences", updatedExperiences)}
+          />
+
+          {/* Certificate */}
+          <CertificateFormList
+            certificates={localForm.certificates}
+            onChange={(updatedCerts) => updateField("certificates", updatedCerts)}
+            onFileChange={(key, file) => setCertificateFiles(prev => ({ ...prev, [key]: file }))}
+            selectedFilesMap={certificateFiles}
           />
 
           {/* Modal Actions */}

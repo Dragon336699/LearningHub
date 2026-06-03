@@ -9,11 +9,9 @@ import {
   User2,
   ArrowUpRight,
   Camera,
-  Plus,
-  Edit3,
-  Trash2,
   Search,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
@@ -26,9 +24,8 @@ import { EditProfileModal } from "../components/EditProfileModal";
 import { AvatarUploadModal } from "../components/AvatarUploadModal";
 import { Certificate } from "../../../types/certificate";
 import { updateAvatarSuccess } from "../../../store/slices/userSlice";
-import { certificateService } from "../../../services/certificate.service";
-import { CertificateEditModal } from "../components/CertificateEditModal";
 import { userService } from "../../../services/user.service";
+import { certificateService } from "../../../services/certificate.service";
 
 type TabType = "about" | "experience" | "certificates";
 
@@ -46,8 +43,7 @@ export const UserProfilePage = () => {
   const [isAvatarPopupOpen, setIsAvatarPopupOpen] = useState(false);
   const [liveAvatar, setLiveAvatar] = useState("");
 
-  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
-  const [selectedCertForEdit, setSelectedCertForEdit] = useState<Certificate | null>(null);
+  const [uiFeedback, setUiFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   const [formState, setFormState] = useState<FormState>({
     firstName: "",
@@ -59,6 +55,7 @@ export const UserProfilePage = () => {
     skills: "",
     selectedExpertiseIds: [] as string[],
     experiences: [] as Experience[],
+    certificates: [] as Certificate[],
   });
 
   const resetFormState = () => {
@@ -76,6 +73,7 @@ export const UserProfilePage = () => {
         (user as any).Expertises?.map((e: any) => e.Id) ||
         [],
       experiences: user.experiences || (user as any).Experiences || [],
+      certificates: user.certificates || (user as any).Certificates || [],
     });
     setLiveAvatar(user.avatarUrl || "");
   };
@@ -94,6 +92,14 @@ export const UserProfilePage = () => {
     }
   }, [user?.avatarUrl, user]);
 
+  useEffect(() => {
+    if (!uiFeedback) return;
+    const timer = setTimeout(() => {
+      setUiFeedback(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [uiFeedback]);
+
   const handleRefresh = () => {
     if (id) dispatch(fetchUserById(id));
   };
@@ -103,66 +109,95 @@ export const UserProfilePage = () => {
     setIsEditOpen(false);
   };
 
-  const handleDeleteCertificate = async (certId: string) => {
-    if (!globalThis.confirm("Are you sure you want to permanently delete this certificate?")) return;
-    try {
-      await certificateService.delete(certId);
-      handleRefresh(); // Re-fetch dữ liệu thô sạch từ DB về Redux
-    } catch (err) {
-      alert("Failed to delete certificate.");
-    }
-  };
-
-  const handleOpenAddCert = () => {
-    setSelectedCertForEdit(null); // Set về null để Popup hiểu là thêm mới
-    setIsCertModalOpen(true);
-  };
-
-  const handleOpenEditCert = (cert: Certificate) => {
-    setSelectedCertForEdit(cert); // Truyền object sang để Popup hiểu là chỉnh sửa
-    setIsCertModalOpen(true);
-  };
-
   const handleAvatarSuccess = (newAvatarUrl: string) => {
     setFormState((prev) => ({ ...prev, avatarUrl: newAvatarUrl }));
     setLiveAvatar(newAvatarUrl);
     dispatch(updateAvatarSuccess(newAvatarUrl));
   }
 
-  const handleSaveModal = (updatedForm: FormState) => {
+  const handleSaveModal = async (updatedForm: FormState) => {
     if (!user) return;
 
-    const commandExperiences =
-      updatedForm.experiences.length > 0
-        ? updatedForm.experiences.map((exp) => ({
-            id: exp.id ? exp.id : null,
-            title: exp.title,
-            description: exp.description || "Updated via Web Profile Portal",
-            startDate: exp.startDate
-              ? new Date(exp.startDate).toISOString()
-              : new Date().toISOString(),
-            endDate: exp.endDate
-              ? new Date(exp.endDate).toISOString()
-              : new Date().toISOString(),
-          }))
-        : [];
+    try {
+      setUiFeedback(null);
 
+      // Handle certificate deletions first before any profile updates to avoid foreign key conflicts in DB
+      const originalCertIds = user.certificates?.map(c => c.id) || [];
+      const currentCertIds = new Set((updatedForm.certificates || []).map(c => c.id));
+      const deletedCertIds = originalCertIds.filter(certId => !currentCertIds.has(certId));
 
-    const apiPayload = {
-      userAvatar: updatedForm.avatarUrl || null,
-      firstName: updatedForm.firstName,
-      lastName: updatedForm.lastName,
-      coachCost: Number(updatedForm.coachCost) || 0,
-      bio: updatedForm.bio,
-      skills: updatedForm.skills,
-      expertises: updatedForm.selectedExpertiseIds,
-      experiences: commandExperiences,
-    };
+      if (deletedCertIds.length > 0) {
+        const deletePromises = deletedCertIds.map(certId => certificateService.delete(certId)); 
+        await Promise.all(deletePromises);
+      }
 
-    dispatch(updateUserProfile({ id: id || "", payload: apiPayload }));
+      // Profile and Experience updates
+      const commandExperiences =
+        updatedForm.experiences.length > 0
+          ? updatedForm.experiences.map((exp) => ({
+              id: exp.id ? exp.id : null,
+              title: exp.title,
+              description: exp.description || "Updated via Web Profile Portal",
+              startDate: exp.startDate ? new Date(exp.startDate).toISOString() : new Date().toISOString(),
+              endDate: exp.endDate ? new Date(exp.endDate).toISOString() : new Date().toISOString(),
+            }))
+          : [];
 
-    setFormState(updatedForm);
-    setIsEditOpen(false);
+      const apiPayload = {
+        userAvatar: updatedForm.avatarUrl || null,
+        firstName: updatedForm.firstName,
+        lastName: updatedForm.lastName,
+        coachCost: Number(updatedForm.coachCost) || 0,
+        bio: updatedForm.bio,
+        skills: updatedForm.skills,
+        expertises: updatedForm.selectedExpertiseIds,
+        experiences: commandExperiences,
+      };
+
+      await dispatch(updateUserProfile({ id: id || "", payload: apiPayload })).unwrap();
+
+      // Certificates update
+      if (updatedForm.certificates && updatedForm.certificates.length > 0) {
+  
+        const certPromises = updatedForm.certificates.map((cert, index) => {
+          const formData = new FormData();
+          formData.append("CertificateName", cert.certificateName.trim());
+          formData.append("Organization", cert.organization.trim());
+          formData.append("IssueDate", cert.issueDate ? cert.issueDate.split("T")[0] : "");
+          
+          if (cert.expirationDate) {
+            formData.append("ExpirationDate", cert.expirationDate.split("T")[0]);
+          }
+
+          const attachedFile = (updatedForm as any).certificateFiles?.[cert.id || index];
+          if (attachedFile) {
+            formData.append("CredentialFile", attachedFile);
+          }
+
+          if (cert.id) {
+            formData.append("Id", cert.id);
+            return certificateService.update(formData); 
+          } else {
+            return certificateService.create(formData); 
+          }
+        });
+
+        await Promise.all(certPromises);
+      }
+
+      // Transaction successful
+      setFormState(updatedForm);
+      setIsEditOpen(false);
+      
+      // Refresh page
+      handleRefresh(); 
+      setUiFeedback({ type: "success", msg: "Profile information and professional certificates saved successfully!" });
+
+    } catch (err: any) {
+      console.error("Double API synchronization failed:", err);
+      const serverMsg = err?.response?.data?.errors?.[0] || err?.message || "Unknown communication error.";
+      setUiFeedback({ type: "error", msg: `Failed to save changes: ${serverMsg}` });
+    }
   };
 
   const formatTimelineDate = (
@@ -200,15 +235,22 @@ export const UserProfilePage = () => {
     const targetStatusText = isActive ? "DEACTIVATE" : "ACTIVATE";
 
     const confirmMessage = `WARNING: Are you sure you want to ${targetStatusText} the profile of ${fullName}?`;
-
     if (!globalThis.confirm(confirmMessage)) return;
 
     try {
+      setUiFeedback(null);
       await userService.changeUserStatus(id, targetStatusNumber);
       handleRefresh(); 
-    } catch (err) {
+      setUiFeedback({ type: "success", msg: `Successfully ${targetStatusText.toLowerCase()}d user account.` });
+    } catch (err: unknown) {
+      const errorObject = err as { response?: { data?: { errors?: string[] } }; message?: string };
+      const extractMsg = errorObject.response?.data?.errors?.[0] || errorObject.message || "Unknown error";
+      
       console.error("Admin toggle status error:", err);
-      alert("Failed to update user status due to network or authorization issue: " + err?.message?.toString());
+      setUiFeedback({ 
+        type: "error", 
+        msg: `Failed to update user status due to network or authorization issue: ${extractMsg}` 
+      });
     }
   };
 
@@ -269,9 +311,29 @@ export const UserProfilePage = () => {
       </header>
 
       <main className="container mx-auto p-4">
+        {/* UI Feedback */}
+        {uiFeedback && (
+          <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs font-semibold 
+            animate-in fade-in slide-in-from-top-2 duration-300 transition-all ${
+            uiFeedback.type === "success" 
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+              : "bg-red-500/10 text-red-400 border-red-500/20"
+          }`}>
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p className="flex-grow">{uiFeedback.msg}</p>
+            <button 
+              type="button" 
+              onClick={() => setUiFeedback(null)} 
+              className="text-gray-400 hover:text-white text-sm pl-2 select-none focus:outline-none"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
           {/* Navigation Bar */}
-          <nav className="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+          {/* <nav className="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
             <div className="flex space-x-4">
               <button
                 onClick={() => navigate(-1)}
@@ -279,18 +341,21 @@ export const UserProfilePage = () => {
                 className="flex items-center text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Back to Browse
+                Back
               </button>
             </div>
-          </nav>
+          </nav> */}
 
           {/* Profile Header Card */}
           <div className="p-6">
             <div className="flex flex-col md:flex-row mb-8 gap-6">
               {/* Avatar */}
-              <div 
+              <button 
+                type="button"
+                disabled={!canEditProfile}
                 onClick={() => canEditProfile && setIsAvatarPopupOpen(true)}
-                className={`group relative w-32 h-32 shrink-0 rounded-full object-cover border-4 border-orange-500 overflow-hidden bg-gray-900 flex items-center justify-center text-3xl font-bold ${canEditProfile ? "cursor-pointer" : ""}`}
+                className={`group relative w-32 h-32 shrink-0 rounded-full border-4 border-orange-500 overflow-hidden bg-gray-900 flex items-center justify-center text-3xl font-bold transition focus:outline-none focus:ring-2 focus:ring-orange-500/50 ${canEditProfile ? "cursor-pointer" : "cursor-default"}`}
+                aria-label="Change profile avatar"
               >
                 {liveAvatar || user.avatarUrl ? (
                   <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover transition group-hover:scale-105" />
@@ -304,7 +369,7 @@ export const UserProfilePage = () => {
                     <span className="text-[10px] font-bold text-gray-200 uppercase">Change</span>
                   </div>
                 )}
-              </div>
+              </button>
 
               {/* Details */}
               <div className="flex-grow">
@@ -493,20 +558,7 @@ export const UserProfilePage = () => {
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="mb-3 font-semibold text-white text-xl">Certificates</h3>
-                {/* Only allow add certificate if viewing own profile */}
-                {canEditProfile && (
-                  <div className="flex justify-end">
-                    <button
-                      title="Add New Certificate"
-                      onClick={handleOpenAddCert}
-                      className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl text-xs font-bold text-white transition shadow-lg shadow-orange-500/10"
-                    >
-                      <Plus className="h-4 w-4" /> 
-                    </button>
-                  </div>
-                )}
-              </div>
-              
+              </div>        
               
               {/* Display certificates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -516,26 +568,6 @@ export const UserProfilePage = () => {
                       key={cert.id}
                       className="bg-gray-800 p-5 rounded-xl border border-gray-700 flex flex-col justify-between relative group hover:border-gray-600 transition-all duration-200"
                     >
-                      {/* Current user can open the edit certificate modal */}
-                      {canEditProfile && (
-                        <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
-                          <button
-                            onClick={() => handleOpenEditCert(cert)}
-                            className="p-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg hover:text-white transition shadow-md"
-                            title="Edit Certificate"
-                          >
-                            <Edit3 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCertificate(cert.id)}
-                            className="p-1.5 bg-gray-700 hover:bg-gray-600 text-red-400 rounded-lg hover:text-red-300 transition shadow-md"
-                            title="Delete Certificate"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      )}
-
                       {/* General View for all accounts */}
                       <div>
                         <h4 className="font-bold text-white text-lg">
@@ -592,16 +624,6 @@ export const UserProfilePage = () => {
           userLetter={(user.firstName || "U").charAt(0)}
           onClose={() => setIsAvatarPopupOpen(false)}
           onSuccess={handleAvatarSuccess}
-        />
-      )}
-
-      {/* Certificate Upload Modal */}
-      {isCertModalOpen && (
-        <CertificateEditModal
-          userId={id || ""}
-          editingCertificate={selectedCertForEdit}
-          onClose={() => setIsCertModalOpen(false)}
-          onSuccess={handleRefresh} // Tự động làm mới mảng Store bằng dữ liệu DB sạch
         />
       )}
       

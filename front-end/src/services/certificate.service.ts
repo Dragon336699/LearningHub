@@ -8,32 +8,14 @@ interface ApiResult<T> {
 }
 
 export const certificateService = {
-  // POST /certificate?testUserId={id} in FromForm
-  create: async (userId: string, name: string, org: string, issueDate: string, expDate: string | null, file: File | null) => {
-    const formData = new FormData();
-    formData.append("CertificateName", name);
-    formData.append("Organization", org);
-    formData.append("IssueDate", issueDate);
-    if (expDate) formData.append("ExpirationDate", expDate);
-    if (file) formData.append("CredentialFile", file); // Match with UpdateCertificateCommand
-
-    return HttpClient.post<ApiResult<Certificate>>(`/certificate?testUserId=${userId}`, formData);
+  create: async (formData: FormData) => {
+    return HttpClient.post<ApiResult<Certificate>>(`/certificate`, formData);
   },
 
-  // PUT /certificate?testUserId={id} in FromForm
-  update: async (userId: string, certId: string, name: string, org: string, issueDate: string, expDate: string | null, file: File | null) => {
-    const formData = new FormData();
-    formData.append("Id", certId);
-    formData.append("CertificateName", name);
-    formData.append("Organization", org);
-    formData.append("IssueDate", issueDate);
-    if (expDate) formData.append("ExpirationDate", expDate);
-    if (file) formData.append("CredentialFile", file);
-
-    return HttpClient.put<ApiResult<Certificate>>(`/certificate?testUserId=${userId}`, formData);
+  update: async (formData: FormData) => {
+    return HttpClient.put<ApiResult<Certificate>>(`/certificate`, formData);
   },
 
-  // DELETE /certificate/{certificateId}
   delete: async (certId: string) => {
     return HttpClient.delete<void>(`/certificate/${certId}`);
   }
