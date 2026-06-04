@@ -3,6 +3,7 @@ export const API_ROUTES = {
     PROFILE: "/user/profile",
     ADMIN_GET_ALL: "/user/admin/users",
     UPDATE: "/user/profile",
+    EXPERTISE: "/expertise",
   },
   AUTH: {
     LOGIN: "/auth/login",
