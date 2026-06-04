@@ -1,5 +1,7 @@
 import { API_ROUTES } from "../configs/api_routes";
 import { HttpClient } from "../lib/client";
+import { PagedResult } from "../shared/types/pagedResult";
+import { Result } from "../types/result";
 import { User } from "../types/user";
 
 export const userService = {
@@ -8,13 +10,21 @@ export const userService = {
     return HttpClient.get<User>(`${API_ROUTES.USER.PROFILE}?userId=${id}`);
   },
   
-  getAll: () => {
-    return HttpClient.get<User[]>(API_ROUTES.USER.GET_ALL); 
+  // GET: /user/admin/users (for Admin management)
+  getAll: (page: number, pageSize: number, keyword?: string) => {
+    return HttpClient.get<Result<PagedResult<User>>>(`${API_ROUTES.USER.ADMIN_GET_ALL}?page=${page}&pageSize=${pageSize}${keyword ? `&keyword=${keyword}` : ''}`); 
+  },
+
+  // POST: /user/profile/status?userId={id}
+  changeUserStatus: (userId: string, targetStatus: number) => {
+    return HttpClient.post<any>(`${API_ROUTES.USER.UPDATE}/status?userId=${userId}`, {
+      userStatus: targetStatus
+    });
   },
 
   // PUT: /user/profile
   updateProfile: (id: string, payload: any) => {
-    return HttpClient.put<User>(`/user/profile`, payload);
+    return HttpClient.put<User>(`${API_ROUTES.USER.UPDATE}`, payload);
   },
 
   // POST: /user/profile/avatar
@@ -23,8 +33,9 @@ export const userService = {
     formData.append("AvatarFile", file);
     
     return HttpClient.post<{ isSuccess: boolean; data: { avatarUrl: string } }>(
-      `/user/profile/avatar`, 
+      `${API_ROUTES.USER.UPDATE}/avatar`, 
       formData
     );
-  }
+  },
+
 };

@@ -5,6 +5,7 @@ using LearningHub.Application.Dtos.Certificates;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LearningHub.API.Controllers
 {
@@ -20,10 +21,16 @@ namespace LearningHub.API.Controllers
             _validationService = validationService;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CreateCertificate([FromForm] CreateCertificateRequest request, Guid testUserId)
+        public async Task<IActionResult> CreateCertificate([FromForm] CreateCertificateRequest request)
         {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "User ID is missing from token or invalid." }));
+            }
+
             var validationResult = await _validationService.ValidateAsync(request);
 
             if (!validationResult.IsSuccess)
@@ -37,7 +44,7 @@ namespace LearningHub.API.Controllers
             }
 
             CreateCertificateCommand createCertificateCommand = request.ToCreateCertificateCommand();
-            Result<CertificateDto> createResult = await _certificateService.CreateCertificateAsync(createCertificateCommand, testUserId);
+            Result<CertificateDto> createResult = await _certificateService.CreateCertificateAsync(createCertificateCommand, userId);
 
             if (!createResult.IsSuccess)
             {
@@ -47,10 +54,15 @@ namespace LearningHub.API.Controllers
             return Ok(createResult);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPut]
-        public async Task<IActionResult> UpdateCertificate([FromForm] UpdateCertificateRequest request, Guid testUserId)
+        public async Task<IActionResult> UpdateCertificate([FromForm] UpdateCertificateRequest request)
         {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "User ID is missing from token or invalid." }));
+            }
             var validationResult = await _validationService.ValidateAsync(request);
 
             if (!validationResult.IsSuccess)
@@ -64,7 +76,7 @@ namespace LearningHub.API.Controllers
             }
 
             UpdateCertificateCommand createCertificateCommand = request.ToUpdateCertificateCommand();
-            Result<CertificateDto> updateResult = await _certificateService.UpdateCertificateAsync(createCertificateCommand, testUserId);
+            Result<CertificateDto> updateResult = await _certificateService.UpdateCertificateAsync(createCertificateCommand, userId);
 
             if (!updateResult.IsSuccess)
             {
@@ -74,7 +86,7 @@ namespace LearningHub.API.Controllers
             return Ok(updateResult);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpDelete("{certificateId}")]
         public async Task<IActionResult> DeleteCertificate(Guid certificateId)
         {

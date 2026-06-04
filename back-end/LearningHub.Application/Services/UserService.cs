@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
+using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
@@ -235,6 +236,52 @@ namespace LearningHub.Application.Services
             if (!result.Succeeded) return Result<string>.Failure(new List<string> { "Update user failed." });
 
             return Result<string>.Success();
+        }
+
+        // Get all users for management (Admin)
+        public async Task<Result<PagedResult<UserDto>>> GetAllUsersForManagementAsync(int page, int pageSize, string? keyword)
+        {
+            // Exclude all Admin users
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminIds = adminUsers.Select(a => a.Id).ToList();
+
+            var query = _userManager.Users
+                .AsNoTracking()
+                .Where(u => !adminIds.Contains(u.Id));
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                query = query.Where(u => u.FirstName.ToLower().Trim().Contains(keyword.ToLower().Trim()) || (u.LastName != null && u.LastName.ToLower().Trim().Contains(keyword.ToLower().Trim())));
+            }
+
+            var totalUsers = await query.CountAsync(u => !adminIds.Contains(u.Id));
+
+            var nonAdminUsers = await query
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var userDtos = _mapper.Map<List<UserDto>>(nonAdminUsers);
+
+            foreach (var dto in userDtos)
+            {
+                var originalUser = nonAdminUsers.First(x => x.Id == dto.Id);
+                var roles = await _userManager.GetRolesAsync(originalUser);
+                
+                dto.RoleName = roles.FirstOrDefault();
+            }
+
+            PagedResult<UserDto> pagedUsers = new PagedResult<UserDto>
+            {
+                Items = userDtos,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalUsers
+            };
+
+            return Result<PagedResult<UserDto>>.Success(pagedUsers);
         }
 
     }

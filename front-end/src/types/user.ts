@@ -9,6 +9,7 @@ export interface User {
   lastName?: string;
 
   coachCost: number;
+  status: string;
 
   avatarUrl?: string;
   roleName: string;
