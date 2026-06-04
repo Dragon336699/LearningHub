@@ -1,5 +1,7 @@
 import { API_ROUTES } from "../configs/api_routes";
 import { HttpClient } from "../lib/client";
+import { PagedResult } from "../shared/types/pagedResult";
+import { Result } from "../types/result";
 import { User } from "../types/user";
 
 export const userService = {
@@ -9,8 +11,8 @@ export const userService = {
   },
   
   // GET: /user/admin/users (for Admin management)
-  getAll: () => {
-    return HttpClient.get<User[]>(API_ROUTES.USER.ADMIN_GET_ALL); 
+  getAll: (page: number, pageSize: number, keyword?: string) => {
+    return HttpClient.get<Result<PagedResult<User>>>(`${API_ROUTES.USER.ADMIN_GET_ALL}?page=${page}&pageSize=${pageSize}${keyword ? `&keyword=${keyword}` : ''}`); 
   },
 
   // POST: /user/profile/status?userId={id}

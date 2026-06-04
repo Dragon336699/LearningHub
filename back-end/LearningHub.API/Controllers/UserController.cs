@@ -1,4 +1,5 @@
-﻿using LearningHub.API.Contracts.Users;
+﻿using LearningHub.API.Contracts.Common;
+using LearningHub.API.Contracts.Users;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
@@ -6,6 +7,7 @@ using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace LearningHub.API.Controllers
 {
@@ -175,9 +177,16 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Admin")]
         [HttpGet]
         [Route("admin/users")]
-        public async Task<IActionResult> GetAllUsersForManagement()
+        public async Task<IActionResult> GetAllUsersForManagement([FromQuery] GetPageQuery query, [FromQuery] string? keyword)
         {
-            Result<List<UserDto>> result = await _userService.GetAllUsersForManagementAsync();
+            var validationResult = await _validationService.ValidateAsync(query);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
+            Result<PagedResult<UserDto>> result = await _userService.GetAllUsersForManagementAsync(query.Page, query.PageSize, keyword);
 
             if (!result.IsSuccess)
             {
