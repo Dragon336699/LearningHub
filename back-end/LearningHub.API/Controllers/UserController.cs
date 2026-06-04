@@ -1,12 +1,13 @@
-﻿using LearningHub.API.Contracts.Users;
+﻿using LearningHub.API.Contracts.Common;
+using LearningHub.API.Contracts.Users;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace LearningHub.API.Controllers
 {
@@ -23,7 +24,7 @@ namespace LearningHub.API.Controllers
             _validationService = validationService;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         [Route("profile")]
         public async Task<IActionResult> GetUserProfile(Guid userId)
@@ -154,7 +155,7 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [Route("profile/status")]
-        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, Guid userId)
+        public async Task<IActionResult> ChangeUserStatus([FromBody] UpdateUserStatusCommand request, [FromQuery] Guid userId)
         {
             var validationResult = await _validationService.ValidateAsync(request);
 
@@ -171,6 +172,28 @@ namespace LearningHub.API.Controllers
             }
 
             return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        [Route("admin/users")]
+        public async Task<IActionResult> GetAllUsersForManagement([FromQuery] GetPageQuery query, [FromQuery] string? keyword)
+        {
+            var validationResult = await _validationService.ValidateAsync(query);
+
+            if (!validationResult.IsSuccess)
+            {
+                return BadRequest(validationResult);
+            }
+
+            Result<PagedResult<UserDto>> result = await _userService.GetAllUsersForManagementAsync(query.Page, query.PageSize, keyword);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
     }
 }

@@ -13,7 +13,8 @@ import { AdminCoursesPage } from "../features/courses/pages/AdminCoursesPage";
 import { TraineeCoursesPage } from "../features/courses/pages/TraineeCoursesPage";
 import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 import ProtectedLoginRoute from "./ProtectedAuthRoute";
-import FindMentor from "../features/users/components/FindMentor";
+import FindMentorPage from "../features/users/pages/FindMentorPage";
+import { UserManagementPage } from "../features/users/pages/UserManagementPage";
 
 export const router = createBrowserRouter([
   {
@@ -55,7 +56,7 @@ export const router = createBrowserRouter([
           },
           {
             path: URL_ROUTES.FIND_MENTOR,
-            element: <ProtectedRoute allowedRoles={["Trainee"]}><FindMentor /></ProtectedRoute>,
+            element: <ProtectedRoute allowedRoles={["Trainee"]}><FindMentorPage /></ProtectedRoute>,
           },
           {
             path: URL_ROUTES.MENTOR_COURSE,
@@ -73,6 +74,14 @@ export const router = createBrowserRouter([
             path: URL_ROUTES.TRAINEE_COURSES,
             element: (
               <ProtectedRoute allowedRoles={["Trainee"]}><TraineeCoursesPage /></ProtectedRoute>
+            ),
+          },
+          {
+            path: URL_ROUTES.ALL_USERS,
+            element: (
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <UserManagementPage />
+              </ProtectedRoute>
             ),
           },
         ]

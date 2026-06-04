@@ -6,7 +6,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { useNavigate } from "react-router-dom";
 
-const FindMentor = () => {
+export const FindMentorPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -32,9 +32,10 @@ const FindMentor = () => {
   useEffect(() => {
     const fetchFilteredMentors = async () => {
       setIsLoading(true);
+      const trimmedKeyword = keyword.trim();
       const actionResult = await dispatch(
         searchMentors({
-          keyword,
+          keyword: trimmedKeyword,
           expertiseIds: selectedExpertiseIds,
         }),
       );
@@ -158,7 +159,7 @@ const FindMentor = () => {
                       </p>
                       <p className="text-orange-400 text-sm mt-1 font-semibold">
                         {mentor.coachCost
-                          ? `${mentor.coachCost.toLocaleString("vi-VN")} VND/h`
+                          ? `${mentor.coachCost.toLocaleString("en-US")} $/h`
                           : "Free"}
                       </p>
                     </div>
@@ -213,4 +214,4 @@ const FindMentor = () => {
   );
 };
 
-export default FindMentor;
+export default FindMentorPage;
