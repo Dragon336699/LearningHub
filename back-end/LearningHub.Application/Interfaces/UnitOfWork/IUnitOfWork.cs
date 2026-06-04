@@ -9,6 +9,8 @@ namespace LearningHub.Application.Interfaces.UnitOfWork
         ICertificateRepository Certificates { get; }
         ICourseRepository Courses { get; }
         IUserRepository Users { get; }
+        IAvailabilitySlotRepository AvailabilitySlots { get; }
+        IUserAvailabilitySettingRepository UserAvailabilitySetting { get; }
         int Complete();
         Task<int> CompleteAsync();
     }

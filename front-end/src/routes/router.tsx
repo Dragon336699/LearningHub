@@ -13,6 +13,7 @@ import { AdminCoursesPage } from "../features/courses/pages/AdminCoursesPage";
 import { TraineeCoursesPage } from "../features/courses/pages/TraineeCoursesPage";
 import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 import ProtectedLoginRoute from "./ProtectedAuthRoute";
+import { MentorAvailabilityPage } from "../features/mentor-availability/pages/MentorAvailabilityPage";
 import FindMentorPage from "../features/users/pages/FindMentorPage";
 
 export const router = createBrowserRouter([
@@ -61,6 +62,12 @@ export const router = createBrowserRouter([
             path: URL_ROUTES.MENTOR_COURSE,
             element: (
               <ProtectedRoute allowedRoles={["Mentor"]}><MentorCoursesPage /></ProtectedRoute>
+            ),
+          },
+          {
+            path: URL_ROUTES.MENTOR_AVAILABILITY,
+            element: (
+              <ProtectedRoute allowedRoles={["Mentor"]}><MentorAvailabilityPage /></ProtectedRoute>
             ),
           },
           {

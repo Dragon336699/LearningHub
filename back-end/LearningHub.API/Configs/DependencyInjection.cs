@@ -31,6 +31,8 @@ namespace LearningHub.API.Configs
             services.AddScoped<ICertificateRepository, CertificateRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserAvailabilitySettingRepository, UserAvailabilitySettingRepository>();
+            services.AddScoped<IAvailabilitySlotRepository, AvailabilitySlotRepository>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
@@ -39,6 +41,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IExpertiseService, ExpertiseService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<IUserAvailabilityService, UserAvailabilityService>();
             services.AddScoped<ICacheService, MemoryCacheService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);

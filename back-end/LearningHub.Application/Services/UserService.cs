@@ -77,7 +77,8 @@ namespace LearningHub.Application.Services
             List<Guid> expertiseIds = command.ExpertiseIds;
 
             var usersFilteredByKeyword = userDtos
-                .Where(u => (u.FirstName.ToLower().Contains(command.Keyword.ToLower()) && !string.IsNullOrEmpty(u.FirstName)) || (u.LastName?.ToLower().Contains(command.Keyword.ToLower()) == true && !string.IsNullOrEmpty(u.LastName)));
+                .Where(u => (u.FirstName.ToLower().Contains(command.Keyword.ToLower()) && !string.IsNullOrEmpty(u.FirstName)) 
+                || (u.LastName?.ToLower().Contains(command.Keyword.ToLower()) == true && !string.IsNullOrEmpty(u.LastName)));
 
             if (command.ExpertiseIds?.Count == 0)
             {

@@ -23,4 +23,7 @@ export const API_ROUTES = {
     TRAINEE: "/courses/published",
     GET_DETAIL: (id: string) => `/courses/${id}`, 
   },
+  AVAILABILITY: {
+    COMMON: "/availability",
+  }
 };
