@@ -247,7 +247,7 @@ namespace LearningHub.Application.Services
 
             var query = _userManager.Users
                 .AsNoTracking()
-                .Where(u => !adminIds.Contains(u.Id));
+                .Where(u => !adminIds.Contains(u.Id) && u.EmailConfirmed);
 
             if (!string.IsNullOrEmpty(keyword))
             {
