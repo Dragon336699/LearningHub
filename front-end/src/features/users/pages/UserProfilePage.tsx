@@ -397,7 +397,7 @@ export const UserProfilePage = () => {
 
                   <div className="mt-6 md:mt-0 flex gap-3">
                     
-                    {!isCurrentUser && profileIsMentor && (
+                    {!isCurrentUser && !currentIsAdmin && profileIsMentor && (
                       <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20">
                         Book a Session
                       </button>
@@ -409,23 +409,12 @@ export const UserProfilePage = () => {
                       </button>
                     )}
 
-                    {canEditProfile && (
+                    {canEditProfile && isCurrentUser && (
                       <button
                         onClick={() => setIsEditOpen(true)}
                         className="bg-orange-500 hover:bg-orange-600 transition-colors text-white px-4 py-2 rounded-md text-sm font-medium"
                       >
                         Edit Profile
-                      </button>
-                    )}
-
-                    {!isCurrentUser && currentIsAdmin && (
-                      <button
-                        onClick={handleToggleUserStatus}
-                        className={`
-                          ${Number(user.status) === 0 || String(user.status).toLowerCase() === "active" ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"} 
-                          transition-colors text-white px-4 py-2 rounded-md text-sm font-medium`}
-                      >
-                        {Number(user.status) === 0 || String(user.status).toLowerCase() === "active" ? "Deactivate" : "Activate"}
                       </button>
                     )}
                   </div>

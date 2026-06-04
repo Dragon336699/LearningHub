@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Pagination } from "../../../shared/ui/components/Pagination";
 import { ConfirmModal } from "../../../shared/ui/components/ConfirmModal";
 import { toast } from "sonner";
+import { Result } from "../../../types/result";
 
 export const UserManagementPage = () => {
   const dispatch = useAppDispatch();
@@ -53,13 +54,17 @@ export const UserManagementPage = () => {
     const actionText = isActive ? "deactivate" : "activate";
 
     try {
-      setUiFeedback(null);
       await userService.changeUserStatus(actionUser?.id ?? "", targetStatusNumber);
       dispatch(fetchAllUsersForAdmin({ page: page, pageSize: pageSize }));
       setIsConfirmModalOpen(false);
       toast.success(`Successfully ${actionText}d user account.`)
-    } catch (err: any) {
-      setUiFeedback({ type: "error", msg: "Failed to update user status due to security or connection issue." });
+    } catch (err: Result<any> | any) {
+      if (err) {
+        err.forEach((error: string) => toast.error(error));
+        return;
+      }
+
+      toast.error("Failed to update user status.");
     }
   };
 
@@ -193,8 +198,8 @@ export const UserManagementPage = () => {
 
         {isConfirmModalOpen && (
           <ConfirmModal
-            title="Are you sure you want to change this user's status"
-            description={`Do you want to change this user's status to ${actionUser?.status.toLowerCase()}`}
+            title="Are you sure you want to change user status"
+            description={`Do you want to change user status to ${actionUser?.status.toLowerCase()}`}
             isLoading={loading}
             onConfirm={() => handleToggleStatus()}
             onCancel={() => {
