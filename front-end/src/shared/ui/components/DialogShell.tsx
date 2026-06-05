@@ -21,13 +21,13 @@ export const DialogShell = ({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             onClick={() => {
                 if (!isLoading) onClose();
             }}
         >
             <div
-                className="relative w-full max-w-3xl rounded-lg bg-card text-white shadow-xl"
+                className="relative w-full max-w-3xl rounded-lg bg-card text-white shadow-xl overflow-y-auto max-h-full animate-in fade-in zoom-in duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between border-b p-4">

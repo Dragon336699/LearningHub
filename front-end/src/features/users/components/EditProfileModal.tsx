@@ -5,17 +5,20 @@ import { ExperienceFormList } from "./ExperienceFormList";
 import { CertificateFormList } from "./CertificateFormList";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faExclamationTriangle, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { DialogShell } from "../../../shared/ui/components/DialogShell";
 
 interface EditProfileModalProps {
   initialFormState: FormState;
   onCancel: () => void;
   onSave: (updatedForm: FormState, filesMap: Record<string | number, File>) => void; 
+  isSaving?: boolean;
 }
 
 export const EditProfileModal = ({
   initialFormState,
   onCancel,
   onSave,
+  isSaving = false,
 }: EditProfileModalProps) => {
   const [localForm, setLocalForm] = useState<FormState>({ ...initialFormState });
 
@@ -239,20 +242,13 @@ export const EditProfileModal = ({
   }, [initialFormState, localForm, certificateFiles]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-12">
-      <div className="w-full max-w-4xl rounded-[28px] border border-border bg-slate-950 p-8 shadow-2xl shadow-black/50">
-        
-        {/* Modal Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-900 pb-4">
-          <div>
-            <button type="button" onClick={onCancel} className="mb-2 flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white">
-              <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" /> Back
-            </button>
-            <h2 className="text-2xl font-bold text-white">Edit Your Profile</h2>
-          </div>
-        </div>
-
-        {/* Form Body */}
+    <DialogShell
+      open={true}
+      title="Edit Your Profile"
+      isLoading={isSaving}
+      onClose={onCancel}
+    >
+              {/* Form Body */}
         <div className="space-y-8">
           {/* Basic Information */}
           <div>
@@ -359,6 +355,9 @@ export const EditProfileModal = ({
                 maxLength={500}
               />
               <div className="flex justify-end mt-1">
+                {bioError ? (
+                  <p className="text-red-400 text-xs mr-auto">{bioError}</p>
+                ) : <div />}
                 <span className={`text-[10px] font-medium tracking-wide ${(localForm.bio || "").length >= 500 ? "text-red-400 font-bold" : "text-slate-500"}`}>
                   {(localForm.bio || "").length} / 500
                 </span>
@@ -376,6 +375,9 @@ export const EditProfileModal = ({
                 maxLength={200}
               />
               <div className="flex justify-end mt-1">
+                {skillsError ? (
+                  <p className="text-red-400 text-xs mr-auto">{skillsError}</p>
+                ) : <div />}
                 <span className={`text-[10px] font-medium tracking-wide ${(localForm.skills || "").length >= 200 ? "text-red-400 font-bold" : "text-slate-500"}`}>
                   {(localForm.skills || "").length} / 200
                 </span>
@@ -437,6 +439,7 @@ export const EditProfileModal = ({
             onChange={(updatedExperiences) => updateField("experiences", updatedExperiences)}
           />
 
+
           {/* Certificate */}
           <CertificateFormList
             certificates={localForm.certificates}
@@ -479,7 +482,7 @@ export const EditProfileModal = ({
           </div>
 
         </div>
-      </div>
-    </div>
+    </DialogShell>
+
   );
 }
