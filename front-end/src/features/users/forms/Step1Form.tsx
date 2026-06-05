@@ -1,5 +1,6 @@
+import { faGraduationCap, faPersonChalkboard, faPlus, faUser } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
-import { User, Plus, GraduationCap, Presentation } from "lucide-react";
 
 interface Step1FormProps {
   onNext: () => void;
@@ -28,14 +29,14 @@ export default function Step1Form({ onNext }: Step1FormProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative shrink-0">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-700/50">
-            <User className="h-8 w-8 text-slate-400" />
+            <FontAwesomeIcon icon={faUser} className="h-8 w-8 text-slate-400" />
           </div>
           <button
             title="Upload Avatar"
             type="button"
             className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-primary ring-2 ring-card hover:bg-primary-hover"
           >
-            <Plus className="h-3 w-3 text-white" />
+            <FontAwesomeIcon icon={faPlus} className="h-3 w-3 text-white" />
           </button>
         </div>
         
@@ -63,7 +64,7 @@ export default function Step1Form({ onNext }: Step1FormProps) {
                 : "border-transparent bg-slate-700/40 text-slate-300 hover:bg-slate-700/60"
             }`}
           >
-            <GraduationCap className={`h-8 w-8 ${role === "trainee" ? "text-white" : "text-yellow-500"}`} />
+            <FontAwesomeIcon icon={faGraduationCap} className={`h-8 w-8 ${role === "trainee" ? "text-white" : "text-yellow-500"}`} />
             <div className="text-center">
               <div className="font-semibold">Trainee</div>
               <div className={`text-xs ${role === "trainee" ? "text-white/80" : "text-slate-400"}`}>
@@ -81,7 +82,7 @@ export default function Step1Form({ onNext }: Step1FormProps) {
                 : "border-transparent bg-slate-700/40 text-slate-300 hover:bg-slate-700/60"
             }`}
           >
-            <Presentation className={`h-8 w-8 ${role === "mentor" ? "text-white" : "text-cyan-400"}`} />
+            <FontAwesomeIcon icon={faPersonChalkboard} className={`h-8 w-8 ${role === "mentor" ? "text-white" : "text-cyan-400"}`} />
             <div className="text-center">
               <div className="font-semibold">Mentor</div>
               <div className={`text-xs ${role === "mentor" ? "text-white/80" : "text-slate-400"}`}>

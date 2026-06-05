@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Search, CheckCircle, XCircle, UserX, AlertCircle, Eye } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { fetchAllUsersForAdmin } from "../../../store/thunks/userThunks";
 import { userService } from "../../../services/user.service";
@@ -8,6 +7,8 @@ import { Pagination } from "../../../shared/ui/components/Pagination";
 import { ConfirmModal } from "../../../shared/ui/components/ConfirmModal";
 import { toast } from "sonner";
 import { Result } from "../../../types/result";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheckCircle, faCircleXmark, faExclamationCircle, faEye, faSearch, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 
 export const UserManagementPage = () => {
   const dispatch = useAppDispatch();
@@ -73,20 +74,21 @@ export const UserManagementPage = () => {
 
       <div>
         <h2 className="text-2xl font-bold text-white tracking-tight">User Role Management</h2>
-        <p className="text-xs text-gray-500 mt-1">Monitor, activate, and deactivate users accounts across the platform.</p>
+        <p className="text-xs text-gray-500 mt-1">Platform operational status control panel.</p>
       </div>
 
       {uiFeedback && (
         <div className={`p-4 rounded-xl border flex items-center gap-2 text-xs font-semibold ${uiFeedback.type === "success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"
           }`}>
-          <AlertCircle className="h-4 w-4" />
+          
+          <FontAwesomeIcon icon={faExclamationCircle} className={`w-4 h-4 ${uiFeedback.type === "success" ? "text-emerald-400" : "text-red-400"}`} />
           <span>{uiFeedback.msg}</span>
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-gray-500" />
+          <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-2.5 h-4 w-4 text-gray-500" />
           <input
             type="text"
             placeholder="Search users by name or email..."
@@ -118,32 +120,28 @@ export const UserManagementPage = () => {
 
                 return (
                   <tr key={u.id} className="hover:bg-gray-700/30 transition-colors">
-                    <td className="p-4 font-semibold text-white">
-                      {userFullName}
-                    </td>
+                    <td className="p-4 font-semibold text-white">{userFullName}</td>
                     {/* <td className="p-4 text-gray-400 text-xs">{u.email || "N/A"}</td> */}
                     <td className="p-4">
                       <span className="bg-gray-900 border border-gray-700 text-gray-300 text-[11px] px-2.5 py-1 rounded-lg font-medium uppercase">
-                        {u.roleName || "Trainee"}
+                        {u.roleName || "Learner"}
                       </span>
                     </td>
-
                     <td className="p-4 text-center">
                       <span className={`inline-block px-3 py-0.5 text-[11px] font-bold rounded-full select-none ${isActive ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
                         }`}>
                         {isActive ? "Active" : "Deactivated"}
                       </span>
                     </td>
-
                     <td className="p-4 text-center">
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center gap-3">
                         <button
+                          title="View Profile"
                           type="button"
-                          title="View User Profile Details"
                           onClick={() => navigate(`/profile/${u.id}`)}
-                          className="text-gray-500 hover:text-orange-400 hover:scale-110 transition p-1.5 focus:outline-none"
+                          className="text-gray-500 hover:text-orange-400 p-1"
                         >
-                          <Eye className="h-4.5 w-4.5" />
+                          <FontAwesomeIcon icon={faEye} className="w-4 h-4" />
                         </button>
 
                         {isActive ? (
@@ -156,7 +154,7 @@ export const UserManagementPage = () => {
                             }}
                             className="text-gray-500 hover:text-red-500 transition p-1"
                           >
-                            <XCircle className="h-5 w-5" />
+                            <FontAwesomeIcon icon={faCircleXmark} className="w-5 h-5" />
                           </button>
                         ) : (
                           <button
@@ -168,7 +166,7 @@ export const UserManagementPage = () => {
                             }}
                             className="text-gray-500 hover:text-emerald-500 transition p-1"
                           >
-                            <CheckCircle className="h-5 w-5" />
+                            <FontAwesomeIcon icon={faCheckCircle} className="w-5 h-5" />
                           </button>
                         )}
                       </div>
@@ -180,11 +178,10 @@ export const UserManagementPage = () => {
           </table>
         </div>
 
-        {/* Giao diện danh sách trống */}
         {!loading && rawUsers.totalCount === 0 && (
           <div className="p-12 text-center text-gray-500 flex flex-col items-center justify-center gap-2">
-            <UserX className="h-8 w-8 text-gray-600" />
-            <p className="italic text-xs">No matching user records found in the network database.</p>
+            <FontAwesomeIcon icon={faUserSlash} className="h-8 w-8 text-gray-600" />
+            <p className="italic text-xs">No matching user records found.</p>
           </div>
         )}
 
@@ -199,7 +196,7 @@ export const UserManagementPage = () => {
         {isConfirmModalOpen && (
           <ConfirmModal
             title="Are you sure you want to change user status"
-            description={`Do you want to change user status to ${actionUser?.status.toLowerCase()}`}
+            description={`Do you want to change user status to ${actionUser?.status.toLowerCase() === 'active' ? "Deactivated" : "Activated"}?`}
             isLoading={loading}
             onConfirm={() => handleToggleStatus()}
             onCancel={() => {
@@ -208,6 +205,7 @@ export const UserManagementPage = () => {
           />
         )}
       </div>
+
     </div>
   );
 };

@@ -1,7 +1,5 @@
 import React from "react";
 import Step1Form from "../forms/Step1Form";
-// import Step2Form from "./Step2Form";
-// import Step3Form from "./Step3Form";
 
 export default function CreateProfilePage() {
   // Hàm xử lý submit cuối cùng
@@ -30,14 +28,6 @@ export default function CreateProfilePage() {
           {/* TODO: Tạm thời chỉ dùng step 1 */}
           <Step1Form onNext={handleFinalSubmit} />
           
-          {/* {currentStep === 2 && (
-            <Step2Form onNext={handleNextStep} onBack={handlePrevStep} />
-          )}
-          
-          {currentStep === 3 && (
-            <Step3Form onSubmit={handleFinalSubmit} onBack={handlePrevStep} />
-          )} 
-          */}
         </div>
         
       </div>

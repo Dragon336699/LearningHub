@@ -71,7 +71,7 @@ const userSlice = createSlice({
       )
       .addCase(fetchUserById.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || "Can not fetch user data";
+        state.error = (action.payload) || "Can not fetch user data";
       })
 
       .addCase(updateUserProfile.pending, (state) => {

@@ -1,8 +1,9 @@
+import { AxiosRequestConfig } from "axios";
 import { http } from "./axios";
 
 export class HttpClient {
-  static get<T>(url: string) {
-    return http.get<T>(url).then(res => res.data);
+  static get<T>(url: string, config?: AxiosRequestConfig) {
+    return http.get<T>(url, config).then(res => res.data);
   }
 
   static post<T>(url: string, body: any) {
