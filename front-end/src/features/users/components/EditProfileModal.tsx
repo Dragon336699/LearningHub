@@ -20,8 +20,6 @@ export const EditProfileModal = ({
   onSave,
   isSaving = false,
 }: EditProfileModalProps) => {
-  const errorsForRows: { title?: string; date?: string } = {};
-  const newCertErrors: Record<number, { name?: string; org?: string; date?: string }> = {};
 
   const [localForm, setLocalForm] = useState<FormState>({ ...initialFormState });
 
@@ -110,6 +108,7 @@ export const EditProfileModal = ({
 
       const tzOffset = new Date().getTimezoneOffset() * 60000; // Miliseconds offset for local timezone
       const localTodayStr = new Date(Date.now() - tzOffset).toISOString().split("T")[0]; // Get local date in yyyy-MM-dd format
+      const errorsForRows: { title?: string; date?: string } = {};
 
       let errorFlag = false;
       for (let i = 0; i < localForm.experiences.length; i++) {
@@ -157,6 +156,7 @@ export const EditProfileModal = ({
       // Get local date in yyyy-MM-dd format for comparison
       const tzOffset = new Date().getTimezoneOffset() * 60000;
       const localTodayStr = new Date(Date.now() - tzOffset).toISOString().split("T")[0];
+      const newCertErrors: Record<number, { name?: string; org?: string; date?: string }> = {};
 
       for (let i = 0; i < localForm.certificates.length; i++) {
         const cert = localForm.certificates[i];
