@@ -133,7 +133,7 @@ export const UserProfilePage = () => {
           ? updatedForm.experiences.map((exp) => ({
               id: exp.id ? exp.id : null,
               title: exp.title,
-              description: exp.description || "Updated via Web Profile Portal",
+              description: exp.description,
               startDate: exp.startDate ? new Date(exp.startDate).toISOString() : new Date().toISOString(),
               endDate: exp.endDate ? new Date(exp.endDate).toISOString() : new Date().toISOString(),
             }))
@@ -226,7 +226,7 @@ export const UserProfilePage = () => {
   const profileIsMentor = profileUserRole === "mentor";
   const profileIsTrainee = profileUserRole === "trainee";
 
-  const canEditProfile = isCurrentUser || (currentIsAdmin && (profileIsMentor || profileIsTrainee));
+  const canEditProfile = isCurrentUser;
 
   const canViewCoachCost = profileIsMentor && (currentIsAdmin || currentIsMentor);
 
@@ -373,7 +373,7 @@ export const UserProfilePage = () => {
                         <div className="flex items-center text-gray-300">
                           <FontAwesomeIcon icon={faDollarSign} className="h-4 w-4 mr-1 text-green-400" />
                           <span className="font-medium">
-                            {user.coachCost && user.coachCost > 0 ? `$${user.coachCost} / hour` : "Free Mentorship"}
+                            {user.coachCost && user.coachCost > 0 ? `${user.coachCost}/hour` : "Free Mentorship"}
                           </span>
                         </div>
                       </div>

@@ -3,7 +3,7 @@ import { X, Calendar as CalendarIcon, Clock, MessageSquare, AlertCircle, MapPin 
 import { useAppDispatch } from "../../../store/hooks";
 import { AvailableSlotsResponse } from "../../../types/session";
 import { createBookingSession, fetchAvailableSlots } from "../../../store/thunks/sessionThunk";
-import toast from 'react-hot-toast';
+import { toast } from "sonner";
 
 interface BookSessionModalProps {
   isOpen: boolean;

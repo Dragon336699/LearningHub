@@ -18,13 +18,13 @@ const formatDateForInput = (dateStr: string | null | undefined): string => {
 };
 
 
-export const CertificateFormList = memo(({ 
-  certificates, 
-  onChange, 
+export const CertificateFormList = memo(({
+  certificates,
+  onChange,
   onFileChange,
   onFileRemove,
   selectedFilesMap,
-  errors = {} 
+  errors = {}
 }: CertificateFormListProps) => {
 
   const fileInputsRef = useRef<Record<number, HTMLInputElement | null>>({});
@@ -85,7 +85,7 @@ export const CertificateFormList = memo(({
           const hasNewFile = selectedFilesMap[fileKey];
 
           const rowErrors = errors[index] || {};
-          
+
           let credentialStatusContent: React.ReactNode;
 
           if (hasNewFile) {
@@ -95,7 +95,7 @@ export const CertificateFormList = memo(({
                   <FontAwesomeIcon icon={faFolder} className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   <span className="truncate" title={hasNewFile.name}>Selected: {hasNewFile.name}</span>
                 </span>
-                
+
                 <button
                   type="button"
                   title="Cancel selected file"
@@ -145,7 +145,7 @@ export const CertificateFormList = memo(({
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                {/* Name */}
+                  {/* Name */}
                   <label className="label text-xs font-semibold text-slate-400 mb-1" htmlFor={`certName-${index}`}>
                     Certificate Name <span className="text-red-500">*</span>
                   </label>
@@ -154,11 +154,10 @@ export const CertificateFormList = memo(({
                     type="text"
                     required
                     value={cert.certificateName}
-                    maxLength={100}
-                    onChange={(e) => handleFieldChange(index, "certificateName", e.target.value.slice(0, 100))}
-                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${
-                      isNameEmpty ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
-                    }`}
+                    maxLength={200}
+                    onChange={(e) => handleFieldChange(index, "certificateName", e.target.value.slice(0, 200))}
+                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${isNameEmpty ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
+                      }`}
                     placeholder="e.g. AWS Solutions Architect"
                   />
                   <div className="flex justify-between items-center mt-1">
@@ -167,8 +166,8 @@ export const CertificateFormList = memo(({
                         <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1 shrink-0" /> Certificate name is required.
                       </p>
                     ) : <div />}
-                    <span className={`text-[10px] font-medium tracking-wide ${(cert.certificateName || "").length >= 100 ? "text-red-400 font-bold" : "text-slate-500"}`}>
-                      {(cert.certificateName || "").length} / 100
+                    <span className={`text-[10px] font-medium tracking-wide ${(cert.certificateName || "").length >= 200 ? "text-red-400 font-bold" : "text-slate-500"}`}>
+                      {(cert.certificateName || "").length} / 200
                     </span>
                   </div>
                 </div>
@@ -183,12 +182,11 @@ export const CertificateFormList = memo(({
                     type="text"
                     required
                     value={cert.organization}
-                    onChange={(e) => handleFieldChange(index, "organization", e.target.value.slice(0, 100))}
-                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${
-                      isOrgEmpty ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
-                    }`}
+                    onChange={(e) => handleFieldChange(index, "organization", e.target.value.slice(0, 200))}
+                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${isOrgEmpty ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
+                      }`}
                     placeholder="e.g. Amazon Web Services"
-                    maxLength={100}
+                    maxLength={200}
                   />
                   <div className="flex justify-between items-center mt-1">
                     {(isOrgEmpty || rowErrors.org) ? (
@@ -196,8 +194,8 @@ export const CertificateFormList = memo(({
                         <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1 shrink-0" /> Issuing organization is required.
                       </p>
                     ) : <div />}
-                    <span className={`text-[10px] font-medium tracking-wide ${(cert.organization || "").length >= 100 ? "text-red-400 font-bold" : "text-slate-500"}`}>
-                      {(cert.organization || "").length} / 100
+                    <span className={`text-[10px] font-medium tracking-wide ${(cert.organization || "").length >= 200 ? "text-red-400 font-bold" : "text-slate-500"}`}>
+                      {(cert.organization || "").length} / 200
                     </span>
                   </div>
                 </div>
@@ -210,6 +208,8 @@ export const CertificateFormList = memo(({
                   <input
                     id={`issue-${index}`}
                     type="date"
+                    min="1900-01-01"
+                    max="2100-12-31"
                     required
                     value={formatDateForInput(cert.issueDate)}
                     onChange={(e) => handleFieldChange(index, "issueDate", e.target.value)}
@@ -225,11 +225,20 @@ export const CertificateFormList = memo(({
                   <input
                     id={`exp-${index}`}
                     type="date"
+                    min="1900-01-01"
+                    max="2100-12-31"
                     value={formatDateForInput(cert.expirationDate)}
                     onChange={(e) => handleFieldChange(index, "expirationDate", e.target.value)}
                     className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm focus:border-orange-500/50"
                   />
                 </div>
+
+                {(rowErrors.date || rowErrors.file) && (
+                  <p className="text-[11px] text-red-400 font-medium flex items-center mt-2 animate-in fade-in duration-100">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1.5 shrink-0" />
+                    {rowErrors.date || rowErrors.file}
+                  </p>
+                )}
 
                 {/* File Upload */}
                 <div className="md:col-span-2 pt-2">
@@ -245,13 +254,13 @@ export const CertificateFormList = memo(({
                         if (e.target.files?.[0]) {
                           const file = e.target.files[0];
                           const freshFileKey = cert.id ? cert.id : index;
-                          
+
                           const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
                           const fileExt = file.name.split('.').pop()?.toLowerCase();
-                          
+
                           if (!allowedTypes.includes(file.type) && !["pdf", "jpg", "jpeg", "png"].includes(fileExt || "")) {
                             onFileRemove(freshFileKey);
-                            handleFieldChange(index, "id", cert.id); 
+                            handleFieldChange(index, "id", cert.id);
                             return;
                           }
 
@@ -281,7 +290,7 @@ export const CertificateFormList = memo(({
                     >
                       <FontAwesomeIcon icon={faUpload} className="h-4 w-4" /> Browse Certificate File
                     </button>
-                    
+
                     {/* Dynamic File Status */}
                     <div className="text-xs text-slate-400 max-w-full flex items-center gap-1.5 min-h-[32px]">
                       {credentialStatusContent}
@@ -289,13 +298,6 @@ export const CertificateFormList = memo(({
                   </div>
                 </div>
               </div>
-
-              {(rowErrors.date || rowErrors.file) && (
-                <p className="text-[11px] text-red-400 font-medium flex items-center mt-2 animate-in fade-in duration-100">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1.5 shrink-0" />
-                  {rowErrors.date || rowErrors.file}
-                </p>
-              )}
             </div>
           );
         })}

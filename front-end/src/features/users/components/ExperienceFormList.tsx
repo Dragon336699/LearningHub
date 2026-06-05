@@ -16,10 +16,10 @@ const formatDateForInput = (dateStr: string | null | undefined): string => {
 };
 
 export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: ExperienceFormListProps) => {
-  
+
   const handleAdd = () => {
     const newExp: Experience = {
-      id: "", // Empty string for new Insert in Backend
+      id: "",
       title: "",
       description: "",
       startDate: new Date().toISOString().split("T")[0],
@@ -43,14 +43,8 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
     onChange(updated);
   };
 
-  // Sort experiences by start date in descending order
   const sortedExperiences = [...experiences]
-    .map((exp, originalIndex) => ({ exp, originalIndex }))
-    .sort((a, b) => {
-      if (!a.exp.startDate) return 1;
-      if (!b.exp.startDate) return -1;
-      return new Date(b.exp.startDate).getTime() - new Date(a.exp.startDate).getTime();
-    });
+    .map((exp, originalIndex) => ({ exp, originalIndex }));
 
   return (
     <div className="border-t border-slate-900 pt-6 space-y-4">
@@ -70,10 +64,10 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
         {sortedExperiences.map(({ exp, originalIndex }, displayIndex) => {
           const isTitleEmpty = exp.title?.trim() === "";
           const rowErrors = errors[originalIndex] || {};
-
-          return(
-            <div 
-              key={exp.id || originalIndex} 
+          console.log(errors);
+          return (
+            <div
+              key={exp.id || originalIndex}
               className="rounded-2xl border border-slate-800/80 bg-slate-900/30 p-6 space-y-4 relative"
             >
               <div className="flex items-center justify-between">
@@ -90,15 +84,14 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="label text-xs font-semibold text-slate-400 mb-1" htmlFor={`title-${originalIndex}`}>Title</label>
+                  <label className="label text-xs font-semibold text-slate-400 mb-1" htmlFor={`title-${originalIndex}`}>Title<span className="text-danger ml-1">*</span></label>
                   <input
                     id={`title-${originalIndex}`}
                     type="text"
                     value={exp.title}
                     onChange={(e) => handleFieldChange(originalIndex, "title", e.target.value.slice(0, 100))}
-                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${
-                      isTitleEmpty || rowErrors.title ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
-                    }`}
+                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${isTitleEmpty || rowErrors.title ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
+                      }`}
                     placeholder="e.g. Frontend Dev"
                     maxLength={100}
                     required
@@ -134,10 +127,12 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
                 </div>
 
                 <div>
-                  <label className="label text-xs font-semibold text-slate-400 mb-1" htmlFor={`start-${originalIndex}`}>Start Date</label>
+                  <label className="label text-xs font-semibold text-slate-400 mb-1" htmlFor={`start-${originalIndex}`}>Start Date<span className="text-danger ml-1">*</span></label>
                   <input
                     id={`start-${originalIndex}`}
                     type="date"
+                    min="1900-01-01"
+                    max="2100-12-31"
                     value={formatDateForInput(exp.startDate)}
                     onChange={(e) => handleFieldChange(originalIndex, "startDate", e.target.value)}
                     className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
@@ -149,6 +144,8 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
                   <input
                     id={`end-${originalIndex}`}
                     type="date"
+                    min="0001-01-01"
+                    max="9999-12-31"
                     value={formatDateForInput(exp.endDate)}
                     onChange={(e) => handleFieldChange(originalIndex, "endDate", e.target.value)}
                     className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
@@ -164,7 +161,7 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
               )}
             </div>
           );
-          
+
         })}
 
         {experiences.length === 0 && (

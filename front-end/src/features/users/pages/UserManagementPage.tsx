@@ -51,7 +51,7 @@ export const UserManagementPage = () => {
   const handleToggleStatus = async () => {
     const rawStatus = String(actionUser?.status).toLowerCase();
     const isActive = rawStatus === "active" || rawStatus === "0";
-    const targetStatusNumber = isActive ? 0 : 1;
+    const targetStatusNumber = isActive ? 1 : 0;
     const actionText = isActive ? "deactivate" : "activate";
 
     try {
@@ -196,7 +196,7 @@ export const UserManagementPage = () => {
         {isConfirmModalOpen && (
           <ConfirmModal
             title="Are you sure you want to change user status"
-            description={`Do you want to change user status to ${actionUser?.status.toLowerCase() ? "Deactivated" : "Activated"}?`}
+            description={`Do you want to change user status to ${actionUser?.status.toLowerCase() === 'active' ? "Deactivated" : "Activated"}?`}
             isLoading={loading}
             onConfirm={() => handleToggleStatus()}
             onCancel={() => {

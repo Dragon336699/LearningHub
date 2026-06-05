@@ -191,6 +191,11 @@ public class AuthService : IAuthService
             return Result<LoginResponse>.Failure(Messages.Auth.EmailSent);
         }
 
+        if (user.Status == UserStatus.Deactivated)
+        {
+            return Result<LoginResponse>.Failure("Your account has been deactivated. Please contact support for assistance.");
+        }
+
         var userRoles = await _userManager.GetRolesAsync(user);
         string accessToken = GenerateJwtToken(user, userRoles);
 

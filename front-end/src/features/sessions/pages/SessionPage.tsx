@@ -6,8 +6,8 @@ import {
   cancelSession,
   fetchUserSessions,
 } from "../../../store/thunks/sessionThunk";
-import toast from "react-hot-toast";
 import { DialogShell } from "../../../shared/ui/components/DialogShell";
+import { toast } from "sonner";
 
 export const SessionPage: React.FC = () => {
   const dispatch = useAppDispatch();
