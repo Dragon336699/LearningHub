@@ -143,8 +143,6 @@ export const MentorAvailabilityPage = () => {
                 fullDate: date,
             };
         });
-        console.log(weekDays);
-
         return weekDays;
     }
 
@@ -236,6 +234,64 @@ export const MentorAvailabilityPage = () => {
         const firstDayOfWeek = new Date(fullDaysOfWeek[0]?.fullDate);
         firstDayOfWeek.setDate(firstDayOfWeek.getDate() + 7);
         setSelectedDay(firstDayOfWeek);
+    }
+
+    const handleAllSlotsInday = () => {
+        const { setValue, getValues } = userAvailabilityForm;
+        const availabilitiesInDay = getValues("availabilities");
+        let index = availabilitiesInDay.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
+
+        let newTimeSlots = timeSlots?.timeSlots ?? [];
+        const date = new Date(now);
+        const time = date.toTimeString().split(" ")[0];
+
+        if (convertTimeToString(selectedDay) === convertTimeToString(now)) {
+            newTimeSlots = newTimeSlots.filter(tl => tl.startTime > time);
+        }
+
+        setValue(`availabilities.${index}.availabilitySlots`, newTimeSlots);
+    }
+
+    const handleClearAllSlotsInDay = () => {
+        const { setValue, getValues } = userAvailabilityForm;
+        const availabilitiesInDay = getValues("availabilities");
+        let index = availabilitiesInDay.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
+
+        setValue(`availabilities.${index}.availabilitySlots`, []);
+    }
+
+    const handleCopySlotToAllDays = () => {
+        const today = new Date(now);
+        today.setHours(0, 0, 0, 0);
+        const availableDays = fullDaysOfWeek.filter(d => d.fullDate.getTime() >= today.getTime()).slice(1);
+        const index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
+
+        const todaySlots = index !== -1 ? availabilities[index].availabilitySlots : [];
+
+        const resetItem = {
+            workStartTime: startTime,
+            workEndTime: endTime,
+            sessionDurationMinutes: sessionDuration,
+            bufferTimeMinutes: bufferTime,
+            settingDay: convertTimeToString(selectedDay),
+            availabilitySlots: todaySlots
+        }
+
+        const newAvailabilties = [
+            resetItem,
+            ...availableDays.map((ad) => ({
+                workStartTime: startTime,
+                workEndTime: endTime,
+                sessionDurationMinutes: sessionDuration,
+                bufferTimeMinutes: bufferTime,
+                settingDay: convertTimeToString(ad.fullDate),
+                availabilitySlots: todaySlots
+            }))
+        ]
+
+        userAvailabilityForm.reset({
+            availabilities: newAvailabilties
+        })
     }
 
     useEffect(() => {
@@ -333,8 +389,6 @@ export const MentorAvailabilityPage = () => {
             setEndTime(todayAvailability.workEndTime);
             setSessionDuration(todayAvailability.sessionDurationMinutes);
             setBufferTime(todayAvailability.bufferTimeMinutes);
-            console.log(availabilities);
-
         }
     }, [userAvailabilitiesData])
 
@@ -420,6 +474,25 @@ export const MentorAvailabilityPage = () => {
                                 <div className="flex-1">
                                     <button onClick={handleCurrentWeek} className="w-full bg-card py-2 items-center hover:bg-sidebar-hover active:bg-card/80 p-1 rounded-sm">Go to current week</button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-muted rounded-lg px-3 py-4 mb-4">
+                            <h2 className="text-lg font-semibold mb-4 ml-2">Bulk Actions</h2>
+                            <div className="flex flex-col gap-2">
+                                <button onClick={() => handleAllSlotsInday()} className="bg-info rounded-md py-2 cursor-pointer hover:bg-info-hover">Select all slots for {selectedDay.toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                })} {selectedDay.toLocaleDateString("en-US", {
+                                    month: "short",
+                                })} {selectedDay.getDay()}</button>
+
+                                <button onClick={() => handleClearAllSlotsInDay()} className="bg-card rounded-md py-2 cursor-pointer hover:bg-card/80">Select all slots for {selectedDay.toLocaleDateString("en-US", {
+                                    weekday: "short",
+                                })} {selectedDay.toLocaleDateString("en-US", {
+                                    month: "short",
+                                })} {selectedDay.getDay()}</button>
+
+                                <button onClick={() => handleCopySlotToAllDays()} className="bg-success rounded-md py-2 cursor-pointer hover:bg-success-hover">Copy schedule to all days</button>
                             </div>
                         </div>
                     </div>

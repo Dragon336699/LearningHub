@@ -24,6 +24,7 @@ namespace LearningHub.Application.Services
             {
                 var errors = validationResult.Errors
                     .Select(e => e.ErrorMessage)
+                    .Distinct()
                     .ToList();
                 return Result<T>.Failure(errors);
             }

@@ -17,7 +17,7 @@ namespace LearningHub.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<Result<List<UserAvailabilityDto>>> CreateUserAvailabilities(List<CreateUserAvailabilityCommand> command, Guid userId)
+        public async Task<Result<List<UserAvailabilityDto>>> CreateUserAvailabilities(List<CreateUserAvailabilitySettingCommand> command, Guid userId)
         {
             var allSettings = new List<UserAvailabilitySetting>();
 
@@ -30,8 +30,8 @@ namespace LearningHub.Application.Services
                 {
                     existing.WorkStartTime = cmd.WorkStartTime;
                     existing.WorkEndTime = cmd.WorkEndTime;
-                    existing.SessionDurationMinutes = cmd.SessionDurationMinutes;
-                    existing.BufferTimeMinutes = cmd.BufferTimeMinutes;
+                    existing.SessionDurationMinutes = (int)cmd.SessionDurationMinutes;
+                    existing.BufferTimeMinutes = (int)cmd.BufferTimeMinutes;
 
                     var oldSlots = await _unitOfWork.AvailabilitySlots
                         .FindAllAsync(s => s.UserAvailabilitySettingId == existing.Id);
@@ -55,8 +55,8 @@ namespace LearningHub.Application.Services
                         Id = settingId,
                         WorkStartTime = cmd.WorkStartTime,
                         WorkEndTime = cmd.WorkEndTime,
-                        SessionDurationMinutes = cmd.SessionDurationMinutes,
-                        BufferTimeMinutes = cmd.BufferTimeMinutes,
+                        SessionDurationMinutes = (int)cmd.SessionDurationMinutes,
+                        BufferTimeMinutes = (int)cmd.BufferTimeMinutes,
                         SettingDay = cmd.SettingDay,
                         UserId = userId,
                         AvailabilitySlots = cmd.AvailabilitySlots.Select(slot => new AvailabilitySlot

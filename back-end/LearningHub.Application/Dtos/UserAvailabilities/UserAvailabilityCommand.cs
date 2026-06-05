@@ -2,6 +2,6 @@
 {
     public record UserAvailabilityCommand
     {
-        public List<CreateUserAvailabilityCommand> Availabilities { get; init; } = new List<CreateUserAvailabilityCommand>();
+        public List<CreateUserAvailabilitySettingCommand> Availabilities { get; init; } = new List<CreateUserAvailabilitySettingCommand>();
     }
 }
