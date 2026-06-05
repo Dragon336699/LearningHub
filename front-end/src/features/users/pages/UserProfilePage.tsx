@@ -38,7 +38,7 @@ export const UserProfilePage = () => {
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
-  const [certificateFiles, setCertificateFiles] = useState<Record<string | number, File>>({});
+  const [isSubmittingCerts, setIsSubmittingCerts] = useState(false);
 
   const [formState, setFormState] = useState<FormState>({
     firstName: "",
@@ -115,6 +115,7 @@ export const UserProfilePage = () => {
 
     try {
       setUiFeedback(null);
+      setIsSubmittingCerts(true);
 
       // Handle certificate deletions first before any profile updates to avoid foreign key conflicts in DB
       const originalCertIds = user.certificates?.map(c => c.id) || [];
@@ -166,16 +167,21 @@ export const UserProfilePage = () => {
           }
 
           const fileKey = cert.id ? cert.id : index;
-          const attachedFile = certificateFiles[fileKey];
+          console.log(`Processing certificate at index ${index} with ID ${cert.id}. Looking for file with key: ${fileKey}`);
+          const attachedFile = filesMap[fileKey];
           if (attachedFile) {
             formData.append("CredentialFile", attachedFile);
+            console.log(`[File Sync Success] Đã nhúng file ${attachedFile.name} vào trường CredentialFile cho hàng số ${index + 1}`);
+          } else {
+            console.warn(`[File Sync Warning] Không tìm thấy file đính kèm nào trên RAM cho hàng chứng chỉ số ${index + 1}`);
           }
 
-          if (cert.id) {
+          const isNewCertificate = !cert.id || cert.id.startsWith("temp-");
+          if (isNewCertificate) {
+            return certificateService.create(formData); 
+          } else {
             formData.append("Id", cert.id);
             return certificateService.update(formData); 
-          } else {
-            return certificateService.create(formData); 
           }
         });
 
@@ -194,6 +200,8 @@ export const UserProfilePage = () => {
       console.error("Double API synchronization failed:", err);
       const serverMsg = err?.response?.data?.errors?.[0] || err?.message || "Unknown communication error.";
       setUiFeedback({ type: "error", msg: `Failed to save changes: ${serverMsg}` });
+    } finally {
+      setIsSubmittingCerts(false);
     }
   };
 
@@ -273,7 +281,7 @@ export const UserProfilePage = () => {
       <main className="container mx-auto p-4">
         {/* UI Feedback */}
         {uiFeedback && (
-          <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs font-semibold 
+          <div className={`p-4 mb-4 rounded-xl border flex items-center gap-3 text-xs font-semibold 
             animate-in fade-in slide-in-from-top-2 duration-300 transition-all ${
             uiFeedback.type === "success" 
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
@@ -449,23 +457,25 @@ export const UserProfilePage = () => {
         {/* Tabs Content */}
         <div className="mb-12">
           {activeTab === "about" && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              
-              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-gray-300">
-                <h4 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-orange-500" /> About {fullName}
-                </h4>
-                {user.bio || "No bio provided yet."}
-              </div>
-
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 ">
               {user.skills && (
-                <div className="mt-6 bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <div className="mt-6 bg-gray-800 p-6 rounded-xl border border-gray-700 mb-6">
                   <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                     <FontAwesomeIcon icon={faAward} className="h-5 w-5 text-orange-500" /> Professional Skills
                   </h4>
                   <p className="text-gray-300">{user.skills}</p>
                 </div>
               )}
+
+              <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-gray-300">
+                <h4 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-orange-500" /> About {fullName}
+                </h4>
+                <p className="whitespace-pre-line break-words text-sm leading-relaxed text-gray-300">
+                  {user.bio || "No bio provided yet."}
+                </p>
+              </div>
+
             </div>
           )}
 
@@ -596,6 +606,22 @@ export const UserProfilePage = () => {
           onCancel={() => setIsStatusModalOpen(false)}
           onConfirm={handleExecuteStatusChange}
         />
+      )}
+
+      {isSubmittingCerts && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 select-none">
+          <div className="flex flex-col items-center gap-3 bg-gray-950/80 border border-gray-800 p-8 rounded-2xl shadow-2xl text-center max-w-xs">
+            <FontAwesomeIcon 
+              icon={faSpinner} 
+              spin 
+              className="text-3xl text-orange-500 animate-spin" 
+            />
+            <h4 className="text-sm font-bold text-white mt-1">Synchronizing Profiles</h4>
+            <p className="text-[11px] text-gray-400 leading-relaxed">
+              Uploading professional certificate attachments to system database storage. Please hold on...
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

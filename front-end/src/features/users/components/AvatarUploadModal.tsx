@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { userService } from "../../../services/user.service";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faExclamationTriangle, faSpinner, faUpload, faX } from "@fortawesome/free-solid-svg-icons";
+import { faExclamationTriangle, faFileImage, faSpinner, faUpload, faX } from "@fortawesome/free-solid-svg-icons";
 
 interface AvatarUploadModalProps {
   userId: string;
@@ -12,7 +12,7 @@ interface AvatarUploadModalProps {
 }
 
 export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, onSuccess }: AvatarUploadModalProps) => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,10 +21,30 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
-      if (file.size > 2 * 1024 * 1024) {
-        setError("File size must be under 2MB");
+      const allowedExtensions = ["image/jpeg", "image/jpg", "image/png"];
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
+      if (!allowedExtensions.includes(file.type) && !["jpg", "jpeg", "png"].includes(fileExtension || "")) {
+        setError("Only .jpg, .jpeg, .png image files are allowed."); 
+        setSelectedFile(null);
+        setPreviewUrl(null);
         return;
       }
+
+      if (file.size === 0) {
+        setError("File size must be greater than 0 byte.");
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size must not exceed 5MB.");
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        return;
+      }
+
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setError(null);
@@ -68,6 +88,7 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-950 p-6 shadow-xl text-gray-200">
+
         <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-6">
           <h3 className="text-lg font-bold text-white">Update Profile Photo</h3>
           <button title="close" onClick={onClose} className="text-gray-400 hover:text-white transition">
@@ -81,7 +102,15 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
           </div>
 
           <label htmlFor="avatarFile" className="sr-only">Upload Avatar Image</label>  
-          <input id="avatarFile" type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+          <input 
+            id="avatarFile" 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept=".jpg,.jpeg,.png" 
+            multiple={false}
+            className="hidden" 
+          />
 
           <button
             type="button"
@@ -91,7 +120,15 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
             <FontAwesomeIcon icon={faUpload} className="h-4 w-4" /> Browse Image File
           </button>
 
-          {error && <p className="text-xs text-red-400 mt-2"><FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 mr-1" /> {error}</p>}
+          {selectedFile && !error && (
+            <div className="mt-2 flex items-center gap-1.5 bg-gray-900/60 border border-gray-800 px-3 py-1.5 rounded-xl text-xs text-emerald-400 max-w-xs truncate font-medium animate-in fade-in duration-150">
+              <FontAwesomeIcon icon={faFileImage} className="text-emerald-500 shrink-0" />
+              <span className="truncate" title={selectedFile.name}>{selectedFile.name}</span>
+            </div>
+          )}
+          {error && <p className="text-xs text-red-400 mt-2">
+            <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 mr-1" /> {error}
+          </p>}
         </div>
 
         <div className="mt-8 flex gap-3 border-t border-gray-800 pt-4 justify-end">

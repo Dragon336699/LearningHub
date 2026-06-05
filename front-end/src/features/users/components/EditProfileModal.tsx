@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ExpertiseResponse, expertiseService } from "../../../services/expertise.service";
 import { FormState } from "../types";
 import { ExperienceFormList } from "./ExperienceFormList";
@@ -25,6 +25,8 @@ export const EditProfileModal = ({
   const [skillsError, setSkillsError] = useState<string | null>(null);
   const [coachCostError, setCoachCostError] = useState<string | null>(null);
   const [expertiseError, setExpertiseError] = useState<string | null>(null);
+  const [expErrors, setExpErrors] = useState<Record<number, { title?: string; date?: string }>>({});
+  const [certErrors, setCertErrors] = useState<Record<number, { name?: string; org?: string; date?: string }>>({});
 
   const [expertises, setExpertises] = useState<ExpertiseResponse[]>([]);
   const [isLoadingExpertises, setIsLoadingExpertises] = useState(false);
@@ -64,8 +66,9 @@ export const EditProfileModal = ({
     setSkillsError(null);
     setExpertiseError(null);
     setCoachCostError(null);
+    setExpErrors({});
+    setCertErrors({});
 
-    console.log("Map file chuẩn bị gửi lên trang mẹ:", certificateFiles);
 
     if (!localForm.firstName.trim()) {
       setFirstNameError("First name is required.");
@@ -77,7 +80,7 @@ export const EditProfileModal = ({
     }
 
     if (localForm.lastName && localForm.lastName.length > 50) {
-      setFirstNameError("Last name must not exceed 50 characters.");
+      setLastNameError("Last name must not exceed 50 characters.");
       return;
     }
 
@@ -96,26 +99,97 @@ export const EditProfileModal = ({
     }
 
     if (localForm.experiences && localForm.experiences.length > 0) {
+      // Validate experience entries before submitting
+      const newExpErrors: Record<number, { title?: string; date?: string }> = {};
+      let hasError = false;
+
+      const tzOffset = new Date().getTimezoneOffset() * 60000; // Miliseconds offset for local timezone
+      const localTodayStr = new Date(Date.now() - tzOffset).toISOString().split("T")[0]; // Get local date in yyyy-MM-dd format
+
       for (let i = 0; i < localForm.experiences.length; i++) {
         const exp = localForm.experiences[i];
+        const errorsForRows: { title?: string; date?: string } = {};
+
+        // Validate title
         if (!exp.title?.trim()) {
-          setExpertiseError(`Experience #${i + 1} Title cannot be empty.`);
-          return;
+          errorsForRows.title = "Experience title cannot be left empty.";
+          hasError = true;
         }
+
+        if (exp.startDate) {
+          const startStr = exp.startDate.split("T")[0];
+          // Start date cannot be in the future
+          if (startStr > localTodayStr) {
+            errorsForRows.date = "Start date cannot be a date in the future.";
+            hasError = true;
+          }
+
+          if (exp.endDate && !errorsForRows.date) {
+            const endStr = exp.endDate.split("T")[0];
+            // End date cannot be before start date
+            if (endStr < startStr) {
+              errorsForRows.date = "End date must be after Start date";
+              hasError = true;
+            }
+          }
+        }
+        if (Object.keys(errorsForRows).length > 0) {
+          newExpErrors[i] = errorsForRows;
+        }
+      }
+      if (hasError) {
+        setExpErrors(newExpErrors);
+        return;
       }
     }
 
     if (localForm.certificates && localForm.certificates.length > 0) {
+      const newCertErrors: Record<number, { name?: string; org?: string; date?: string }> = {};
+      let hasCertError = false;
+
+      // Get local date in yyyy-MM-dd format for comparison
+      const tzOffset = new Date().getTimezoneOffset() * 60000;
+      const localTodayStr = new Date(Date.now() - tzOffset).toISOString().split("T")[0];
+
       for (let i = 0; i < localForm.certificates.length; i++) {
         const cert = localForm.certificates[i];
+        const currentErrors: { name?: string; org?: string; date?: string } = {};
+        // Validate certificate name
         if (!cert.certificateName?.trim()) {
-          setExpertiseError(`Certificate #${i + 1} Name cannot be empty.`);
-          return;
+          currentErrors.name = "Certificate name is required.";
+          hasCertError = true;
         }
+        // Validate issuing organization
         if (!cert.organization?.trim()) {
-          setExpertiseError(`Issuing Organization for "${cert.certificateName || i + 1}" cannot be empty.`);
-          return;
+          currentErrors.org = "Issuing organization is required.";
+          hasCertError = true;
         }
+
+        if (cert.issueDate) {
+          const issueStr = cert.issueDate.split("T")[0];
+          // Issue date cannot be in the future
+          if (issueStr > localTodayStr) {
+            currentErrors.date = "Issue date cannot be in the future"; 
+            hasCertError = true;
+          }
+          // If expiration date exists, it must be after issue date
+          if (cert.expirationDate && !currentErrors.date) {
+            const expStr = cert.expirationDate.split("T")[0];
+            
+            if (expStr <= issueStr) {
+              currentErrors.date = "Expiration Date must be after Issue date"; 
+              hasCertError = true;
+            }
+          }
+        }
+        if (Object.keys(currentErrors).length > 0) {
+          newCertErrors[i] = currentErrors;
+        }
+      }
+
+      if (hasCertError) {
+        setCertErrors(newCertErrors); 
+        return;
       }
     }
 
@@ -151,6 +225,18 @@ export const EditProfileModal = ({
 
     onSave(finalizedForm, certificateFiles);
   };
+
+  const isFormUnchanged = useMemo(() => {
+    const jsonInitial = JSON.stringify(initialFormState);
+    const jsonCurrent = JSON.stringify(localForm);
+    
+    if (jsonInitial !== jsonCurrent) return false; 
+
+    const hasNewFilesSelected = Object.keys(certificateFiles).length > 0;
+    if (hasNewFilesSelected) return false; 
+
+    return true; 
+  }, [initialFormState, localForm, certificateFiles]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-12">
@@ -197,9 +283,14 @@ export const EditProfileModal = ({
                     maxLength={50}
                     required
                   />
-                  {firstNameError && (
-                    <p className="text-red-400 text-xs mt-1">{firstNameError}</p>
-                  )}
+                  <div className="flex justify-between items-center mt-1">
+                    {/* Error */}
+                    {firstNameError ? <p className="text-red-400 text-xs">{firstNameError}</p> : <div />}
+                    {/* Character Count */}
+                    <span className={`text-[10px] font-medium tracking-wide ${localForm.firstName.length >= 50 ? "text-red-400 font-bold" : "text-slate-500"}`}>
+                      {localForm.firstName.length} / 50
+                    </span>
+                  </div>
                 </div>
 
                 <div>
@@ -213,6 +304,12 @@ export const EditProfileModal = ({
                     placeholder="Doe"
                     maxLength={50}
                   />
+                  <div className="flex justify-between items-center mt-1">
+                    {lastNameError ? <p className="text-red-400 text-xs">{lastNameError}</p> : <div />}
+                    <span className={`text-[10px] font-medium tracking-wide ${(localForm.lastName || "").length >= 50 ? "text-red-400 font-bold" : "text-slate-500"}`}>
+                      {(localForm.lastName || "").length} / 50
+                    </span>
+                  </div>
                 </div>
 
                 {localForm.roleName === "Mentor" && (
@@ -224,8 +321,19 @@ export const EditProfileModal = ({
                       id="coachCost"
                       type="number"
                       min="0"
-                      value={localForm.coachCost}
-                      onChange={(event) => updateField("coachCost", Number(event.target.value))}
+                      value={localForm.coachCost === 0 ? "" : localForm.coachCost}
+                      onChange={(event) => {
+                        const rawValue = event.target.value;
+                        if (rawValue === "") {
+                          updateField("coachCost", 0);
+                          return;
+                        }
+                        const parsedValue = Number(rawValue);
+                        if (!Number.isNaN(parsedValue) && parsedValue >= 0) {
+                          updateField("coachCost", parsedValue);
+                        }
+                      }}
+                      onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       className="input w-full bg-gray-900 border-orange-500/30 text-white rounded-xl text-sm focus:border-orange-500"
                       placeholder="e.g. 50"
                     />
@@ -246,10 +354,15 @@ export const EditProfileModal = ({
                 id="bio"
                 value={localForm.bio}
                 onChange={(event) => updateField("bio", event.target.value)}
-                className="textarea w-full h-24 bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
+                className="textarea w-full h-24 bg-slate-900 border-slate-800 text-white rounded-xl text-sm whitespace-pre-wrap overflow-y-auto resize-y"
                 placeholder="Tell us about yourself..."
                 maxLength={500}
               />
+              <div className="flex justify-end mt-1">
+                <span className={`text-[10px] font-medium tracking-wide ${(localForm.bio || "").length >= 500 ? "text-red-400 font-bold" : "text-slate-500"}`}>
+                  {(localForm.bio || "").length} / 500
+                </span>
+              </div>
             </div>
 
             <div>
@@ -262,6 +375,11 @@ export const EditProfileModal = ({
                 placeholder="React, .NET, C#"
                 maxLength={200}
               />
+              <div className="flex justify-end mt-1">
+                <span className={`text-[10px] font-medium tracking-wide ${(localForm.skills || "").length >= 200 ? "text-red-400 font-bold" : "text-slate-500"}`}>
+                  {(localForm.skills || "").length} / 200
+                </span>
+              </div>
             </div>
           </div>
 
@@ -323,17 +441,41 @@ export const EditProfileModal = ({
           <CertificateFormList
             certificates={localForm.certificates}
             onChange={(updatedCerts) => updateField("certificates", updatedCerts)}
-            onFileChange={(key, file) => setCertificateFiles(prev => ({ ...prev, [key]: file }))}
-            selectedFilesMap={certificateFiles} 
-            onError={function (errorMsg: string): void {
-              throw new Error("Function not implemented.");
+            onFileChange={(key, file) => {
+              setCertificateFiles((prev) => {
+                const updatedMap = { ...prev };
+                if (file === null) {
+                  delete updatedMap[key]; // Gọt sạch key rỗng để giải phóng bộ nhớ RAM
+                } else {
+                  updatedMap[key] = file; // Nạp file xịn mới được chọn
+                }
+                return updatedMap;
+              });
             }}
+            onFileRemove={(key) => {
+              setCertificateFiles((prev) => {
+                const updatedMap = { ...prev };
+                delete updatedMap[key]; // 🔥 Xóa sổ hoàn toàn Key file nháp ra khỏi RAM
+                return updatedMap;
+              });
+            }}
+            selectedFilesMap={certificateFiles}            
+            errors={certErrors}
           />
 
           {/* Modal Actions */}
           <div className="mt-8 flex flex-col gap-3 border-t border-slate-900 pt-6 sm:flex-row sm:justify-end">
             <button type="button" onClick={onCancel} className="btn btn-outline border-slate-800 text-slate-300 rounded-xl text-sm w-full sm:w-auto">Cancel</button>
-            <button type="button" onClick={handleSubmit} className="btn btn-primary bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-sm w-full sm:w-auto px-6">Save Changes</button>
+            <button 
+              disabled={isFormUnchanged} 
+              type="button" 
+              onClick={handleSubmit} 
+              className={`btn rounded-xl text-sm w-full sm:w-auto px-6 font-bold transition-all duration-200 ${
+                isFormUnchanged 
+                  ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/40 opacity-50" // Trạng thái khóa mờ khi chưa update
+                  : "bg-orange-600 hover:bg-orange-400 text-white shadow-lg shadow-orange-600/10" // Trạng thái sáng rực khi có thay đổi
+              }`}
+            >Save Changes</button>
           </div>
 
         </div>
