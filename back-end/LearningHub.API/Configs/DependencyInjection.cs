@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using LearningHub.API.Contracts.Certificates;
 using LearningHub.Application.Dtos.Auth;
-using LearningHub.Application.Interfaces;
+using LearningHub.Application.Dtos.BookingSession;
 using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.Seeder;
 using LearningHub.Application.Interfaces.Services;
@@ -20,10 +20,12 @@ namespace LearningHub.API.Configs
     {
         public static void AddInfrastructure(this IServiceCollection services)
         {
+            //third party services
             services.AddMemoryCache();
             services.AddScoped<ICacheService, MemoryCacheService>();
-            services.AddHttpClient<IOtpService, EmailService>();
+            services.AddHttpClient<INotificationService, EmailService>();
 
+            //repositories and unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IExpertiseRepository, ExpertiseRepository>();
@@ -31,7 +33,9 @@ namespace LearningHub.API.Configs
             services.AddScoped<ICertificateRepository, CertificateRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
 
+            //services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleService, RoleService>();
@@ -39,7 +43,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IExpertiseService, ExpertiseService>();
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<ICourseService, CourseService>();
-            services.AddScoped<ICacheService, MemoryCacheService>();
+            services.AddScoped<IBookingSessionService, BookingSessionService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
@@ -56,7 +60,9 @@ namespace LearningHub.API.Configs
             //Add assembly validator project API
             services.AddValidatorsFromAssemblyContaining<CreateCertificateRequest>();
             services.AddValidatorsFromAssemblyContaining<RegisterRequest>();
-            
+            services.AddValidatorsFromAssemblyContaining<CreateBookingSessionRequest>();
+            services.AddValidatorsFromAssemblyContaining<AvailableSlotsRequest>();
+            services.AddValidatorsFromAssemblyContaining<GetSessionsRequest>();
 
             services.AddScoped<IDataSeeder, UserSeeder>();
         }

@@ -1,12 +1,12 @@
 ﻿// LearningHub.Infrastructure.Services
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using LearningHub.Application.Interfaces;
+using LearningHub.Application.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace LearningHub.Application.Services;
 
-public class EmailService : IOtpService
+public class EmailService : INotificationService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
@@ -19,7 +19,7 @@ public class EmailService : IOtpService
         _fromEmail = configuration["ResendSettings:FromEmail"] ?? throw new ArgumentNullException("Missing Source Email");
     }
 
-    public async Task SendOtpAsync(string to, string subject, string body)
+    public async Task SendMessageAsync(string to, string subject, string body)
     {
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
 

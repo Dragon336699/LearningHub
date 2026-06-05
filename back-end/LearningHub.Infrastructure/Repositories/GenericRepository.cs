@@ -105,5 +105,9 @@ namespace LearningHub.Infrastructure.Repositories
             return await _context.Set<T>().FirstOrDefaultAsync(expression);
         }
 
+        public void Update(T entity)
+        {
+            _context.Set<T>().Update(entity);
+        }
     }
 }
