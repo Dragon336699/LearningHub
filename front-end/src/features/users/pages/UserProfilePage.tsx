@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  Calendar,
-  DollarSign,
-  Award,
-  Briefcase,
-  User2,
-  ArrowUpRight,
-  Camera,
-  Search,
-  AlertCircle,
-  ChevronLeft,
-} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import {
   fetchUserById,
@@ -26,6 +14,9 @@ import { updateAvatarSuccess } from "../../../store/slices/userSlice";
 import { userService } from "../../../services/user.service";
 import { certificateService } from "../../../services/certificate.service";
 import { BookSessionModal } from "../../sessions/components/BookingSessionModal";
+import { ConfirmModal } from "../../../shared/ui/components/ConfirmModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowUpRightFromSquare, faAward, faBriefcase, faCalendar, faCamera, faChevronLeft, faDollarSign, faExclamationCircle, faSpinner, faUser } from "@fortawesome/free-solid-svg-icons";
 
 type TabType = "about" | "experience" | "certificates";
 
@@ -45,6 +36,9 @@ export const UserProfilePage = () => {
 
   const [uiFeedback, setUiFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+
+  const [certificateFiles, setCertificateFiles] = useState<Record<string | number, File>>({});
 
   const [formState, setFormState] = useState<FormState>({
     firstName: "",
@@ -116,7 +110,7 @@ export const UserProfilePage = () => {
     dispatch(updateAvatarSuccess(newAvatarUrl));
   }
 
-  const handleSaveModal = async (updatedForm: FormState) => {
+  const handleSaveModal = async (updatedForm: FormState, filesMap: Record<string | number, File>) => {
     if (!user) return;
 
     try {
@@ -153,6 +147,7 @@ export const UserProfilePage = () => {
         skills: updatedForm.skills,
         expertises: updatedForm.selectedExpertiseIds,
         experiences: commandExperiences,
+        currentCertificateIds: Array.from(currentCertIds),
       };
 
       await dispatch(updateUserProfile({ id: id || "", payload: apiPayload })).unwrap();
@@ -170,7 +165,8 @@ export const UserProfilePage = () => {
             formData.append("ExpirationDate", cert.expirationDate.split("T")[0]);
           }
 
-          const attachedFile = (updatedForm as any).certificateFiles?.[cert.id || index];
+          const fileKey = cert.id ? cert.id : index;
+          const attachedFile = certificateFiles[fileKey];
           if (attachedFile) {
             formData.append("CredentialFile", attachedFile);
           }
@@ -217,7 +213,6 @@ export const UserProfilePage = () => {
   const currentUserRole = String(currentUser?.roleName || (currentUser as any)?.RoleName || "").toLowerCase();
   const currentIsAdmin = currentUserRole === "admin";
   const currentIsMentor = currentUserRole === "mentor";
-  const currentIsTrainee = currentUserRole === "trainee";
 
   const profileUserRole = String(user?.roleName || (user as any)?.RoleName || "").toLowerCase();
   const profileIsMentor = profileUserRole === "mentor";
@@ -228,57 +223,38 @@ export const UserProfilePage = () => {
   const canViewCoachCost = profileIsMentor && (currentIsAdmin || currentIsMentor);
 
   const handleToggleUserStatus = async () => {
+    setIsStatusModalOpen(true);
+  };
+
+  const handleExecuteStatusChange = async () => {
     if (!user || !id) return;
 
     const rawStatus = String(user.status ?? (user as any).Status ?? "").toLowerCase();    
     const isActive = rawStatus === "active" || rawStatus === "0";    
     const targetStatusNumber = isActive ? 1 : 0; 
-    const targetStatusText = isActive ? "DEACTIVATE" : "ACTIVATE";
-
-    const confirmMessage = `WARNING: Are you sure you want to ${targetStatusText} the profile of ${fullName}?`;
-    if (!globalThis.confirm(confirmMessage)) return;
+    const targetStatusText = isActive ? "deactivate" : "activate";
 
     try {
       setUiFeedback(null);
       await userService.changeUserStatus(id, targetStatusNumber);
       handleRefresh(); 
-      setUiFeedback({ type: "success", msg: `Successfully ${targetStatusText.toLowerCase()}d user account.` });
-    } catch (err: unknown) {
-      const errorObject = err as { response?: { data?: { errors?: string[] } }; message?: string };
-      const extractMsg = errorObject.response?.data?.errors?.[0] || errorObject.message || "Unknown error";
-      
-      console.error("Admin toggle status error:", err);
-      setUiFeedback({ 
-        type: "error", 
-        msg: `Failed to update user status due to network or authorization issue: ${extractMsg}` 
-      });
+      setUiFeedback({ type: "success", msg: `Successfully ${targetStatusText}d user account.` });
+    } catch (err: any) {
+      const extractMsg = err.response?.data?.errors?.[0] || err.message || "Unknown error";
+      setUiFeedback({ type: "error", msg: `Failed to update user status: ${extractMsg}` });
+    } finally {
+      setIsStatusModalOpen(false);
     }
   };
-
 
   if (loading || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-900 text-gray-200">
         <div className="flex items-center gap-2">
-          <svg
-            className="h-5 w-5 animate-spin text-orange-500"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
+          <FontAwesomeIcon 
+            icon={faSpinner} 
+            className="h-5 w-5 animate-spin text-orange-500" 
+          />
           <p>Loading user profile...</p>
         </div>
       </div>
@@ -303,7 +279,7 @@ export const UserProfilePage = () => {
               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
               : "bg-red-500/10 text-red-400 border-red-500/20"
           }`}>
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <FontAwesomeIcon icon={faExclamationCircle} className="h-4 w-4 shrink-0" />
             <p className="flex-grow">{uiFeedback.msg}</p>
             <button 
               type="button" 
@@ -324,7 +300,7 @@ export const UserProfilePage = () => {
                 type="button"
                 className="flex items-center text-gray-400 hover:text-gray-200 transition-colors focus:outline-none"
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
+                <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4 mr-1" />
                 Back
               </button>
             </div>
@@ -349,7 +325,7 @@ export const UserProfilePage = () => {
 
                 {canEditProfile && (
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-1 select-none">
-                    <Camera className="h-5 w-5 text-white" />
+                    <FontAwesomeIcon icon={faCamera} className="h-5 w-5 text-white" />
                     <span className="text-[10px] font-bold text-gray-200 uppercase">Change</span>
                   </div>
                 )}
@@ -387,7 +363,7 @@ export const UserProfilePage = () => {
                     {/* {canViewCoachCost && ( */}
                       <div className="flex items-center space-x-6 mt-4">
                         <div className="flex items-center text-gray-300">
-                          <DollarSign className="h-4 w-4 mr-1 text-green-400" />
+                          <FontAwesomeIcon icon={faDollarSign} className="h-4 w-4 mr-1 text-green-400" />
                           <span className="font-medium">
                             {user.coachCost && user.coachCost > 0 ? `$${user.coachCost} / hour` : "Free Mentorship"}
                           </span>
@@ -477,7 +453,7 @@ export const UserProfilePage = () => {
               
               <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-gray-300">
                 <h4 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
-                  <User2 className="h-5 w-5 text-orange-500" /> About {fullName}
+                  <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-orange-500" /> About {fullName}
                 </h4>
                 {user.bio || "No bio provided yet."}
               </div>
@@ -485,7 +461,7 @@ export const UserProfilePage = () => {
               {user.skills && (
                 <div className="mt-6 bg-gray-800 p-6 rounded-xl border border-gray-700">
                   <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                    <Award className="h-5 w-5 text-orange-500" /> Professional Skills
+                    <FontAwesomeIcon icon={faAward} className="h-5 w-5 text-orange-500" /> Professional Skills
                   </h4>
                   <p className="text-gray-300">{user.skills}</p>
                 </div>
@@ -504,7 +480,7 @@ export const UserProfilePage = () => {
                   >
                     <div>
                       <h4 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Briefcase className="h-5 w-5 text-orange-500" />{" "}
+                        <FontAwesomeIcon icon={faBriefcase} className="h-5 w-5 text-orange-500" />{" "}
                         {exp.title}
                       </h4>
                       <p className="text-gray-400 mt-2">
@@ -512,7 +488,7 @@ export const UserProfilePage = () => {
                       </p>
                     </div>
                     <div className="text-sm font-medium text-gray-400 flex items-center gap-2 shrink-0 sm:items-start">
-                      <Calendar className="h-4 w-4" />
+                      <FontAwesomeIcon icon={faCalendar} className="h-4 w-4" />
                       {formatTimelineDate(exp.startDate)} -{" "}
                       {formatTimelineDate(exp.endDate, true)}
                     </div>
@@ -561,9 +537,9 @@ export const UserProfilePage = () => {
                             href={cert.credentialUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs text-blue-400 hover:underline"
+                            className="text-xs text-blue-400 hover:underline flex items-center gap-1 transition-colors"
                           >
-                            <ArrowUpRight className="h-4 w-4" /> <span>View Credential</span> 
+                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="h-4 w-4" /> <span>View Credential</span> 
                           </a>
                         )}
                       </div>
@@ -611,6 +587,16 @@ export const UserProfilePage = () => {
         />
       )}
       
+    
+      {/* Status Change Confirmation Modal */}
+      {isStatusModalOpen && (
+        <ConfirmModal
+          title={String(user?.status).toLowerCase() === "active" || String(user?.status).toLowerCase() === "0" ? "Are you sure you want to deactivate this user?" : "Are you sure you want to activate this user?"}
+          description={`Do you want to change the platform status operation for ${fullName}? This process will alter their platform rights.`}
+          onCancel={() => setIsStatusModalOpen(false)}
+          onConfirm={handleExecuteStatusChange}
+        />
+      )}
     </div>
   );
 };

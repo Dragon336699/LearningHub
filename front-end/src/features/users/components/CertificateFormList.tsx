@@ -1,6 +1,7 @@
 import React, { memo, useRef } from "react";
-import { ArrowUpRight, Folder, Plus, Trash2, Upload } from "lucide-react";
 import { Certificate } from "../../../types/certificate";
+import { faArrowUpRightFromSquare, faExclamationTriangle, faFolder, faPlus, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface CertificateFormListProps {
   certificates: Certificate[];
@@ -65,13 +66,16 @@ export const CertificateFormList = memo(({
           onClick={handleAdd}
           className="flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white transition shadow-md"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <FontAwesomeIcon icon={faPlus} className="h-3.5 w-3.5" />
         </button>
       </div>
 
       {/* Inputs */}
       <div className="space-y-6">
         {certificates.map((cert, index) => {
+          const isNameEmpty = cert.certificateName?.trim() === "";
+          const isOrgEmpty = cert.organization?.trim() === "";
+
           const fileKey = cert.id || index;
           const hasNewFile = selectedFilesMap[fileKey];
           
@@ -80,7 +84,7 @@ export const CertificateFormList = memo(({
           if (hasNewFile) {
             credentialStatusContent = (
             <span className="text-emerald-400 italic font-medium inline-flex items-center gap-1.5 truncate">
-                <Folder className="h-4 w-4 shrink-0 text-emerald-500" />
+                <FontAwesomeIcon icon={faFolder} className="h-4 w-4 shrink-0 text-emerald-500" />
                 <span className="truncate">Selected: {hasNewFile.name}</span>
             </span>
             );
@@ -93,7 +97,7 @@ export const CertificateFormList = memo(({
                 className="text-blue-400 hover:text-blue-300 hover:underline inline-flex items-center gap-0.5 font-medium transition"
               >
                 <span>View Credential</span>
-                <ArrowUpRight className="h-3.5 w-3.5" />
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="h-3.5 w-3.5" />
               </a>
             );
           } else {
@@ -117,7 +121,7 @@ export const CertificateFormList = memo(({
                   onClick={() => handleRemove(index, cert.id)}
                   className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition font-medium"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <FontAwesomeIcon icon={faTrash} className="h-3.5 w-3.5" />
                 </button>
               </div>
 
@@ -133,9 +137,18 @@ export const CertificateFormList = memo(({
                     required
                     value={cert.certificateName}
                     onChange={(e) => handleFieldChange(index, "certificateName", e.target.value)}
-                    className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm focus:border-orange-500/50"
+                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${
+                      isNameEmpty ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
+                    }`}
                     placeholder="e.g. AWS Solutions Architect"
+                    maxLength={100}
                   />
+                  {isNameEmpty && (
+                    <p className="text-[11px] text-red-400 font-medium flex items-center mt-1.5 animate-in fade-in duration-100">
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1 shrink-0" />
+                      Certificate name is required.
+                    </p>
+                  )}
                 </div>
 
                 {/* Organization */}
@@ -149,9 +162,18 @@ export const CertificateFormList = memo(({
                     required
                     value={cert.organization}
                     onChange={(e) => handleFieldChange(index, "organization", e.target.value)}
-                    className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm focus:border-orange-500/50"
+                    className={`w-full bg-slate-900 border text-white rounded-xl text-sm px-3 py-2 focus:outline-none ${
+                      isOrgEmpty ? "border-red-500/80 focus:border-red-500" : "border-slate-800 focus:border-orange-500/50"
+                    }`}
                     placeholder="e.g. Amazon Web Services"
+                    maxLength={100}
                   />
+                  {isOrgEmpty && (
+                    <p className="text-[11px] text-red-400 font-medium flex items-center mt-1.5 animate-in fade-in duration-100">
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1 shrink-0" />
+                      Issuing organization is required.
+                    </p>
+                  )}
                 </div>
 
                 {/* Issue Date */}
@@ -195,6 +217,7 @@ export const CertificateFormList = memo(({
                       ref={(el) => { fileInputsRef.current[index] = el; }}
                       onChange={(e) => {
                         if (e.target.files?.[0]) {
+                          console.log("File loaded into List component:", e.target.files[0]);
                           onFileChange(fileKey, e.target.files[0]);
                         }
                       }}
@@ -206,7 +229,7 @@ export const CertificateFormList = memo(({
                       onClick={() => fileInputsRef.current[index]?.click()}
                       className="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-200 transition select-none"
                     >
-                      <Upload className="h-4 w-4" /> Browse Certificate File
+                      <FontAwesomeIcon icon={faUpload} className="h-4 w-4" /> Browse Certificate File
                     </button>
                     
                     {/* Dynamic File Status */}

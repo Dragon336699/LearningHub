@@ -91,7 +91,7 @@ export const fetchAllUsersForAdmin = createAsyncThunk(
   async ({page, pageSize, keyword}: {page: number, pageSize: number, keyword?: string}, { rejectWithValue }) => {
     try {
       const response = await userService.getAll(page, pageSize, keyword);
-      return (response as Result<PagedResult<User>>).data ?? response; 
+      return (response).data ?? response; 
     } catch (err: any) {
       console.error("Fetch admin list error:", err);
       return rejectWithValue(err.response?.data?.errors?.[0] || err.message || "Forbidden Access");

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { X, Upload, Loader2, AlertTriangle } from "lucide-react";
 import { userService } from "../../../services/user.service";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExclamationTriangle, faSpinner, faUpload, faX } from "@fortawesome/free-solid-svg-icons";
 
 interface AvatarUploadModalProps {
   userId: string;
@@ -70,7 +71,7 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
         <div className="flex items-center justify-between border-b border-gray-800 pb-3 mb-6">
           <h3 className="text-lg font-bold text-white">Update Profile Photo</h3>
           <button title="close" onClick={onClose} className="text-gray-400 hover:text-white transition">
-            <X className="h-5 w-5" />
+            <FontAwesomeIcon icon={faX} className="h-4 w-4" />
           </button>
         </div>
 
@@ -87,10 +88,10 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
             onClick={() => fileInputRef.current?.click()}
             className="flex items-center gap-2 rounded-xl bg-gray-900 border border-gray-800 hover:bg-gray-800 px-4 py-2 text-xs font-semibold text-gray-200 transition"
           >
-            <Upload className="h-4 w-4" /> Browse Image File
+            <FontAwesomeIcon icon={faUpload} className="h-4 w-4" /> Browse Image File
           </button>
 
-          {error && <p className="text-xs text-red-400 mt-2"><AlertTriangle className="h-4 w-4 mr-1" /> {error}</p>}
+          {error && <p className="text-xs text-red-400 mt-2"><FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 mr-1" /> {error}</p>}
         </div>
 
         <div className="mt-8 flex gap-3 border-t border-gray-800 pt-4 justify-end">
@@ -103,7 +104,7 @@ export const AvatarUploadModal = ({ userId, currentAvatar, userLetter, onClose, 
             onClick={handleUpload}
             className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-800 disabled:text-gray-600 text-white rounded-md text-xs px-6 font-bold flex items-center gap-1.5"
           >
-            {isUploading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isUploading && <FontAwesomeIcon icon={faSpinner} className="h-3.5 w-3.5 animate-spin" />}
             Save Photo
           </button>
         </div>

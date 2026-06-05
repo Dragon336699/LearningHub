@@ -1,6 +1,7 @@
-import { Plus, Trash2 } from "lucide-react";
 import { memo } from "react";
 import { Experience } from "../../../types/experience";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 interface ExperienceFormListProps {
   experiences: Experience[];
@@ -51,7 +52,7 @@ export const ExperienceFormList = memo(({ experiences, onChange }: ExperienceFor
           onClick={handleAdd}
           className="flex items-center gap-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 px-4 py-2 text-xs font-bold text-white transition"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <FontAwesomeIcon icon={faPlus} className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -69,7 +70,7 @@ export const ExperienceFormList = memo(({ experiences, onChange }: ExperienceFor
                 onClick={() => handleRemove(index)}
                 className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition font-medium"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <FontAwesomeIcon icon={faTrash} className="h-3.5 w-3.5" />
               </button>
             </div>
 
@@ -83,6 +84,8 @@ export const ExperienceFormList = memo(({ experiences, onChange }: ExperienceFor
                   onChange={(e) => handleFieldChange(index, "title", e.target.value)}
                   className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                   placeholder="e.g. Frontend Dev"
+                  maxLength={100}
+                  required
                 />
               </div>
 
@@ -95,6 +98,7 @@ export const ExperienceFormList = memo(({ experiences, onChange }: ExperienceFor
                   onChange={(e) => handleFieldChange(index, "description", e.target.value)}
                   className="input w-full bg-slate-900 border-slate-800 text-white rounded-xl text-sm"
                   placeholder="e.g. React project"
+                  maxLength={500}
                 />
               </div>
 

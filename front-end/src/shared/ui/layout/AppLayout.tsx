@@ -51,12 +51,12 @@ export const AppLayout = () => {
             <div className="w-[20%] bg-card p-4 text-white text-center flex flex-col h-full">
                 <nav className="flex flex-col h-full">
                     <header className="mb-4">
-                        <h1
+                        <button
                             onClick={() => navigate('/')}
                             className="cursor-pointer text-2xl font-bold text-primary"
                         >
                             Learning Hub
-                        </h1>
+                        </button>                        
                     </header>
 
                     <hr className="border-gray-600 -mx-4 mb-4" />

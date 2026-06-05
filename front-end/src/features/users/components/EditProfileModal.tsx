@@ -1,14 +1,15 @@
-import { ChevronLeft, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ExpertiseResponse, expertiseService } from "../../../services/expertise.service";
 import { FormState } from "../types";
 import { ExperienceFormList } from "./ExperienceFormList";
 import { CertificateFormList } from "./CertificateFormList";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronLeft, faExclamationTriangle, faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 interface EditProfileModalProps {
   initialFormState: FormState;
   onCancel: () => void;
-  onSave: (updatedForm: FormState) => void; // Bỏ tham số settings thừa
+  onSave: (updatedForm: FormState, filesMap: Record<string | number, File>) => void; 
 }
 
 export const EditProfileModal = ({
@@ -19,10 +20,15 @@ export const EditProfileModal = ({
   const [localForm, setLocalForm] = useState<FormState>({ ...initialFormState });
 
   const [firstNameError, setFirstNameError] = useState<string | null>(null);
+  const [lastNameError, setLastNameError] = useState<string | null>(null);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [skillsError, setSkillsError] = useState<string | null>(null);
+  const [coachCostError, setCoachCostError] = useState<string | null>(null);
+  const [expertiseError, setExpertiseError] = useState<string | null>(null);
 
   const [expertises, setExpertises] = useState<ExpertiseResponse[]>([]);
   const [isLoadingExpertises, setIsLoadingExpertises] = useState(false);
-  const [expertiseError, setExpertiseError] = useState<string | null>(null);
+
 
   const [certificateFiles, setCertificateFiles] = useState<Record<string | number, File>>({});
 
@@ -52,6 +58,15 @@ export const EditProfileModal = ({
   };
 
   const handleSubmit = () => {
+    setFirstNameError(null);
+    setLastNameError(null);
+    setBioError(null);
+    setSkillsError(null);
+    setExpertiseError(null);
+    setCoachCostError(null);
+
+    console.log("Map file chuẩn bị gửi lên trang mẹ:", certificateFiles);
+
     if (!localForm.firstName.trim()) {
       setFirstNameError("First name is required.");
       const inputElement = document.getElementById("firstName") as HTMLInputElement | null;
@@ -60,13 +75,81 @@ export const EditProfileModal = ({
       }
       return;
     }
+
+    if (localForm.lastName && localForm.lastName.length > 50) {
+      setFirstNameError("Last name must not exceed 50 characters.");
+      return;
+    }
+
+    if (localForm.roleName === "Mentor" && localForm.selectedExpertiseIds.length === 0) {
+      setExpertiseError("Please select at least one specialty capability.");
+      return;
+    }
+
+    if (localForm.roleName === "Mentor" && (Number.isNaN(localForm.coachCost) || localForm.coachCost < 0)) {
+      setCoachCostError("Coach cost must be a non-negative number.");
+      const inputElement = document.getElementById("coachCost") as HTMLInputElement | null;
+      if (inputElement) {
+        inputElement.focus();
+      }
+      return;
+    }
+
+    if (localForm.experiences && localForm.experiences.length > 0) {
+      for (let i = 0; i < localForm.experiences.length; i++) {
+        const exp = localForm.experiences[i];
+        if (!exp.title?.trim()) {
+          setExpertiseError(`Experience #${i + 1} Title cannot be empty.`);
+          return;
+        }
+      }
+    }
+
+    if (localForm.certificates && localForm.certificates.length > 0) {
+      for (let i = 0; i < localForm.certificates.length; i++) {
+        const cert = localForm.certificates[i];
+        if (!cert.certificateName?.trim()) {
+          setExpertiseError(`Certificate #${i + 1} Name cannot be empty.`);
+          return;
+        }
+        if (!cert.organization?.trim()) {
+          setExpertiseError(`Issuing Organization for "${cert.certificateName || i + 1}" cannot be empty.`);
+          return;
+        }
+      }
+    }
+
+    let cleanedSkills = "";
+    if (localForm.skills?.trim()) {
+      const rawSkillsArray = localForm.skills.split(",");
+      const processedSkills: string[] = [];
+      
+      rawSkillsArray.forEach((skill) => {
+        const trimmedSkill = skill.trim();
+        if (trimmedSkill !== "") {
+          const isDuplicate = processedSkills.some(
+            (s) => s.toLowerCase() === trimmedSkill.toLowerCase()
+          );
+          if (!isDuplicate) {
+            processedSkills.push(trimmedSkill);
+          }
+        }
+      });
+
+      cleanedSkills = processedSkills.join(", ");
+    } else {
+      cleanedSkills = localForm.skills || ""; // Giữ nguyên chuỗi rỗng nếu ban đầu không nhập
+    }
+
     const finalizedForm: FormState = {
       ...localForm,
       firstName: localForm.firstName.trim(),
       lastName: localForm.lastName?.trim() || "",
-      coachCost: Number(localForm.coachCost) || 0
+      coachCost: Number(localForm.coachCost) || 0,
+      skills: cleanedSkills,
     };
-    onSave(finalizedForm);
+
+    onSave(finalizedForm, certificateFiles);
   };
 
   return (
@@ -77,7 +160,7 @@ export const EditProfileModal = ({
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-900 pb-4">
           <div>
             <button type="button" onClick={onCancel} className="mb-2 flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-white">
-              <ChevronLeft className="h-4 w-4" /> Back
+              <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" /> Back
             </button>
             <h2 className="text-2xl font-bold text-white">Edit Your Profile</h2>
           </div>
@@ -146,6 +229,9 @@ export const EditProfileModal = ({
                       className="input w-full bg-gray-900 border-orange-500/30 text-white rounded-xl text-sm focus:border-orange-500"
                       placeholder="e.g. 50"
                     />
+                    {coachCostError && (
+                      <p className="text-red-400 text-xs mt-1">{coachCostError}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -181,10 +267,13 @@ export const EditProfileModal = ({
 
           {/* Areas of Expertise */}
           <div>
-            <p className="label text-xs font-semibold text-slate-300 mb-2">Areas of Expertise</p>
+            <p className="label text-xs font-semibold text-slate-300 mb-2 flex items-center gap-2">
+              Areas of Expertise
+              {localForm.roleName === "Mentor" && (<span className="text-red-400">*</span>)}
+            </p>
             {isLoadingExpertises && (
               <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <FontAwesomeIcon icon={faSpinner} className="h-4 w-4 animate-spin text-primary" />
                 <span>Loading expertise capabilities from database...</span>
               </div>
             )}
@@ -215,6 +304,13 @@ export const EditProfileModal = ({
               })}
             </div>
 
+            {localForm.roleName === "Mentor" && localForm.selectedExpertiseIds.length === 0 && (
+              <p className="text-[11px] text-red-400 font-medium flex items-center mt-2 animate-in fade-in duration-150">
+                <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1.5 shrink-0" />
+                As a Mentor, you must select at least one Area of Expertise option.
+              </p>
+            )}
+
           </div>
           
           {/* Experience */}
@@ -244,4 +340,4 @@ export const EditProfileModal = ({
       </div>
     </div>
   );
-};
+}
