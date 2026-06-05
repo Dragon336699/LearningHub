@@ -1,12 +1,10 @@
 ﻿using AutoMapper;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Common;
-using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
-using LearningHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -269,7 +267,7 @@ namespace LearningHub.Application.Services
             {
                 var originalUser = nonAdminUsers.First(x => x.Id == dto.Id);
                 var roles = await _userManager.GetRolesAsync(originalUser);
-                
+
                 dto.RoleName = roles.FirstOrDefault();
             }
 
