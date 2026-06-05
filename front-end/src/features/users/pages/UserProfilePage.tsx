@@ -25,6 +25,7 @@ import { Certificate } from "../../../types/certificate";
 import { updateAvatarSuccess } from "../../../store/slices/userSlice";
 import { userService } from "../../../services/user.service";
 import { certificateService } from "../../../services/certificate.service";
+import { BookSessionModal } from "../../sessions/components/BookingSessionModal";
 
 type TabType = "about" | "experience" | "certificates";
 
@@ -43,6 +44,7 @@ export const UserProfilePage = () => {
   const [liveAvatar, setLiveAvatar] = useState("");
 
   const [uiFeedback, setUiFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [isBookModalOpen, setIsBookModalOpen] = useState(false);
 
   const [formState, setFormState] = useState<FormState>({
     firstName: "",
@@ -382,7 +384,7 @@ export const UserProfilePage = () => {
 
                     <p className="text-gray-400 text-lg mt-1">{currentTitle}</p>
 
-                    {canViewCoachCost && (
+                    {/* {canViewCoachCost && ( */}
                       <div className="flex items-center space-x-6 mt-4">
                         <div className="flex items-center text-gray-300">
                           <DollarSign className="h-4 w-4 mr-1 text-green-400" />
@@ -391,14 +393,16 @@ export const UserProfilePage = () => {
                           </span>
                         </div>
                       </div>
-                    )}
+                    {/* )} */}
                     
                   </div>
 
                   <div className="mt-6 md:mt-0 flex gap-3">
                     
-                    {!isCurrentUser && !currentIsAdmin && profileIsMentor && (
-                      <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20">
+                    {!isCurrentUser && profileIsMentor && (
+                      <button 
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20"
+                      onClick={() => setIsBookModalOpen(true)}>
                         Book a Session
                       </button>
                     )}
@@ -595,6 +599,15 @@ export const UserProfilePage = () => {
           userLetter={(user.firstName || "U").charAt(0)}
           onClose={() => setIsAvatarPopupOpen(false)}
           onSuccess={handleAvatarSuccess}
+        />
+      )}
+
+      {isBookModalOpen && (
+        <BookSessionModal
+          isOpen={isBookModalOpen}
+          onClose={() => setIsBookModalOpen(false)}
+          mentorId={id || ""}
+          traineeId={currentUser?.id || ""}
         />
       )}
       

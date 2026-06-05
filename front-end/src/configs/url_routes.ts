@@ -10,4 +10,5 @@ export const URL_ROUTES = {
     All_COURSES: "admin/courses",
     TRAINEE_COURSES: "find/courses",
     FIND_MENTOR: "find/mentors",
+    SESSION: "/sessions",
 };

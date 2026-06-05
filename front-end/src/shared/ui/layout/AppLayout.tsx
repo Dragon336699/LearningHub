@@ -30,6 +30,7 @@ export const AppLayout = () => {
         { name: 'Find Mentor', icon: <FontAwesomeIcon className="mr-2" icon={faSearch} />, path: URL_ROUTES.FIND_MENTOR, roles: ['Trainee']},
         { name: 'Profile', icon: <FontAwesomeIcon className="mr-2" icon={faUser} />, path: URL_ROUTES.PROFILE },
         { name: 'User Management', icon: <FontAwesomeIcon className="mr-2" icon={faUserGroup} />, path: URL_ROUTES.ALL_USERS, roles: ['Admin'] },
+        { name: 'Sessions', icon: <FontAwesomeIcon className="mr-2" icon={faUserGroup} />, path: URL_ROUTES.SESSION, roles: ['Mentor', 'Trainee'] },
     ]
 
     const visibleItems = navigateItems.filter((item) => {
