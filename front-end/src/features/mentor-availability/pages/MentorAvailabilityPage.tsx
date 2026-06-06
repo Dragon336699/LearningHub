@@ -70,10 +70,6 @@ export const MentorAvailabilityPage = () => {
         }
     })
 
-    const {
-        formState: { errors }
-    } = userAvailabilityForm;
-
     const availabilities = useWatch({
         control: userAvailabilityForm.control,
         name: "availabilities",
@@ -103,11 +99,14 @@ export const MentorAvailabilityPage = () => {
     ];
 
     const handleUpsertUserAvailability = async () => {
-        const { getValues } = userAvailabilityForm;
-        const data = getValues("availabilities")
+        const { getValues, setValue } = userAvailabilityForm;
+
+        const data = getValues("availabilities");
+
+        const filteredItems = data.filter((d) => d.settingDay >= convertTimeToString(now));
         try {
             await upsertUserAvailabilityMutation.mutateAsync({
-                availabilities: data
+                availabilities: filteredItems
             });
             toast.success("Update availability successfully");
         } catch (errors: Result<any> | any) {
@@ -200,8 +199,8 @@ export const MentorAvailabilityPage = () => {
 
         const currentSlots = getValues(`availabilities.${index}.availabilitySlots`);
 
-        if (currentSlots.some((s: AvailabilitySlotForm) => s.startTime === slot.startTime && s.endTime === slot.endTime)) {
-            setValue(`availabilities.${index}.availabilitySlots`, currentSlots.filter((s: AvailabilitySlotForm) => !(s.startTime === slot.startTime && s.endTime === slot.endTime)))
+        if (currentSlots.some((s: AvailabilitySlotForm) => formatTime(s.startTime) === formatTime(slot.startTime) && formatTime(s.endTime) === formatTime(slot.endTime))) {
+            setValue(`availabilities.${index}.availabilitySlots`, currentSlots.filter((s: AvailabilitySlotForm) => !(formatTime(s.startTime) === formatTime(slot.startTime) && formatTime(s.endTime) === formatTime(slot.endTime))))
             return;
         }
 
@@ -263,7 +262,7 @@ export const MentorAvailabilityPage = () => {
     const handleCopySlotToAllDays = () => {
         const today = new Date(now);
         today.setHours(0, 0, 0, 0);
-        const availableDays = fullDaysOfWeek.filter(d => d.fullDate.getTime() >= today.getTime()).slice(1);
+        const availableDays = fullDaysOfWeek.filter(d => d.fullDate.getTime() > now.getTime() && convertTimeToString(d.fullDate) !== convertTimeToString(selectedDay));
         const index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
 
         const todaySlots = index !== -1 ? availabilities[index].availabilitySlots : [];
@@ -484,13 +483,17 @@ export const MentorAvailabilityPage = () => {
                                     weekday: "short",
                                 })} {selectedDay.toLocaleDateString("en-US", {
                                     month: "short",
-                                })} {selectedDay.getDay()}</button>
+                                })} {selectedDay.toLocaleDateString("en-US", {
+                                    day: "numeric"
+                                })}</button>
 
-                                <button onClick={() => handleClearAllSlotsInDay()} className="bg-card rounded-md py-2 cursor-pointer hover:bg-card/80">Select all slots for {selectedDay.toLocaleDateString("en-US", {
+                                <button onClick={() => handleClearAllSlotsInDay()} className="bg-card rounded-md py-2 cursor-pointer hover:bg-card/80">Clear all slots for {selectedDay.toLocaleDateString("en-US", {
                                     weekday: "short",
                                 })} {selectedDay.toLocaleDateString("en-US", {
                                     month: "short",
-                                })} {selectedDay.getDay()}</button>
+                                })} {selectedDay.toLocaleDateString("en-US", {
+                                    day: "numeric"
+                                })}</button>
 
                                 <button onClick={() => handleCopySlotToAllDays()} className="bg-success rounded-md py-2 cursor-pointer hover:bg-success-hover">Copy schedule to all days</button>
                             </div>
