@@ -4,6 +4,7 @@ using LearningHub.Application.Dtos.UserAvailabilities;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
+using LearningHub.Domain.Enums;
 
 namespace LearningHub.Application.Services
 {
@@ -33,11 +34,15 @@ namespace LearningHub.Application.Services
                     existing.SessionDurationMinutes = (int)cmd.SessionDurationMinutes;
                     existing.BufferTimeMinutes = (int)cmd.BufferTimeMinutes;
 
+                    var bookedSlots = await _unitOfWork.AvailabilitySlots.FindAllAsync(s => s.UserAvailabilitySettingId == existing.Id && s.Status == UserAvailabilityStatus.Booked);
+
                     var oldSlots = await _unitOfWork.AvailabilitySlots
-                        .FindAllAsync(s => s.UserAvailabilitySettingId == existing.Id);
+                        .FindAllAsync(s => s.UserAvailabilitySettingId == existing.Id && s.Status != UserAvailabilityStatus.Booked);
                     _unitOfWork.AvailabilitySlots.RemoveRange(oldSlots);
 
-                    var newSlots = cmd.AvailabilitySlots.Select(slot => new AvailabilitySlot
+                    var newSlots = cmd.AvailabilitySlots
+                        .Where(cmd => !bookedSlots.Any(booked => booked.StartTime == cmd.StartTime))
+                        .Select(slot => new AvailabilitySlot
                     {
                         StartTime = slot.StartTime,
                         EndTime = slot.EndTime,

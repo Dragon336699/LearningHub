@@ -1,9 +1,12 @@
-﻿namespace LearningHub.Application.Dtos.UserAvailabilities
+﻿using LearningHub.Domain.Enums;
+
+namespace LearningHub.Application.Dtos.UserAvailabilities
 {
     public class AvailabilitySlotDto
     {
         public Guid Id { get; set; }
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
+        public UserAvailabilityStatus Status { get; set; }
     }
 }

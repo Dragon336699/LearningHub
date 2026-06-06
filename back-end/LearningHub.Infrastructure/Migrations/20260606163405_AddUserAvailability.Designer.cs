@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearningHubDbContext))]
-    [Migration("20260603040418_AddUserAvailability")]
+    [Migration("20260606163405_AddUserAvailability")]
     partial class AddUserAvailability
     {
         /// <inheritdoc />
@@ -51,6 +51,9 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("UserAvailabilitySettingId")
                         .HasColumnType("uniqueidentifier");

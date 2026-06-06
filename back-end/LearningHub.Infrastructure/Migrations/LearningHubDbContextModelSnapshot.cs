@@ -49,6 +49,9 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("UserAvailabilitySettingId")
                         .HasColumnType("uniqueidentifier");
 

@@ -11,5 +11,6 @@ export interface UserAvailabilityDto {
 export interface AvailabilitySlotDto {
     id: string;
     startTime: string;
-    endTime: string
+    endTime: string;
+    status: string;
 }
