@@ -88,11 +88,6 @@ export const EditProfileModal = ({
       return;
     }
 
-    if (localForm.roleName === "Mentor" && localForm.selectedExpertiseIds.length === 0) {
-      setExpertiseError("Please select at least one specialty capability.");
-      return;
-    }
-
     if (localForm.roleName === "Mentor" && (Number.isNaN(localForm.coachCost) || localForm.coachCost < 0)) {
       setCoachCostError("Coach cost must be a non-negative number.");
       const inputElement = document.getElementById("coachCost") as HTMLInputElement | null;
@@ -394,7 +389,6 @@ export const EditProfileModal = ({
         <div>
           <p className="label text-xs font-semibold text-slate-300 mb-2 flex items-center gap-2">
             Areas of Expertise
-            {localForm.roleName === "Mentor" && (<span className="text-red-400">*</span>)}
           </p>
           {isLoadingExpertises && (
             <div className="flex items-center gap-2 text-xs text-slate-400 py-2">
@@ -428,13 +422,6 @@ export const EditProfileModal = ({
               );
             })}
           </div>
-
-          {localForm.roleName === "Mentor" && localForm.selectedExpertiseIds.length === 0 && (
-            <p className="text-[11px] text-red-400 font-medium flex items-center mt-2 animate-in fade-in duration-150">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1.5 shrink-0" />
-              As a Mentor, you must select at least one Area of Expertise option.
-            </p>
-          )}
 
         </div>
 

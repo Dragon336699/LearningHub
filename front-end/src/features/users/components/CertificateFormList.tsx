@@ -1,4 +1,4 @@
-import React, { memo, useRef } from "react";
+import React, { memo, useRef, useState } from "react";
 import { Certificate } from "../../../types/certificate";
 import { faArrowUpRightFromSquare, faExclamationTriangle, faFolder, faPlus, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -28,6 +28,8 @@ export const CertificateFormList = memo(({
 }: CertificateFormListProps) => {
 
   const fileInputsRef = useRef<Record<number, HTMLInputElement | null>>({});
+
+  const [fileError, setFileError] = useState("");
 
   const handleAdd = () => {
     const newCert: Certificate = {
@@ -260,19 +262,19 @@ export const CertificateFormList = memo(({
 
                           if (!allowedTypes.includes(file.type) && !["pdf", "jpg", "jpeg", "png"].includes(fileExt || "")) {
                             onFileRemove(freshFileKey);
-                            handleFieldChange(index, "id", cert.id);
+                            setFileError("Only pdf, jpg, jpeg, png files are allowed.")
                             return;
                           }
 
                           if (file.size === 0) {
                             onFileRemove(freshFileKey);
-                            handleFieldChange(index, "id", cert.id);
+                            setFileError("File size must not exceed 5MB and greater than 0 byte.")
                             return;
                           }
 
                           if (file.size > 5 * 1024 * 1024) {
                             onFileRemove(freshFileKey);
-                            handleFieldChange(index, "id", cert.id);
+                            setFileError("File size must not exceed 5MB and greater than 0 byte.")
                             return;
                           }
 
@@ -290,12 +292,17 @@ export const CertificateFormList = memo(({
                     >
                       <FontAwesomeIcon icon={faUpload} className="h-4 w-4" /> Browse Certificate File
                     </button>
-
                     {/* Dynamic File Status */}
                     <div className="text-xs text-slate-400 max-w-full flex items-center gap-1.5 min-h-[32px]">
                       {credentialStatusContent}
                     </div>
                   </div>
+                  {fileError && (
+                    <p className="text-[11px] text-red-400 font-medium flex items-center mt-2 animate-in fade-in duration-100">
+                      <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1.5 shrink-0" />
+                      {fileError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -64,7 +64,6 @@ export const ExperienceFormList = memo(({ experiences, onChange, errors = {} }: 
         {sortedExperiences.map(({ exp, originalIndex }, displayIndex) => {
           const isTitleEmpty = exp.title?.trim() === "";
           const rowErrors = errors[originalIndex] || {};
-          console.log(errors);
           return (
             <div
               key={exp.id || originalIndex}

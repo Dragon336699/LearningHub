@@ -123,7 +123,7 @@ export const UserProfilePage = () => {
       const deletedCertIds = originalCertIds.filter(certId => !currentCertIds.has(certId));
 
       if (deletedCertIds.length > 0) {
-        const deletePromises = deletedCertIds.map(certId => certificateService.delete(certId)); 
+        const deletePromises = deletedCertIds.map(certId => certificateService.delete(certId));
         await Promise.all(deletePromises);
       }
 
@@ -131,12 +131,12 @@ export const UserProfilePage = () => {
       const commandExperiences =
         updatedForm.experiences.length > 0
           ? updatedForm.experiences.map((exp) => ({
-              id: exp.id ? exp.id : null,
-              title: exp.title,
-              description: exp.description,
-              startDate: exp.startDate ? new Date(exp.startDate).toISOString() : new Date().toISOString(),
-              endDate: exp.endDate ? new Date(exp.endDate).toISOString() : new Date().toISOString(),
-            }))
+            id: exp.id ? exp.id : null,
+            title: exp.title,
+            description: exp.description,
+            startDate: exp.startDate ? new Date(exp.startDate).toISOString() : new Date().toISOString(),
+            endDate: exp.endDate ? new Date(exp.endDate).toISOString() : new Date().toISOString(),
+          }))
           : [];
 
       const apiPayload = {
@@ -155,33 +155,31 @@ export const UserProfilePage = () => {
 
       // Certificates update
       if (updatedForm.certificates && updatedForm.certificates.length > 0) {
-  
+
         const certPromises = updatedForm.certificates.map((cert, index) => {
           const formData = new FormData();
           formData.append("CertificateName", cert.certificateName.trim());
           formData.append("Organization", cert.organization.trim());
           formData.append("IssueDate", cert.issueDate ? cert.issueDate.split("T")[0] : "");
-          
+
           if (cert.expirationDate) {
             formData.append("ExpirationDate", cert.expirationDate.split("T")[0]);
           }
 
           const fileKey = cert.id ? cert.id : index;
-          console.log(`Processing certificate at index ${index} with ID ${cert.id}. Looking for file with key: ${fileKey}`);
           const attachedFile = filesMap[fileKey];
           if (attachedFile) {
             formData.append("CredentialFile", attachedFile);
-            console.log(`[File Sync Success] Đã nhúng file ${attachedFile.name} vào trường CredentialFile cho hàng số ${index + 1}`);
           } else {
             console.warn(`[File Sync Warning] Không tìm thấy file đính kèm nào trên RAM cho hàng chứng chỉ số ${index + 1}`);
           }
 
           const isNewCertificate = !cert.id || cert.id.startsWith("temp-");
           if (isNewCertificate) {
-            return certificateService.create(formData); 
+            return certificateService.create(formData);
           } else {
             formData.append("Id", cert.id);
-            return certificateService.update(formData); 
+            return certificateService.update(formData);
           }
         });
 
@@ -191,9 +189,9 @@ export const UserProfilePage = () => {
       // Transaction successful
       setFormState(updatedForm);
       setIsEditOpen(false);
-      
+
       // Refresh page
-      handleRefresh(); 
+      handleRefresh();
       setUiFeedback({ type: "success", msg: "Profile information and professional certificates saved successfully!" });
 
     } catch (err: any) {
@@ -237,15 +235,15 @@ export const UserProfilePage = () => {
   const handleExecuteStatusChange = async () => {
     if (!user || !id) return;
 
-    const rawStatus = String(user.status ?? (user as any).Status ?? "").toLowerCase();    
-    const isActive = rawStatus === "active" || rawStatus === "0";    
-    const targetStatusNumber = isActive ? 1 : 0; 
+    const rawStatus = String(user.status ?? (user as any).Status ?? "").toLowerCase();
+    const isActive = rawStatus === "active" || rawStatus === "0";
+    const targetStatusNumber = isActive ? 1 : 0;
     const targetStatusText = isActive ? "deactivate" : "activate";
 
     try {
       setUiFeedback(null);
       await userService.changeUserStatus(id, targetStatusNumber);
-      handleRefresh(); 
+      handleRefresh();
       setUiFeedback({ type: "success", msg: `Successfully ${targetStatusText}d user account.` });
     } catch (err: any) {
       const extractMsg = err.response?.data?.errors?.[0] || err.message || "Unknown error";
@@ -259,9 +257,9 @@ export const UserProfilePage = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-900 text-gray-200">
         <div className="flex items-center gap-2">
-          <FontAwesomeIcon 
-            icon={faSpinner} 
-            className="h-5 w-5 animate-spin text-orange-500" 
+          <FontAwesomeIcon
+            icon={faSpinner}
+            className="h-5 w-5 animate-spin text-orange-500"
           />
           <p>Loading user profile...</p>
         </div>
@@ -282,16 +280,15 @@ export const UserProfilePage = () => {
         {/* UI Feedback */}
         {uiFeedback && (
           <div className={`p-4 mb-4 rounded-xl border flex items-center gap-3 text-xs font-semibold 
-            animate-in fade-in slide-in-from-top-2 duration-300 transition-all ${
-            uiFeedback.type === "success" 
-              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+            animate-in fade-in slide-in-from-top-2 duration-300 transition-all ${uiFeedback.type === "success"
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               : "bg-red-500/10 text-red-400 border-red-500/20"
-          }`}>
+            }`}>
             <FontAwesomeIcon icon={faExclamationCircle} className="h-4 w-4 shrink-0" />
             <p className="flex-grow">{uiFeedback.msg}</p>
-            <button 
-              type="button" 
-              onClick={() => setUiFeedback(null)} 
+            <button
+              type="button"
+              onClick={() => setUiFeedback(null)}
               className="text-gray-400 hover:text-white text-sm pl-2 select-none focus:outline-none"
             >
               ✕
@@ -318,7 +315,7 @@ export const UserProfilePage = () => {
           <div className="p-6">
             <div className="flex flex-col md:flex-row mb-8 gap-6">
               {/* Avatar */}
-              <button 
+              <button
                 type="button"
                 disabled={!canEditProfile}
                 onClick={() => canEditProfile && setIsAvatarPopupOpen(true)}
@@ -357,11 +354,10 @@ export const UserProfilePage = () => {
                       )}
 
                       {/* Status Display */}
-                      <span className={`font-bold px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider ${
-                        (Number(user.status) === 0 || String(user.status).toLowerCase() === "active")
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                      <span className={`font-bold px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider ${(Number(user.status) === 0 || String(user.status).toLowerCase() === "active")
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                           : "bg-red-500/10 text-red-400 border border-red-500/20"
-                      }`}>
+                        }`}>
                         {(Number(user.status) === 0 || String(user.status).toLowerCase() === "active") ? "● Active" : "● Deactivated"}
                       </span>
                     </div>
@@ -369,24 +365,24 @@ export const UserProfilePage = () => {
                     <p className="text-gray-400 text-lg mt-1">{currentTitle}</p>
 
                     {/* {canViewCoachCost && ( */}
-                      <div className="flex items-center space-x-6 mt-4">
-                        <div className="flex items-center text-gray-300">
-                          <FontAwesomeIcon icon={faDollarSign} className="h-4 w-4 mr-1 text-green-400" />
-                          <span className="font-medium">
-                            {user.coachCost && user.coachCost > 0 ? `${user.coachCost}/hour` : "Free Mentorship"}
-                          </span>
-                        </div>
+                    <div className="flex items-center space-x-6 mt-4">
+                      <div className="flex items-center text-gray-300">
+                        <FontAwesomeIcon icon={faDollarSign} className="h-4 w-4 mr-1 text-green-400" />
+                        <span className="font-medium">
+                          {user.coachCost && user.coachCost > 0 ? `${user.coachCost}/hour` : "Free Mentorship"}
+                        </span>
                       </div>
+                    </div>
                     {/* )} */}
-                    
+
                   </div>
 
                   <div className="mt-6 md:mt-0 flex gap-3">
-                    
+
                     {!isCurrentUser && profileIsMentor && (
-                      <button 
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20"
-                      onClick={() => setIsBookModalOpen(true)}>
+                      <button
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20"
+                        onClick={() => setIsBookModalOpen(true)}>
                         Book a Session
                       </button>
                     )}
@@ -519,8 +515,8 @@ export const UserProfilePage = () => {
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="mb-3 font-semibold text-white text-xl">Certificates</h3>
-              </div>        
-              
+              </div>
+
               {/* Display certificates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {user.certificates && user.certificates.length > 0 ? (
@@ -549,7 +545,7 @@ export const UserProfilePage = () => {
                             rel="noreferrer"
                             className="text-xs text-blue-400 hover:underline flex items-center gap-1 transition-colors"
                           >
-                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="h-4 w-4" /> <span>View Credential</span> 
+                            <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="h-4 w-4" /> <span>View Credential</span>
                           </a>
                         )}
                       </div>
@@ -596,8 +592,8 @@ export const UserProfilePage = () => {
           traineeId={currentUser?.id || ""}
         />
       )}
-      
-    
+
+
       {/* Status Change Confirmation Modal */}
       {isStatusModalOpen && (
         <ConfirmModal
@@ -611,10 +607,10 @@ export const UserProfilePage = () => {
       {isSubmittingCerts && (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 select-none">
           <div className="flex flex-col items-center gap-3 bg-gray-950/80 border border-gray-800 p-8 rounded-2xl shadow-2xl text-center max-w-xs">
-            <FontAwesomeIcon 
-              icon={faSpinner} 
-              spin 
-              className="text-3xl text-orange-500 animate-spin" 
+            <FontAwesomeIcon
+              icon={faSpinner}
+              spin
+              className="text-3xl text-orange-500 animate-spin"
             />
             <h4 className="text-sm font-bold text-white mt-1">Synchronizing Profiles</h4>
             <p className="text-[11px] text-gray-400 leading-relaxed">
