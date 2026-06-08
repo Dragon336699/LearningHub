@@ -9,6 +9,7 @@ export const URL_ROUTES = {
     PROFILE: "/profile/:id",
     ALL_USERS: "admin/users",
     MENTOR_COURSE: "mentor/courses",
+    MENTOR_AVAILABILITY: "mentor/availability",
     All_COURSES: "admin/courses",
     TRAINEE_COURSES: "find/courses",
     FIND_MENTOR: "find/mentors",

@@ -4,7 +4,7 @@ interface CustomSelectProps<T> {
   options: T[];
   value: string | number;
   onChange: (value: any) => void;
-  getLabel: (option: T) => string;       
+  getLabel: (option: T) => string;
   getValue: (option: T) => string | number;
   placeholder?: string;
   disabled?: boolean;
@@ -21,6 +21,7 @@ export const CustomSelect = <T,>({
 }: CustomSelectProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const selectedItemRef = useRef<HTMLLIElement>(null);
 
   const selectedOption = options.find((opt) => getValue(opt) === value);
 
@@ -33,6 +34,14 @@ export const CustomSelect = <T,>({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      selectedItemRef.current?.scrollIntoView({
+        block: "center",
+      });
+    }
+  }, [isOpen]);
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -66,14 +75,15 @@ export const CustomSelect = <T,>({
 
             return (
               <li
+                ref={isSelected ? selectedItemRef : null}
                 key={index}
                 onClick={() => {
                   onChange(currentOptionValue);
                   setIsOpen(false);
                 }}
                 className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium cursor-pointer transition-all duration-150 my-0.5
-                  ${isSelected 
-                    ? "bg-primary text-white" 
+                  ${isSelected
+                    ? "bg-primary text-white"
                     : "text-slate-300 hover:bg-sidebar-hover hover:text-white"
                   }`}
               >

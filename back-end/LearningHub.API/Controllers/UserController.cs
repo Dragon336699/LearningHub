@@ -45,7 +45,7 @@ namespace LearningHub.API.Controllers
         public async Task<IActionResult> SearchUsersProfile([FromQuery] SearchUserProfileCommand request)
         {
             var validationResult = await _validationService.ValidateAsync(request);
-            
+
             if (!validationResult.IsSuccess)
             {
                 return BadRequest(validationResult);

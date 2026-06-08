@@ -34,7 +34,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ExpertiseUser");
+                    b.ToTable("ExpertiseUser", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.BookingSession", b =>
@@ -110,7 +110,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Certificates");
+                    b.ToTable("Certificates", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Course", b =>
@@ -157,7 +157,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Course");
+                    b.ToTable("Course", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
@@ -188,7 +188,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Experiences");
+                    b.ToTable("Experiences", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Expertise", b =>
@@ -204,7 +204,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Expertises");
+                    b.ToTable("Expertises", (string)null);
 
                     b.HasData(
                         new
