@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { UpsertUserAvailabilityForm } from "../schemas/UpSertUserAvailabilitySchema";
+import { UpsertUserAvailabilityForm } from "../schemas/UpsertUserAvailabilitySchema";
 import { userAvailabilityService } from "../services/UserAvailability.service";
 
 export const useUserAvailability = () => {
