@@ -1,7 +1,7 @@
 import { API_ROUTES } from "../../../configs/api_routes";
 import { HttpClient } from "../../../lib/client";
 import { Result } from "../../../types/result";
-import { UpsertUserAvailabilityForm } from "../schemas/UpSertUserAvailabilitySchema";
+import { UpsertUserAvailabilityForm } from "../schemas/UpsertUserAvailabilitySchema";
 import { UserAvailabilityDto } from "../types/UserAvailability.type";
 
 export const userAvailabilityService = {

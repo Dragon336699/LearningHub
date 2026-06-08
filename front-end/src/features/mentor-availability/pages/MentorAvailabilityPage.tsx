@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UpsertUserAvailabilitySchema } from "../schemas/UpSertUserAvailabilitySchema";
+import { UpsertUserAvailabilitySchema } from "../schemas/UpsertUserAvailabilitySchema";
 import { AvailabilitySlotForm } from "../schemas/AvailabilitySlotSchema";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight, faSpinner, faWarning } from "@fortawesome/free-solid-svg-icons";
