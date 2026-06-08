@@ -29,7 +29,7 @@ export const CertificateFormList = memo(({
 
   const fileInputsRef = useRef<Record<number, HTMLInputElement | null>>({});
 
-  const [fileError, setFileError] = useState("");
+  const [fileError, setFileError] = useState<Record<number, string>>({});
 
   const handleAdd = () => {
     const newCert: Certificate = {
@@ -45,6 +45,10 @@ export const CertificateFormList = memo(({
 
   const handleRemove = (indexToRemove: number, certId: string) => {
     const updated = certificates.filter((_, index) => index !== indexToRemove);
+    setFileError(prev => {
+      const { [indexToRemove]: _, ...rest } = prev;
+      return rest;
+    });
     onChange(updated);
     const fileKey = certId || indexToRemove;
     onFileRemove(fileKey);
@@ -262,19 +266,28 @@ export const CertificateFormList = memo(({
 
                           if (!allowedTypes.includes(file.type) && !["pdf", "jpg", "jpeg", "png"].includes(fileExt || "")) {
                             onFileRemove(freshFileKey);
-                            setFileError("Only pdf, jpg, jpeg, png files are allowed.")
+                            setFileError(prev => ({
+                              ...prev,
+                              [index]: "Only pdf, jpg, jpeg, png files are allowed."
+                            }))
                             return;
                           }
 
                           if (file.size === 0) {
                             onFileRemove(freshFileKey);
-                            setFileError("File size must not exceed 5MB and greater than 0 byte.")
+                            setFileError(prev => ({
+                              ...prev,
+                              [index]: "File size must not exceed 5MB and greater than 0 byte."
+                            }))
                             return;
                           }
 
                           if (file.size > 5 * 1024 * 1024) {
                             onFileRemove(freshFileKey);
-                            setFileError("File size must not exceed 5MB and greater than 0 byte.")
+                            setFileError(prev => ({
+                              ...prev,
+                              [index]: "File size must not exceed 5MB and greater than 0 byte."
+                            }))
                             return;
                           }
 
@@ -297,10 +310,10 @@ export const CertificateFormList = memo(({
                       {credentialStatusContent}
                     </div>
                   </div>
-                  {fileError && (
+                  {fileError && fileError[index] && (
                     <p className="text-[11px] text-red-400 font-medium flex items-center mt-2 animate-in fade-in duration-100">
                       <FontAwesomeIcon icon={faExclamationTriangle} className="mr-1.5 shrink-0" />
-                      {fileError}
+                      {fileError[index]}
                     </p>
                   )}
                 </div>
