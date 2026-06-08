@@ -1,5 +1,6 @@
 ﻿using LearningHub.Application.Dtos.BookingSession;
 using LearningHub.Domain.Entities;
+using LearningHub.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,7 +11,8 @@ namespace LearningHub.Application.Mappers
     {
         public static BookingSessionResponse ToResponse(BookingSession session)
         {
-            return new BookingSessionResponse { 
+            return new BookingSessionResponse
+            {
                 Id = session.Id,
                 MentorId = session.MentorId,
                 MentorName = session.Mentor.FirstName + " " + session.Mentor.LastName,
@@ -32,6 +34,21 @@ namespace LearningHub.Application.Mappers
                 responses.Add(ToResponse(session));
             }
             return responses;
+        }
+
+        public static BookingSession ToEntity(CreateBookingSessionRequest request, Guid traineeId)
+        {
+            return new BookingSession
+            {
+                Id = Guid.CreateVersion7(),
+                MentorId = request.MentorId,
+                TraineeId = traineeId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                SessionType = request.SessionType,
+                Topic = request.Topic,
+                Status = SessionStatus.Pending
+            };
         }
     }
 }

@@ -1,13 +1,8 @@
-﻿using Azure.Core;
-using LearningHub.Application.Dtos.BookingSession;
-using LearningHub.Application.Interfaces.Repositories;
+﻿using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
 using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LearningHub.Infrastructure.Repositories
 {
@@ -46,21 +41,38 @@ namespace LearningHub.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-		public async Task<List<BookingSession>> GetSessionsByUserAndDateAsync(Guid userId, DateTime targetDate)
-		{
-			DateTime startOfDay = targetDate.Date;
-			DateTime endOfDay = startOfDay.AddDays(1);
+        public async Task<List<BookingSession>> GetSessionsByUserAndDateAsync(Guid userId, DateTime targetDate, SessionStatus? status)
+        {
+            DateTime startOfDay = targetDate.Date;
+            DateTime endOfDay = startOfDay.AddDays(1);
 
-			var sessions = await _context.BookingSessions
-				.Where(s =>
-					(s.MentorId == userId || s.TraineeId == userId) &&
-					s.StartTime >= startOfDay && s.StartTime < endOfDay)
+            var query = _context.BookingSessions
+                .Where(s =>
+                    (s.MentorId == userId || s.TraineeId == userId) &&
+                    s.StartTime >= startOfDay && s.StartTime < endOfDay);
+
+            if (status.HasValue)
+            {
+                query = query.Where(s => s.Status == status.Value);
+            }
+
+            return await query
                 .Include(s => s.Mentor)
                 .Include(s => s.Trainee)
-				.OrderBy(s => s.StartTime) 
-				.ToListAsync();
+                .OrderBy(s => s.StartTime)
+                .ToListAsync();
+        }
 
-			return sessions;
-		}
+        public async Task<List<BookingSession>> GetOverlapingSession(BookingSession currentSession)
+        {
+            List<BookingSession> bookingSessions = await _context.BookingSessions.Where(s => s.Id != currentSession.Id
+                             && s.MentorId == currentSession.MentorId
+                             && s.Status == SessionStatus.Pending
+                             && s.StartTime < currentSession.EndTime
+                             && s.EndTime > currentSession.StartTime)
+                    .ToListAsync();
+            return bookingSessions;
+        }
+
 	}
 }

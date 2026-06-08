@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { z } from "zod"; // 1. Import Zod
+import { z } from "zod";
 import { AppDispatch, RootState } from "../../../store";
 import { registerUser } from "../../../store/thunks/authThunks";
 import { fetchRoles } from "../../../store/thunks/roleThunks"; 
 import { clearAuthMessages } from "../../../store/slices/authSlice";
 import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
-import { API_ROUTES } from "../../../configs/api_routes";
 import { URL_ROUTES } from "../../../configs/url_routes";
 import { registerSchema } from "../types";
 

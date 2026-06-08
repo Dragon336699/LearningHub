@@ -48,10 +48,10 @@ export const fetchUserSessions = createAsyncThunk<
   { rejectValue: string }
 >(
   "session/fetchUserSessions",
-  async ({ userId, date }, { rejectWithValue }) => {
+  async ({ userId, date, sessionStatus }, { rejectWithValue }) => {
     try {
       const response = await HttpClient.get<any>("/session", {
-        params: { UserId: userId, Date: date }
+        params: { UserId: userId, Date: date, Status: sessionStatus }
       });
       return response;
     } catch (error: any) {

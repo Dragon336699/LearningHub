@@ -26,5 +26,31 @@ public static class Messages
     
     }
 
+    public static class BookingSession
+    {
+        public const string MentorNotFound = "Mentor not found";
+        public const string MentorInvalid = "Mentor is invalid";
+        public const string TraineeNotFound = "Trainee not found";
+        public const string TraineeInvalid = "Trainee is invalid";
+        public const string MentorAlreadyBusy = "The mentor already has a confirmed session at this time.";
+        public const string TraineeAlreadyBusy = "You are having another session in this time.";
+        public const string CreateSuccess = "Booking session created successfully and waiting for mentor's approval.";
+
+        public const string NotAuthorized = "You are not authorized to approve this session.";
+        public const string NotFoundOrProcessed = "Session not found or already processed.";
+        public const string CannotApproveMentorBusy = "Cannot approve this session because the mentor has another confirmed session at the same time.";
+        public const string ApproveSuccess = "Session approved successfully. All other overlapping pending requests have been cancelled.";
+        public const string ApproveExceptionPrefix = "An error occurred while approving the session: ";
+
+        public const string CancelSuccess = "Session Cancelled successfully.";
+
+    }
+    
+        public static class Email
+        {
+            public const string NewRequestSubject = "New Session Booking Request";
+            public const string ApprovedSubject = "Session Booking Approved";
+            public const string CancelledSubject = "Session Booking Request Cancelled";
+        }
 
 }

@@ -16,6 +16,8 @@ import ProtectedLoginRoute from "./ProtectedAuthRoute";
 import FindMentorPage from "../features/users/pages/FindMentorPage";
 import { UserManagementPage } from "../features/users/pages/UserManagementPage";
 import { SessionPage } from "../features/sessions/pages/SessionPage";
+import { TermsPage } from "../features/auth/components/TermsPage";
+import { PrivacyPage } from "../features/auth/components/PrivacyPage";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +36,16 @@ export const router = createBrowserRouter([
         path: URL_ROUTES.REGISTER,
         element:
           <ProtectedLoginRoute><RegisterPage /></ProtectedLoginRoute>,
+      },
+      {
+        path: URL_ROUTES.TERM,
+        element:
+          <ProtectedLoginRoute><TermsPage /></ProtectedLoginRoute>,
+      },
+      {
+        path: URL_ROUTES.PRIVACY,
+        element:
+          <ProtectedLoginRoute><PrivacyPage /></ProtectedLoginRoute>,
       },
       {
         path: URL_ROUTES.CHECK_EMAIL,

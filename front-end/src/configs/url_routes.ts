@@ -2,6 +2,8 @@ export const URL_ROUTES = {
     HOME: "/",
     LOGIN: "/login",
     REGISTER: "/register",
+    TERM: "/terms",
+    PRIVACY:"/privacy",
     VERIFY_EMAIL:"/verify-email",
     CHECK_EMAIL: "/check-email",
     PROFILE: "/profile/:id",

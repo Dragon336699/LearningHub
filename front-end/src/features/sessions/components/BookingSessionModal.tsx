@@ -9,10 +9,9 @@ interface BookSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   mentorId: string;
-  traineeId: string;
 }
 
-export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onClose, mentorId, traineeId }) => {
+export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onClose, mentorId }) => {
   const dispatch = useAppDispatch();
   
   const [date, setDate] = useState<string>("");
@@ -73,7 +72,6 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
     
     try {
       await dispatch(createBookingSession({
-        traineeId,
         mentorId,
         sessionType: Number(sessionType),
         topic,

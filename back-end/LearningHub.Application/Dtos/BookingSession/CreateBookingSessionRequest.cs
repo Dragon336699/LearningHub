@@ -7,7 +7,6 @@ namespace LearningHub.Application.Dtos.BookingSession
 {
     public class CreateBookingSessionRequest
     {
-        public Guid TraineeId { get; set; }
         public Guid MentorId { get; set; }
         public SessionType SessionType { get; set; }
         public string? Topic { get; set; }
