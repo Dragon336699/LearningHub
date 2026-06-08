@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UpsertUserAvailabilitySchema } from "../schemas/UpSertUserAvailabilitySchema";
 import { AvailabilitySlotForm } from "../schemas/AvailabilitySlotSchema";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faArrowRight, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faArrowRight, faSpinner, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "sonner";
 import { useUpsertUserAvailability, useUserAvailability } from "../hooks/Availability.hook";
 import { Result } from "../../../types/result";
@@ -49,6 +49,7 @@ export const MentorAvailabilityPage = () => {
     const [selectedDay, setSelectedDay] = useState<Date>(new Date());
     const [timeSlots, setTimeSlots] = useState<TimeSlotsAndDay>();
     const [fullDaysOfWeek, setFullDaysOfWeek] = useState<WeekDay[]>([]);
+    const [hasBookedSelectDay, setHasBookedSelectDay] = useState(false);
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
 
@@ -302,19 +303,20 @@ export const MentorAvailabilityPage = () => {
     const handleAllSlotsInday = () => {
         const { setValue, getValues } = userAvailabilityForm;
         const availabilitiesInDay = getValues("availabilities");
+
         let index = availabilitiesInDay.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
-        const bookedSlots = availabilitiesInDay[index].availabilitySlots.filter(a => a.status === 'Booked');
+        if (index === -1) return;
+
+        const bookedSlots = availabilitiesInDay[index]?.availabilitySlots.filter(a => a.status === 'Booked') ?? [];
 
         const bookedStartTimes = new Set(
-            bookedSlots.map((slot) => formatTime(slot.startTime))
+            bookedSlots?.map((slot) => formatTime(slot.startTime))
         );
 
         const currentTime = now.toTimeString().split(" ")[0];
 
-
         const availableSlots = (timeSlots?.timeSlots ?? []).filter((timeSlot) => {
             const isBooked = bookedStartTimes.has(formatTime(timeSlot.startTime));
-
             const isPastTime = convertTimeToString(selectedDay) === convertTimeToString(now) && timeSlot.startTime <= currentTime;
 
             return !isBooked && !isPastTime;
@@ -339,12 +341,12 @@ export const MentorAvailabilityPage = () => {
     }
 
     const handleCopySlotToAllDays = () => {
-        const availableDays = fullDaysOfWeek.filter(d => d.fullDate.getTime() > now.getTime() && convertTimeToString(d.fullDate) !== convertTimeToString(selectedDay));
+        const availableDays = fullDaysOfWeek.filter(d => convertTimeToString(d.fullDate) >= convertTimeToString(now) && convertTimeToString(d.fullDate) !== convertTimeToString(selectedDay));
         const index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
 
         const todaySlots = index !== -1 ? availabilities[index].availabilitySlots : [];
 
-        const todaySlotsCopy = index !== -1 ? availabilities[index].availabilitySlots.map((slot) => ({
+        const slotsCopy = index !== -1 ? availabilities[index].availabilitySlots.map((slot) => ({
             startTime: slot.startTime,
             endTime: slot.endTime,
             status: undefined
@@ -363,15 +365,37 @@ export const MentorAvailabilityPage = () => {
             resetItem,
             ...availableDays.map((ad) => {
                 const existingDay = availabilities.find((a) => a.settingDay === convertTimeToString(ad.fullDate));
-
                 const bookedSlots = existingDay?.availabilitySlots.filter(ad => ad.status === "Booked") ?? [];
+
+                let daySlots = slotsCopy.filter(slot =>
+                    !(convertTimeToString(ad.fullDate) === convertTimeToString(now) && formatTime(slot.startTime) < formatTime(currentTime))
+                );
+
+                if (bookedSlots.length !== 0 && existingDay?.workStartTime === startTime && existingDay.workEndTime === endTime && existingDay.sessionDurationMinutes === sessionDuration && existingDay.bufferTimeMinutes === bufferTime) {
+                    daySlots = daySlots.filter(ds => {
+                        const bookedSlotIndex = bookedSlots.findIndex(bs => bs.startTime === ds.startTime || bs.endTime === ds.endTime);
+                        return !bookedSlotIndex;
+                    });
+                } else if (bookedSlots.length !== 0 && (existingDay?.workStartTime !== startTime || existingDay?.workEndTime !== endTime || existingDay?.sessionDurationMinutes !== sessionDuration || existingDay?.bufferTimeMinutes !== bufferTime)) {
+                    daySlots = [];
+
+                    return {
+                        workStartTime: existingDay?.workStartTime,
+                        workEndTime: existingDay?.workEndTime,
+                        sessionDurationMinutes: existingDay?.sessionDurationMinutes,
+                        bufferTimeMinutes: existingDay?.bufferTimeMinutes,
+                        settingDay: convertTimeToString(ad.fullDate),
+                        availabilitySlots: [...bookedSlots, ...daySlots]
+                    }
+                }
+
                 return {
                     workStartTime: startTime,
                     workEndTime: endTime,
                     sessionDurationMinutes: sessionDuration,
                     bufferTimeMinutes: bufferTime,
                     settingDay: convertTimeToString(ad.fullDate),
-                    availabilitySlots: [...bookedSlots, ...todaySlotsCopy]
+                    availabilitySlots: [...bookedSlots, ...daySlots]
                 }
             })
         ]
@@ -383,6 +407,35 @@ export const MentorAvailabilityPage = () => {
 
     useEffect(() => {
         setFullDaysOfWeek(getFullDaysOfWeek(selectedDay));
+        const { setValue } = userAvailabilityForm;
+        const item = {
+            workStartTime: startTime,
+            workEndTime: endTime,
+            sessionDurationMinutes: sessionDuration,
+            bufferTimeMinutes: bufferTime,
+            settingDay: convertTimeToString(selectedDay),
+            availabilitySlots: []
+        }
+
+        let index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
+
+        let currentAvailabilities = availabilities;
+        if (index === -1) {
+            currentAvailabilities = [...availabilities, item];
+
+            setValue("availabilities", currentAvailabilities);
+
+            index = currentAvailabilities.length - 1;
+        };
+
+        const selectedDaySlots = currentAvailabilities[index];
+        const bookingIndex = selectedDaySlots?.availabilitySlots.findIndex(slot => slot?.status === 'Booked');
+
+        if (bookingIndex !== -1) {
+            setHasBookedSelectDay(true);
+        } else {
+            setHasBookedSelectDay(false);
+        }
     }, [selectedDay])
 
     useEffect(() => {
@@ -478,7 +531,10 @@ export const MentorAvailabilityPage = () => {
     return (
         <div className="p-8 rounded-lg bg-card text-white min-h-full h-auto">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold mb-4">Manage Your Availability</h1>
+                <div className="mb-4 flex flex-col gap-1">
+                    <h1 className="text-2xl font-bold">Manage Your Availability</h1>
+                    {hasBookedSelectDay && <p className="text-danger text-sm"><FontAwesomeIcon icon={faWarning} />There are bookings today. You cannot change the settings.</p>}
+                </div>
                 <button onClick={(handleUpsertUserAvailability)} className="bg-primary hover:bg-primary-hover rounded-lg p-4 mb-4 cursor-pointer">Save changes</button>
             </div>
 
@@ -490,15 +546,26 @@ export const MentorAvailabilityPage = () => {
                         <div className="bg-muted rounded-lg px-3 py-4 mb-4">
                             <h2 className="text-lg font-semibold mb-4 ml-2">Work hours</h2>
                             <div className="flex gap-2 justify-between mb-2">
-                                <div className="flex-1">
-                                    <p className="text-sm text-muted-foreground ml-2 mb-1">Start Time</p>
+                                <div
+                                    className={`flex-1 ${hasBookedSelectDay ? "pointer-events-none opacity-50" : ""
+                                        }`}
+                                >
+                                    <p className="text-sm text-muted-foreground ml-2 mb-1">
+                                        Start Time
+                                    </p>
+
                                     <CustomSelect
-                                        options={timeOptions.map((time) => ({ label: time, value: time }))}
-                                        value={startTime} onChange={(value: string) => handleWorkStartTimeChange(value)}
+                                        options={timeOptions.map(time => ({
+                                            label: time,
+                                            value: time
+                                        }))}
+                                        value={startTime}
+                                        onChange={(value: string) => handleWorkStartTimeChange(value)}
                                         getLabel={(status) => status.label}
-                                        getValue={(status) => status.value} />
+                                        getValue={(status) => status.value}
+                                    />
                                 </div>
-                                <div className="flex-1">
+                                <div className={`flex-1 ${hasBookedSelectDay ? 'pointer-events-none opacity-50' : ''}`}>
                                     <p className="text-sm text-muted-foreground ml-2 mb-1">End Time</p>
                                     <CustomSelect
                                         options={timeOptions.map((time) => ({ label: time, value: time }))}
@@ -512,7 +579,7 @@ export const MentorAvailabilityPage = () => {
                         <div className="bg-muted rounded-lg px-3 py-4 mb-4">
                             <h2 className="text-lg font-semibold mb-4 ml-2">Session settings</h2>
                             <div className="flex flex-col gap-2">
-                                <div className="flex-1">
+                                <div className={`flex-1 ${hasBookedSelectDay ? 'pointer-events-none opacity-50' : ''}`}>
                                     <p className="text-sm text-muted-foreground ml-2 mb-1">Session duration</p>
                                     <CustomSelect
                                         options={sessionDurationOptions.map((duration) => duration)}
@@ -521,7 +588,7 @@ export const MentorAvailabilityPage = () => {
                                         getLabel={(status) => status.label.toString()}
                                         getValue={(status) => status.value.toString()} />
                                 </div>
-                                <div className="flex-1">
+                                <div className={`flex-1 ${hasBookedSelectDay ? 'pointer-events-none opacity-50' : ''}`}>
                                     <p className="text-sm text-muted-foreground ml-2 mb-1">Buffer time between sessions</p>
                                     <CustomSelect
                                         options={bufferOptions.map((buffer) => buffer)}

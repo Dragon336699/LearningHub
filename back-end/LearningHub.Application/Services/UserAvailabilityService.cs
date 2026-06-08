@@ -79,6 +79,10 @@ namespace LearningHub.Application.Services
 
             await _unitOfWork.CompleteAsync();
 
+            var userAvailabilitySettingsWithoutSlots = await _unitOfWork.UserAvailabilitySetting.FindAllAsync(uas => !uas.AvailabilitySlots.Any());
+            _unitOfWork.UserAvailabilitySetting.RemoveRange(userAvailabilitySettingsWithoutSlots);
+            await _unitOfWork.CompleteAsync();
+
             return Result<List<UserAvailabilityDto>>.Success(_mapper.Map<List<UserAvailabilityDto>>(allSettings));
         }
 
