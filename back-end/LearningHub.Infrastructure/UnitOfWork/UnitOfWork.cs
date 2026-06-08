@@ -24,7 +24,7 @@ namespace LearningHub.Infrastructure.UnitOfWork
             ICertificateRepository certificateRepository,
             ICourseRepository courseRepository,
             IUserRepository userRepository,
-            IBookingSessionRepository bookingSessionRepository)
+            IBookingSessionRepository bookingSessionRepository,
             IAvailabilitySlotRepository availabilitySlotRepository,
             IUserAvailabilitySettingRepository userAvailabilitySettingRepository
         )
