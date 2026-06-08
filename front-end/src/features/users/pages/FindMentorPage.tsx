@@ -32,9 +32,10 @@ export const FindMentorPage = () => {
   useEffect(() => {
     const fetchFilteredMentors = async () => {
       setIsLoading(true);
+      const trimmedKeyword = keyword.trim();
       const actionResult = await dispatch(
         searchMentors({
-          keyword,
+          keyword: trimmedKeyword,
           expertiseIds: selectedExpertiseIds,
         }),
       );

@@ -5,4 +5,5 @@ export interface Certificate {
   issueDate: string;
   expirationDate?: string;
   credentialUrl?: string;
+  file?: File; // For new uploads, not sent from backend
 }

@@ -1,3 +1,4 @@
+import { Certificate } from "../../../types/certificate";
 import { Experience } from "../../../types/experience";
 
 export interface FormState {
@@ -10,4 +11,5 @@ export interface FormState {
   skills: string;
   selectedExpertiseIds: string[];
   experiences: Experience[];
+  certificates: Certificate[];
 }

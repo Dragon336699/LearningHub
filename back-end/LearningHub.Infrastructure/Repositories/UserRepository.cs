@@ -21,5 +21,6 @@ namespace LearningHub.Infrastructure.Repositories
                 .Include(u => u.Expertises)
                 .ToListAsync();
         }
+
     }
 }

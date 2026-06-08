@@ -5,6 +5,7 @@ import { HttpClient } from "../../lib/client";
 import { API_ROUTES } from "../../configs/api_routes";
 import { Result } from "../../types/result";
 import { Expertise } from "../../types/expertise";
+import { PagedResult } from "../../shared/types/pagedResult";
 
 export const fetchUserById = createAsyncThunk<User, string, { rejectValue: string }>(
   "user/fetchById",
@@ -81,6 +82,19 @@ export const searchMentors = createAsyncThunk<User[], SearchUserProfileCommand, 
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.errors || "Find mentors failed");
+    }
+  }
+);
+
+export const fetchAllUsersForAdmin = createAsyncThunk(
+  "user/fetchAllUsersForAdmin",
+  async ({page, pageSize, keyword}: {page: number, pageSize: number, keyword?: string}, { rejectWithValue }) => {
+    try {
+      const response = await userService.getAll(page, pageSize, keyword);
+      return (response).data ?? response; 
+    } catch (err: any) {
+      console.error("Fetch admin list error:", err);
+      return rejectWithValue(err.response?.data?.errors?.[0] || err.message || "Forbidden Access");
     }
   }
 );

@@ -1,3 +1,5 @@
+export const PAGE_SIZE = 5; // Default number of items per page, can be adjusted as needed
+
 type PaginationProps = {
     currentPage: number;
     totalPages: number;

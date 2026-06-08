@@ -1,7 +1,6 @@
 ﻿using LearningHub.Application.Common;
 using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Dtos.Auth;
-using LearningHub.Application.Interfaces;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
@@ -10,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt; 
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
@@ -21,7 +20,7 @@ public class AuthService : IAuthService
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly ICacheService _cacheService;
-    private readonly IOtpService _otpService;
+    private readonly INotificationService _notificationService;
     private readonly IConfiguration _configuration;
     private readonly IUnitOfWork _unitOfWork;
     private readonly double _jwtDurationInMinutes;
@@ -37,7 +36,7 @@ public class AuthService : IAuthService
         UserManager<User> userManager,
         RoleManager<Role> roleManager,
         ICacheService cacheService,
-        IOtpService otpService,
+        INotificationService notificationService,
         IConfiguration configuration,
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor)
@@ -45,7 +44,7 @@ public class AuthService : IAuthService
         _userManager = userManager;
         _roleManager = roleManager;
         _cacheService = cacheService;
-        _otpService = otpService;
+        _notificationService = notificationService;
         _configuration = configuration;
         _unitOfWork = unitOfWork;
         _jwtDurationInMinutes = _configuration.GetValue<double>("JwtSettings:DurationInMinutes", 15);
@@ -174,7 +173,7 @@ public class AuthService : IAuthService
         <p><a href='{verifyLink}'><strong>Verify My Account</strong></a></p>
         <p>This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>";
 
-    _ = _otpService.SendOtpAsync(user.Email!, emailSubject, emailBody);
+    _ = _notificationService.SendMessageAsync(user.Email, emailSubject, emailBody);
 }
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request)
@@ -190,6 +189,11 @@ public class AuthService : IAuthService
         {
             await GenerateAndSendVerificationLinkAsync(user, "Your new verification link - LearningHub", "LearningHub - Verify Your Email");
             return Result<LoginResponse>.Failure(Messages.Auth.EmailSent);
+        }
+
+        if (user.Status == UserStatus.Deactivated)
+        {
+            return Result<LoginResponse>.Failure("Your account has been deactivated. Please contact support for assistance.");
         }
 
         var userRoles = await _userManager.GetRolesAsync(user);

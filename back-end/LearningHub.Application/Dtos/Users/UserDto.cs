@@ -14,6 +14,7 @@ namespace LearningHub.Application.Dtos.Users
         public string? AvatarUrl { get; set; }
         public string? Bio { get; set; }
         public decimal? CoachCost {  get; set; }
+        public UserStatus Status { get; set; }
         public string? Skills { get; set; }
         public List<ExpertiseDto> Expertises { get; set; } = new List<ExpertiseDto>();
         public List<ExperienceDto> Experiences { get; set; } = new List<ExperienceDto>(); 

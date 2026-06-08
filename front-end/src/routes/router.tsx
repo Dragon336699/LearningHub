@@ -15,6 +15,8 @@ import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 import ProtectedLoginRoute from "./ProtectedAuthRoute";
 import { MentorAvailabilityPage } from "../features/mentor-availability/pages/MentorAvailabilityPage";
 import FindMentorPage from "../features/users/pages/FindMentorPage";
+import { UserManagementPage } from "../features/users/pages/UserManagementPage";
+import { SessionPage } from "../features/sessions/pages/SessionPage";
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +84,22 @@ export const router = createBrowserRouter([
               <ProtectedRoute allowedRoles={["Trainee"]}><TraineeCoursesPage /></ProtectedRoute>
             ),
           },
+          {
+            path: URL_ROUTES.ALL_USERS,
+            element: (
+              <ProtectedRoute allowedRoles={["Admin"]}>
+                <UserManagementPage />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: URL_ROUTES.SESSION,
+            element: (
+              <ProtectedRoute allowedRoles={["Mentor", "Trainee"]}>
+                <SessionPage />
+              </ProtectedRoute>
+             )
+          }
         ]
       }
     ],

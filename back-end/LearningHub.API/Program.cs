@@ -29,12 +29,19 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors();
 
 builder.Services.ConfigureAuth(builder.Configuration);
 builder.Services.AddInfrastructure();
 builder.Services.AddDbContext<LearningHubDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("Mentor", policy => policy.RequireRole("Mentor"));
+    options.AddPolicy("Trainee", policy => policy.RequireRole("Trainee"));
+
+});
 
 var app = builder.Build();
 

@@ -19,5 +19,6 @@ namespace LearningHub.Application.Interfaces.Repositories
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> expression);
+        void Update(T entity);
     }
 }
