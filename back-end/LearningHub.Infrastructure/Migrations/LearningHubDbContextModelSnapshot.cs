@@ -34,32 +34,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ExpertiseUser");
-                });
-
-            modelBuilder.Entity("LearningHub.Domain.Entities.AvailabilitySlot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time");
-
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("UserAvailabilitySettingId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserAvailabilitySettingId");
-
-                    b.ToTable("AvailabilitySlots");
+                    b.ToTable("ExpertiseUser", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Certificate", b =>
@@ -95,7 +70,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Certificates");
+                    b.ToTable("Certificates", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Course", b =>
@@ -142,7 +117,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Courses");
+                    b.ToTable("Course", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
@@ -173,7 +148,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Experiences");
+                    b.ToTable("Experiences", (string)null);
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Expertise", b =>
@@ -189,7 +164,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Expertises");
+                    b.ToTable("Expertises", (string)null);
 
                     b.HasData(
                         new
@@ -382,37 +357,6 @@ namespace LearningHub.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("LearningHub.Domain.Entities.UserAvailabilitySetting", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("BufferTimeMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SessionDurationMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("SettingDay")
-                        .HasColumnType("date");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<TimeOnly>("WorkEndTime")
-                        .HasColumnType("time");
-
-                    b.Property<TimeOnly>("WorkStartTime")
-                        .HasColumnType("time");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserAvailabilitySettings");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
@@ -531,17 +475,6 @@ namespace LearningHub.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("LearningHub.Domain.Entities.AvailabilitySlot", b =>
-                {
-                    b.HasOne("LearningHub.Domain.Entities.UserAvailabilitySetting", "UserAvailabilitySetting")
-                        .WithMany("AvailabilitySlots")
-                        .HasForeignKey("UserAvailabilitySettingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UserAvailabilitySetting");
-                });
-
             modelBuilder.Entity("LearningHub.Domain.Entities.Certificate", b =>
                 {
                     b.HasOne("LearningHub.Domain.Entities.User", "User")
@@ -568,17 +501,6 @@ namespace LearningHub.Infrastructure.Migrations
                 {
                     b.HasOne("LearningHub.Domain.Entities.User", "User")
                         .WithMany("Experiences")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LearningHub.Domain.Entities.UserAvailabilitySetting", b =>
-                {
-                    b.HasOne("LearningHub.Domain.Entities.User", "User")
-                        .WithMany("UserAvailabilitySettings")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -644,13 +566,6 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Navigation("Courses");
 
                     b.Navigation("Experiences");
-
-                    b.Navigation("UserAvailabilitySettings");
-                });
-
-            modelBuilder.Entity("LearningHub.Domain.Entities.UserAvailabilitySetting", b =>
-                {
-                    b.Navigation("AvailabilitySlots");
                 });
 #pragma warning restore 612, 618
         }
