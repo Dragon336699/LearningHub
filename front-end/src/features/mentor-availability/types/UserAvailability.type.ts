@@ -14,3 +14,8 @@ export interface AvailabilitySlotDto {
     endTime: string;
     status: string;
 }
+
+export interface GetUserAvailabilityRequest {
+    startDate: string;
+    endDate: string;
+}

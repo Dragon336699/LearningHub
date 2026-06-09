@@ -12,12 +12,12 @@ namespace LearningHub.Infrastructure.Repositories
             
         }
 
-        public async Task<List<UserAvailabilitySetting>> GetUserAvailabilities(Guid userId)
+        public async Task<List<UserAvailabilitySetting>> GetUserAvailabilities(Guid userId, DateOnly startDate, DateOnly endDate)
         {
             var query = _context.Set<UserAvailabilitySetting>();
 
             var userAvailabilities = await query
-                .Where(ua => ua.UserId == userId)
+                .Where(ua => ua.UserId == userId && ua.SettingDay >= startDate && ua.SettingDay <= endDate)
                 .Include(u => u.AvailabilitySlots.OrderBy(s => s.StartTime))
                 .ToListAsync();
             return userAvailabilities;

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UpsertUserAvailabilitySchema } from "../schemas/UpSertUserAvailabilitySchema";
+import { UpsertUserAvailabilitySchema } from "../schemas/UpsertUserAvailabilitySchema";
 import { AvailabilitySlotForm } from "../schemas/AvailabilitySlotSchema";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faArrowRight, faSpinner, faWarning } from "@fortawesome/free-solid-svg-icons";
@@ -41,6 +41,32 @@ const formatTime = (time: string) => {
     return `${hh}:${mm}`;
 };
 
+const getFullDaysOfWeek = (date: Date) => {
+    const today = date;
+
+    const firstDayOfweek = new Date(today);
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    firstDayOfweek.setDate(today.getDate() + diff);
+
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(firstDayOfweek);
+        date.setDate(firstDayOfweek.getDate() + i);
+
+        return {
+            dayOfWeek: date.toLocaleDateString("en-US", {
+                weekday: "short",
+            }),
+            day: date.getDate(),
+            month: date.toLocaleDateString("en-US", {
+                month: "short",
+            }),
+            fullDate: date,
+        };
+    });
+    return weekDays;
+}
+
 export const MentorAvailabilityPage = () => {
     const [startTime, setStartTime] = useState(defaultStartTime);
     const [endTime, setEndTime] = useState(defaultEndTime);
@@ -48,13 +74,16 @@ export const MentorAvailabilityPage = () => {
     const [bufferTime, setBufferTime] = useState(defaultBufferTime);
     const [selectedDay, setSelectedDay] = useState<Date>(new Date());
     const [timeSlots, setTimeSlots] = useState<TimeSlotsAndDay>();
-    const [fullDaysOfWeek, setFullDaysOfWeek] = useState<WeekDay[]>([]);
+    const fullDaysOfWeek = useMemo(() => getFullDaysOfWeek(selectedDay), [selectedDay]);
     const [hasBookedSelectDay, setHasBookedSelectDay] = useState(false);
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
 
     const upsertUserAvailabilityMutation = useUpsertUserAvailability();
-    const { data: userAvailabilitiesData } = useUserAvailability();
+    const { data: userAvailabilitiesData } = useUserAvailability({
+        startDate: convertTimeToString(fullDaysOfWeek[0]?.fullDate),
+        endDate: convertTimeToString(fullDaysOfWeek[fullDaysOfWeek.length - 1]?.fullDate)
+    });
     const isUserChangeRef = useRef<boolean>(false);
     const isInitialMountRef = useRef(true);
 
@@ -204,32 +233,6 @@ export const MentorAvailabilityPage = () => {
 
             toast.error("Failed to update user availability");
         }
-    }
-
-    const getFullDaysOfWeek = (date: Date) => {
-        const today = date;
-
-        const firstDayOfweek = new Date(today);
-        const day = today.getDay();
-        const diff = day === 0 ? -6 : 1 - day;
-        firstDayOfweek.setDate(today.getDate() + diff);
-
-        const weekDays = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(firstDayOfweek);
-            date.setDate(firstDayOfweek.getDate() + i);
-
-            return {
-                dayOfWeek: date.toLocaleDateString("en-US", {
-                    weekday: "short",
-                }),
-                day: date.getDate(),
-                month: date.toLocaleDateString("en-US", {
-                    month: "short",
-                }),
-                fullDate: date,
-            };
-        });
-        return weekDays;
     }
 
     const timeToMinutes = (time: string) => {
@@ -396,7 +399,7 @@ export const MentorAvailabilityPage = () => {
             endTime: slot.endTime,
             status: undefined
         })) : [];
-
+        
         const resetItem = {
             workStartTime: startTime,
             workEndTime: endTime,
@@ -416,7 +419,7 @@ export const MentorAvailabilityPage = () => {
                     !(convertTimeToString(ad.fullDate) === convertTimeToString(now) && formatTime(slot.startTime) < formatTime(currentTime))
                 );
 
-                let pastSlots = existingDay?.availabilitySlots.filter(slot => slot.startTime < formatTime(currentTime)) ?? [];
+                let pastSlots = existingDay?.availabilitySlots.filter(slot => slot.startTime < formatTime(currentTime) && existingDay.settingDay <= convertTimeToString(now)) ?? [];
 
                 if (bookedSlots.length !== 0 && existingDay?.workStartTime === startTime && existingDay.workEndTime === endTime && existingDay.sessionDurationMinutes === sessionDuration && existingDay.bufferTimeMinutes === bufferTime) {
                     daySlots = daySlots.filter(ds => {
@@ -470,7 +473,6 @@ export const MentorAvailabilityPage = () => {
     }
 
     useEffect(() => {
-        setFullDaysOfWeek(getFullDaysOfWeek(selectedDay));
         const { setValue } = userAvailabilityForm;
         const item = {
             workStartTime: startTime,

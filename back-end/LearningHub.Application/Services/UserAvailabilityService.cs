@@ -86,9 +86,11 @@ namespace LearningHub.Application.Services
             return Result<List<UserAvailabilityDto>>.Success(_mapper.Map<List<UserAvailabilityDto>>(allSettings));
         }
 
-        public async Task<Result<List<UserAvailabilityDto>>> GetUserAvailabilities(Guid userId)
+        public async Task<Result<List<UserAvailabilityDto>>> GetUserAvailabilities(Guid userId, GetUserAvailabilitiesQuery query)
         {
-            List<UserAvailabilitySetting> userAvailabilitySettings = await _unitOfWork.UserAvailabilitySetting.GetUserAvailabilities(userId);
+            DateOnly startDate = DateOnly.FromDateTime(query.StartDate);
+            DateOnly endDate = DateOnly.FromDateTime(query.EndDate);
+            List<UserAvailabilitySetting> userAvailabilitySettings = await _unitOfWork.UserAvailabilitySetting.GetUserAvailabilities(userId, startDate, endDate);
             return Result<List<UserAvailabilityDto>>.Success(_mapper.Map<List<UserAvailabilityDto>>(userAvailabilitySettings));
         }
 
