@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,20 +41,45 @@ const formatTime = (time: string) => {
     return `${hh}:${mm}`;
 };
 
+const getFullDaysOfWeek = (date: Date) => {
+    const today = date;
+
+    const firstDayOfweek = new Date(today);
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    firstDayOfweek.setDate(today.getDate() + diff);
+
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(firstDayOfweek);
+        date.setDate(firstDayOfweek.getDate() + i);
+
+        return {
+            dayOfWeek: date.toLocaleDateString("en-US", {
+                weekday: "short",
+            }),
+            day: date.getDate(),
+            month: date.toLocaleDateString("en-US", {
+                month: "short",
+            }),
+            fullDate: date,
+        };
+    });
+    return weekDays as WeekDay[];
+}
+
 export const MentorAvailabilityPage = () => {
-    const [startTime, setStartTime] = useState(defaultStartTime);
-    const [endTime, setEndTime] = useState(defaultEndTime);
-    const [sessionDuration, setSessionDuration] = useState(defaultSessionDuration);
-    const [bufferTime, setBufferTime] = useState(defaultBufferTime);
     const [selectedDay, setSelectedDay] = useState<Date>(new Date());
     const [timeSlots, setTimeSlots] = useState<TimeSlotsAndDay>();
-    const [fullDaysOfWeek, setFullDaysOfWeek] = useState<WeekDay[]>([]);
+    const fullDaysOfWeek = useMemo(() => getFullDaysOfWeek(selectedDay), [selectedDay]);
     const [hasBookedSelectDay, setHasBookedSelectDay] = useState(false);
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
 
     const upsertUserAvailabilityMutation = useUpsertUserAvailability();
-    const { data: userAvailabilitiesData } = useUserAvailability();
+    const { data: userAvailabilitiesData } = useUserAvailability({
+        startDate: convertTimeToString(fullDaysOfWeek[0]?.fullDate),
+        endDate: convertTimeToString(fullDaysOfWeek[fullDaysOfWeek.length - 1]?.fullDate)
+    });
     const isUserChangeRef = useRef<boolean>(false);
     const isInitialMountRef = useRef(true);
 
@@ -62,10 +87,10 @@ export const MentorAvailabilityPage = () => {
         resolver: zodResolver(UpsertUserAvailabilitySchema),
         defaultValues: {
             availabilities: [{
-                workStartTime: startTime,
-                workEndTime: endTime,
-                sessionDurationMinutes: sessionDuration,
-                bufferTimeMinutes: bufferTime,
+                workStartTime: defaultStartTime,
+                workEndTime: defaultEndTime,
+                sessionDurationMinutes: defaultSessionDuration,
+                bufferTimeMinutes: defaultBufferTime,
                 settingDay: convertTimeToString(selectedDay),
                 availabilitySlots: []
             }]
@@ -108,22 +133,26 @@ export const MentorAvailabilityPage = () => {
         .getValues("availabilities")
         .findIndex(a => a.settingDay === convertTimeToString(selectedDay));
 
+    const currentAvailability = availabilities.find(a => a.settingDay === convertTimeToString(selectedDay));
+
     const errors = userAvailabilityForm.formState.errors.availabilities?.[availabilityIndex];
 
     const handleWorkStartTimeChange = (value: string) => {
+        const { setValue } = userAvailabilityForm;
         const setting = availabilities.find(a => a.settingDay === convertTimeToString(selectedDay));
         if (!setting) {
-            setStartTime(value);
             return;
         }
 
         const bookedSlotIndex = setting?.availabilitySlots.findIndex(slot => slot.status === 'Booked');
         if (bookedSlotIndex === -1) {
+            setValue(`availabilities.${availabilityIndex}.workStartTime`, value);
             isUserChangeRef.current = true;
-            setStartTime(value);
+            availabilities
             const index = userAvailabilityForm.getValues("availabilities")
                 .findIndex(a => a.settingDay === convertTimeToString(selectedDay));
             if (index !== -1) {
+                userAvailabilityForm.setValue(`availabilities.${index}.workStartTime`, value, { shouldDirty: true, shouldValidate: false });
                 userAvailabilityForm.trigger(`availabilities.${index}.workStartTime`);
             }
             return;
@@ -133,16 +162,21 @@ export const MentorAvailabilityPage = () => {
     }
 
     const handleWorkEndTimeChange = (value: string) => {
+        const { setValue } = userAvailabilityForm;
         const setting = availabilities.find(a => a.settingDay === convertTimeToString(selectedDay));
         if (!setting) {
-            setEndTime(value);
             return;
         }
 
         const bookedSlotIndex = setting?.availabilitySlots.findIndex(slot => slot.status === 'Booked');
         if (bookedSlotIndex === -1) {
             isUserChangeRef.current = true;
-            setEndTime(value);
+            setValue(`availabilities.${availabilityIndex}.workEndTime`, value);
+            const index = userAvailabilityForm.getValues("availabilities")
+                .findIndex(a => a.settingDay === convertTimeToString(selectedDay));
+            if (index !== -1) {
+                userAvailabilityForm.setValue(`availabilities.${index}.workEndTime`, value, { shouldDirty: true, shouldValidate: false });
+            }
             return;
         } else {
             toast.error("Work end time cannot be change when booking exist.")
@@ -150,17 +184,17 @@ export const MentorAvailabilityPage = () => {
     }
 
     const handleSessionDurationChange = (value: string) => {
+        const { setValue } = userAvailabilityForm;
         const setting = availabilities.find(a => a.settingDay === convertTimeToString(selectedDay));
 
         if (!setting) {
-            setSessionDuration(parseInt(value));
             return;
         }
         const index = setting?.availabilitySlots.findIndex(slot => slot.status === 'Booked');
 
         if (index === -1) {
             isUserChangeRef.current = true;
-            setSessionDuration(parseInt(value));
+            setValue(`availabilities.${availabilityIndex}.sessionDurationMinutes`, parseInt(value), { shouldValidate: true, shouldDirty: false });
             return;
         } else {
             toast.error("Cannot change session duration when bookings exist.")
@@ -168,17 +202,17 @@ export const MentorAvailabilityPage = () => {
     }
 
     const handleBufferTimeChange = (value: string) => {
+        const { setValue } = userAvailabilityForm;
         const setting = availabilities.find(a => a.settingDay === convertTimeToString(selectedDay));
 
         if (!setting) {
-            setBufferTime(parseInt(value));
             return;
         }
         const index = setting?.availabilitySlots.findIndex(slot => slot.status === 'Booked');
 
         if (index === -1) {
             isUserChangeRef.current = true;
-            setBufferTime(parseInt(value));
+            setValue(`availabilities.${availabilityIndex}.bufferTimeMinutes`, parseInt(value), { shouldValidate: true, shouldDirty: false });
             return;
         } else {
             toast.error("Cannot change buffer time when bookings exist.")
@@ -204,32 +238,6 @@ export const MentorAvailabilityPage = () => {
 
             toast.error("Failed to update user availability");
         }
-    }
-
-    const getFullDaysOfWeek = (date: Date) => {
-        const today = date;
-
-        const firstDayOfweek = new Date(today);
-        const day = today.getDay();
-        const diff = day === 0 ? -6 : 1 - day;
-        firstDayOfweek.setDate(today.getDate() + diff);
-
-        const weekDays = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(firstDayOfweek);
-            date.setDate(firstDayOfweek.getDate() + i);
-
-            return {
-                dayOfWeek: date.toLocaleDateString("en-US", {
-                    weekday: "short",
-                }),
-                day: date.getDate(),
-                month: date.toLocaleDateString("en-US", {
-                    month: "short",
-                }),
-                fullDate: date,
-            };
-        });
-        return weekDays;
     }
 
     const timeToMinutes = (time: string) => {
@@ -263,17 +271,16 @@ export const MentorAvailabilityPage = () => {
     const handleTimeSlotClick = (slot: TimeSlot) => {
         const { setValue, getValues } = userAvailabilityForm;
 
+        const setting = availabilities.find(a => a.settingDay === convertTimeToString(selectedDay));
+        if (!setting) return;
         const item = {
-            workStartTime: startTime,
-            workEndTime: endTime,
-            sessionDurationMinutes: sessionDuration,
-            bufferTimeMinutes: bufferTime,
+            workStartTime: setting.workStartTime,
+            workEndTime: setting.workEndTime,
+            sessionDurationMinutes: setting.sessionDurationMinutes,
+            bufferTimeMinutes: setting.bufferTimeMinutes,
             settingDay: convertTimeToString(selectedDay),
             availabilitySlots: []
         }
-
-
-        const availabilities = getValues("availabilities");
 
         let index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
         if (index === -1) {
@@ -296,7 +303,7 @@ export const MentorAvailabilityPage = () => {
             return;
         }
 
-        setValue(`availabilities.${index}.availabilitySlots`, [...currentSlots, slot], { shouldDirty: true });
+        setValue(`availabilities.${index}.availabilitySlots`, [...currentSlots, slot].sort((a, b) => a.startTime.localeCompare(b.startTime)), { shouldDirty: true });
         isInitialMountRef.current = false;
     }
 
@@ -377,7 +384,7 @@ export const MentorAvailabilityPage = () => {
 
         const currentSlots = availabilitiesInDay[availabilityIndex].availabilitySlots;
         const currentSetting = availabilitiesInDay[availabilityIndex];
-        const bookedAndPastSlots = currentSlots.filter(slot => slot.status === 'Booked' || (slot.startTime < formatTime(currentTime) && currentSetting.settingDay === convertTimeToString(now)));
+        const bookedAndPastSlots = currentSlots.filter(slot => slot.status === 'Booked' || (slot.startTime < formatTime(currentTime) && currentSetting.settingDay === convertTimeToString(now)) || currentSetting.settingDay < convertTimeToString(now));
 
         setValue(`availabilities.${availabilityIndex}.availabilitySlots`, bookedAndPastSlots ?? [], { shouldDirty: true });
     }
@@ -398,10 +405,10 @@ export const MentorAvailabilityPage = () => {
         })) : [];
 
         const resetItem = {
-            workStartTime: startTime,
-            workEndTime: endTime,
-            sessionDurationMinutes: sessionDuration,
-            bufferTimeMinutes: bufferTime,
+            workStartTime: availabilities[availabilityIndex]?.workStartTime,
+            workEndTime: availabilities[availabilityIndex]?.workEndTime,
+            sessionDurationMinutes: availabilities[availabilityIndex]?.sessionDurationMinutes,
+            bufferTimeMinutes: availabilities[availabilityIndex]?.bufferTimeMinutes,
             settingDay: convertTimeToString(selectedDay),
             availabilitySlots: todaySlots
         }
@@ -416,48 +423,47 @@ export const MentorAvailabilityPage = () => {
                     !(convertTimeToString(ad.fullDate) === convertTimeToString(now) && formatTime(slot.startTime) < formatTime(currentTime))
                 );
 
-                let pastSlots = existingDay?.availabilitySlots.filter(slot => slot.startTime < formatTime(currentTime)) ?? [];
+                let pastSlots = existingDay?.availabilitySlots.filter(slot => slot.startTime < formatTime(currentTime) && existingDay.settingDay <= convertTimeToString(now)) ?? [];
 
-                if (bookedSlots.length !== 0 && existingDay?.workStartTime === startTime && existingDay.workEndTime === endTime && existingDay.sessionDurationMinutes === sessionDuration && existingDay.bufferTimeMinutes === bufferTime) {
+                if (bookedSlots.length !== 0 && existingDay?.workStartTime === availabilities[availabilityIndex].workStartTime && existingDay.workEndTime === availabilities[availabilityIndex].workEndTime && existingDay.sessionDurationMinutes === availabilities[availabilityIndex].sessionDurationMinutes && existingDay.bufferTimeMinutes === availabilities[availabilityIndex].bufferTimeMinutes) {
                     daySlots = daySlots.filter(ds => {
                         const bookedSlotIndex = bookedSlots.findIndex(bs => formatTime(bs.startTime) === formatTime(ds.startTime) || formatTime(bs.endTime) === formatTime(ds.endTime));
                         return bookedSlotIndex === -1;
                     });
-                } else if (bookedSlots.length !== 0 && (existingDay?.workStartTime !== startTime || existingDay?.workEndTime !== endTime || existingDay?.sessionDurationMinutes !== sessionDuration || existingDay?.bufferTimeMinutes !== bufferTime)) {
+                } else if (bookedSlots.length !== 0 && (existingDay?.workStartTime !== availabilities[availabilityIndex].workStartTime || existingDay?.workEndTime !== availabilities[availabilityIndex].workEndTime || existingDay?.sessionDurationMinutes !== availabilities[availabilityIndex].sessionDurationMinutes || existingDay?.bufferTimeMinutes !== availabilities[availabilityIndex].bufferTimeMinutes)) {
                     daySlots = [];
 
                     const map = new Map();
 
-                    [...bookedSlots, ...pastSlots, ...daySlots].forEach(slot => {
+                    [...bookedSlots, ...pastSlots, ...daySlots].sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
                         const key = `${(formatTime(slot.startTime))}-${formatTime(slot.endTime)}`;
                         map.set(key, slot);
                     });
 
                     const newSlots = Array.from(map.values());
                     return {
-                        workStartTime: existingDay?.workStartTime ?? startTime,
-                        workEndTime: existingDay?.workEndTime ?? endTime,
-                        sessionDurationMinutes: existingDay?.sessionDurationMinutes ?? sessionDuration,
-                        bufferTimeMinutes: existingDay?.bufferTimeMinutes ?? bufferTime,
+                        workStartTime: existingDay?.workStartTime ?? availabilities[availabilityIndex].workStartTime,
+                        workEndTime: existingDay?.workEndTime ?? availabilities[availabilityIndex].workEndTime,
+                        sessionDurationMinutes: existingDay?.sessionDurationMinutes ?? availabilities[availabilityIndex].sessionDurationMinutes,
+                        bufferTimeMinutes: existingDay?.bufferTimeMinutes ?? availabilities[availabilityIndex].bufferTimeMinutes,
                         settingDay: convertTimeToString(ad.fullDate),
                         availabilitySlots: newSlots
                     }
                 }
                 const map = new Map();
 
-                [...bookedSlots, ...pastSlots, ...daySlots].forEach(slot => {
+                [...bookedSlots, ...pastSlots, ...daySlots].sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
                     const key = `${(formatTime(slot.startTime))}-${formatTime(slot.endTime)}`;
                     map.set(key, slot);
                 });
 
                 const newSlots = Array.from(map.values());
-                console.log(newSlots);
 
                 return {
-                    workStartTime: startTime,
-                    workEndTime: endTime,
-                    sessionDurationMinutes: sessionDuration,
-                    bufferTimeMinutes: bufferTime,
+                    workStartTime: availabilities[availabilityIndex].workStartTime,
+                    workEndTime: availabilities[availabilityIndex].workEndTime,
+                    sessionDurationMinutes: availabilities[availabilityIndex].sessionDurationMinutes,
+                    bufferTimeMinutes: availabilities[availabilityIndex].bufferTimeMinutes,
                     settingDay: convertTimeToString(ad.fullDate),
                     availabilitySlots: newSlots
                 }
@@ -470,76 +476,81 @@ export const MentorAvailabilityPage = () => {
     }
 
     useEffect(() => {
-        setFullDaysOfWeek(getFullDaysOfWeek(selectedDay));
-        const { setValue } = userAvailabilityForm;
-        const item = {
-            workStartTime: startTime,
-            workEndTime: endTime,
-            sessionDurationMinutes: sessionDuration,
-            bufferTimeMinutes: bufferTime,
-            settingDay: convertTimeToString(selectedDay),
-            availabilitySlots: []
-        }
+        const { setValue, getValues } = userAvailabilityForm;
+        const todayKey = convertTimeToString(selectedDay);
+        const all = getValues("availabilities");
+        const index = all.findIndex((a) => a.settingDay === todayKey);
 
-        let index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
-
-        let currentAvailabilities = availabilities;
         if (index === -1) {
-            currentAvailabilities = [...availabilities, item];
-
-            setValue("availabilities", currentAvailabilities);
-
-            index = currentAvailabilities.length - 1;
-        };
-
-        const selectedDaySlots = currentAvailabilities[index];
-        const bookingIndex = selectedDaySlots?.availabilitySlots.findIndex(slot => slot?.status === 'Booked');
-
-        if (bookingIndex !== -1) {
-            setHasBookedSelectDay(true);
-        } else {
-            setHasBookedSelectDay(false);
+            setValue(
+                "availabilities",
+                [...all, {
+                    workStartTime: defaultStartTime,
+                    workEndTime: defaultEndTime,
+                    sessionDurationMinutes: defaultSessionDuration,
+                    bufferTimeMinutes: defaultBufferTime,
+                    settingDay: todayKey,
+                    availabilitySlots: [],
+                }],
+                { shouldValidate: true, shouldDirty: false }
+            );
         }
-    }, [selectedDay])
+
+        const bookingIndex = (index !== -1 ? all[index] : null)
+            ?.availabilitySlots.findIndex((slot) => slot?.status === "Booked");
+        setHasBookedSelectDay(bookingIndex !== undefined && bookingIndex !== -1);
+
+    }, [selectedDay]);
 
     useEffect(() => {
+        const current = availabilities[availabilityIndex];
+        if (!current) return;
+
         setTimeSlots({
-            timeSlots: generateTimeSlots(startTime, endTime, sessionDuration, bufferTime),
+            timeSlots: generateTimeSlots(
+                current.workStartTime,
+                current.workEndTime,
+                current.sessionDurationMinutes,
+                current.bufferTimeMinutes
+            ),
             day: convertTimeToString(selectedDay)
         });
-    }, [startTime, endTime, sessionDuration, bufferTime]);
+    }, [availabilities[availabilityIndex]]);
 
     useEffect(() => {
         const { setValue, getValues } = userAvailabilityForm;
-        const availabilities = getValues("availabilities");
-        const index = availabilities.findIndex((a) => a.settingDay === convertTimeToString(selectedDay));
+        const allAvailabilities = getValues("availabilities");
+        const index = allAvailabilities.findIndex(a => a.settingDay === convertTimeToString(selectedDay));
+
+        const current = allAvailabilities[index];
+        if (!current) return;
 
         const existingSlots = !isUserChangeRef.current && index !== -1
-            ? availabilities[index].availabilitySlots
+            ? current.availabilitySlots
             : [];
 
         isUserChangeRef.current = false;
 
-        if (isInitialMountRef.current) {
-            isInitialMountRef.current = false;
-            return;
-        }
+        // if (isInitialMountRef.current) {
+        //     isInitialMountRef.current = false;
+        //     return;
+        // }
 
         const item = {
-            workStartTime: startTime,
-            workEndTime: endTime,
-            sessionDurationMinutes: sessionDuration,
-            bufferTimeMinutes: bufferTime,
+            workStartTime: current.workStartTime,
+            workEndTime: current.workEndTime,
+            sessionDurationMinutes: current.sessionDurationMinutes,
+            bufferTimeMinutes: current.bufferTimeMinutes,
             settingDay: convertTimeToString(selectedDay),
             availabilitySlots: existingSlots
-        }
+        };
 
         if (index === -1) {
-            setValue("availabilities", [...availabilities, item], { shouldValidate: true, shouldDirty: true });
+            setValue("availabilities", [...allAvailabilities, item], { shouldValidate: true, shouldDirty: true });
         } else {
-            setValue(`availabilities.${index}`, item, { shouldValidate: true, shouldDirty: true });
+            setValue(`availabilities.${index}`, item, { shouldValidate: true, shouldDirty: false });
         }
-    }, [startTime, endTime, sessionDuration, bufferTime])
+    }, [availabilities[availabilityIndex]]);
 
     useEffect(() => {
         setTimeSlots((prev) => {
@@ -559,16 +570,21 @@ export const MentorAvailabilityPage = () => {
 
         if (availability) {
             isInitialMountRef.current = true;
-            setStartTime(availability.workStartTime);
-            setEndTime(availability.workEndTime);
-            setSessionDuration(availability.sessionDurationMinutes);
-            setBufferTime(availability.bufferTimeMinutes);
         }
-
     }, [selectedDay])
 
     useEffect(() => {
-        if (!userAvailabilitiesData || userAvailabilitiesData.length === 0) return;
+        if (!userAvailabilitiesData) return;
+
+        const { getValues, reset } = userAvailabilityForm;
+        const currentAvailabilities = getValues("availabilities");
+
+        if (userAvailabilitiesData.length === 0) {
+            if (currentAvailabilities.length === 0) {
+                reset({ availabilities: currentAvailabilities });
+            }
+            return;
+        }
 
         const mapped = userAvailabilitiesData.map((x: UserAvailabilityDto) => ({
             id: x.id,
@@ -581,23 +597,34 @@ export const MentorAvailabilityPage = () => {
                 id: slot.id,
                 startTime: slot.startTime,
                 endTime: slot.endTime,
-                status: slot.status
-            }))
+                status: slot.status,
+            })),
         }));
 
-        userAvailabilityForm.reset({ availabilities: mapped });
+        const fetchedDays = new Set(mapped.map((m) => m.settingDay));
+
+        const preserved = currentAvailabilities.filter(
+            (a) => !fetchedDays.has(a.settingDay)
+        );
 
         const todayKey = convertTimeToString(selectedDay);
-        const todayAvailability = mapped.find(x => x.settingDay === todayKey);
+        const hasTodayEntry = mapped.some((m) => m.settingDay === todayKey);
 
-        if (todayAvailability) {
-            isInitialMountRef.current = true;
-            setStartTime(todayAvailability.workStartTime);
-            setEndTime(todayAvailability.workEndTime);
-            setSessionDuration(todayAvailability.sessionDurationMinutes);
-            setBufferTime(todayAvailability.bufferTimeMinutes);
-        }
-    }, [userAvailabilitiesData])
+        const merged = [
+            ...preserved,
+            ...mapped,
+            ...(hasTodayEntry ? [] : [{
+                workStartTime: defaultStartTime,
+                workEndTime: defaultEndTime,
+                sessionDurationMinutes: defaultSessionDuration,
+                bufferTimeMinutes: defaultBufferTime,
+                settingDay: todayKey,
+                availabilitySlots: [],
+            }]),
+        ];
+
+        reset({ availabilities: merged });
+    }, [userAvailabilitiesData]);
 
     return (
         <div className="p-8 rounded-lg bg-card text-white min-h-full h-auto">
@@ -632,7 +659,7 @@ export const MentorAvailabilityPage = () => {
                                             label: time,
                                             value: time
                                         }))}
-                                        value={startTime}
+                                        value={currentAvailability?.workStartTime ?? defaultStartTime}
                                         onChange={(value: string) => handleWorkStartTimeChange(value)}
                                         getLabel={(status) => status.label}
                                         getValue={(status) => status.value}
@@ -646,7 +673,7 @@ export const MentorAvailabilityPage = () => {
                                     <p className="text-sm text-muted-foreground ml-2 mb-1">End Time</p>
                                     <CustomSelect
                                         options={timeOptions.map((time) => ({ label: time, value: time }))}
-                                        value={endTime} onChange={(value: string) => handleWorkEndTimeChange(value)}
+                                        value={currentAvailability?.workEndTime ?? defaultEndTime} onChange={(value: string) => handleWorkEndTimeChange(value)}
                                         getLabel={(status) => status.label}
                                         getValue={(status) => status.value} />
                                 </div>
@@ -660,7 +687,7 @@ export const MentorAvailabilityPage = () => {
                                     <p className="text-sm text-muted-foreground ml-2 mb-1">Session duration</p>
                                     <CustomSelect
                                         options={sessionDurationOptions.map((duration) => duration)}
-                                        value={sessionDuration.toString()} onChange={(value: string) => handleSessionDurationChange(value)}
+                                        value={currentAvailability?.sessionDurationMinutes.toString() ?? defaultSessionDuration.toString()} onChange={(value: string) => handleSessionDurationChange(value)}
 
                                         getLabel={(status) => status.label.toString()}
                                         getValue={(status) => status.value.toString()} />
@@ -669,7 +696,7 @@ export const MentorAvailabilityPage = () => {
                                     <p className="text-sm text-muted-foreground ml-2 mb-1">Buffer time between sessions</p>
                                     <CustomSelect
                                         options={bufferOptions.map((buffer) => buffer)}
-                                        value={bufferTime.toString()} onChange={(value: string) => handleBufferTimeChange(value)}
+                                        value={currentAvailability?.bufferTimeMinutes.toString() ?? defaultBufferTime.toString()} onChange={(value: string) => handleBufferTimeChange(value)}
                                         getLabel={(status) => status.label.toString()}
                                         getValue={(status) => status.value.toString()} />
                                 </div>
@@ -809,13 +836,13 @@ export const MentorAvailabilityPage = () => {
                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-3">
                             <p>
                                 <span className="font-medium text-foreground">Working hours:</span>{" "}
-                                {startTime} - {endTime}
+                                {currentAvailability?.workStartTime ?? defaultStartTime} - {currentAvailability?.workEndTime ?? defaultEndTime}
                                 <span className="mx-2">•</span>
                                 <span className="font-medium text-foreground">Session:</span>{" "}
-                                {sessionDurationOptions.find((x) => x.value === sessionDuration)?.label}
+                                {sessionDurationOptions.find((x) => x.value === currentAvailability?.sessionDurationMinutes)?.label}
                                 <span className="mx-2">•</span>
                                 <span className="font-medium text-foreground">Buffer:</span>{" "}
-                                {bufferOptions.find((x) => x.value === bufferTime)?.label}
+                                {bufferOptions.find((x) => x.value === currentAvailability?.bufferTimeMinutes)?.label}
                             </p>
 
                             <div className="flex items-center gap-4">
