@@ -21,10 +21,18 @@ export const SessionPage: React.FC = () => {
   const [sessions, setSessions] = useState<SessionResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const formatDateToLocal = (date: Date) => {
-    const d = new Date(date);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().split("T")[0];
+  const formatDateToApi = (date: Date): string => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${year}-${month}-${day}`; 
+  };
+
+  const formatDateToDisplay = (date: Date): string => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`; 
   };
 
   // Calendar logic
@@ -39,7 +47,7 @@ export const SessionPage: React.FC = () => {
 
     const loadSessions = async () => {
       setIsLoading(true);
-      const dateString = formatDateToLocal(selectedDate);
+      const dateString = formatDateToApi(selectedDate);
       try {
         const result = await dispatch(
           fetchUserSessions({ 
@@ -113,7 +121,7 @@ export const SessionPage: React.FC = () => {
       dispatch(
         fetchUserSessions({
           userId: currentUser!.id,
-          date: formatDateToLocal(selectedDate),
+          date: formatDateToApi(selectedDate),
           sessionStatus: activeStatus,
         }),
       )
@@ -176,7 +184,7 @@ export const SessionPage: React.FC = () => {
       {/* Sessions Section */}
       <div className="mt-8">
         <h3 className="text-xl font-bold mb-4 border-b border-gray-700 pb-2">
-          Sessions for {formatDateToLocal(selectedDate)}
+          Sessions for {formatDateToDisplay(selectedDate)}
         </h3>
 
         <div className="flex border-b border-gray-700 mb-6 gap-2">
@@ -282,8 +290,8 @@ export const SessionPage: React.FC = () => {
         <div className="space-y-4">
           <p>
             Are you sure you want to {dialogConfig.type === "approved" ? "approve" : "cancel"} this session?
-            {dialogConfig.type === "cancel" && " This action cannot be undone."}
-            {dialogConfig.type === "approved" && " This action will cancel any other pending sessions for the same time slot."}
+            <b>{dialogConfig.type === "cancel" && " This action cannot be undone."}</b>
+            <b>{dialogConfig.type === "approved" && " This action will cancel any other pending sessions for the same time slot."}</b>
           </p>
           
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">

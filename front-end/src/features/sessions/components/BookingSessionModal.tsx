@@ -210,7 +210,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || availableSlots.length === 0 || selectedSlotIndex === ""}
+              disabled={isSubmitting || availableSlots.length === 0 || selectedSlotIndex === ""|| sessionType === ""}
               className="px-6 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"
             >
               {isSubmitting ? (

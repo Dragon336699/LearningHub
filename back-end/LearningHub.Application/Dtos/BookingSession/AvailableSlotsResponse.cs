@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LearningHub.Application.Utils;
 
 namespace LearningHub.Application.Dtos.BookingSession
 {
@@ -8,7 +6,6 @@ namespace LearningHub.Application.Dtos.BookingSession
     {
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-
-        public string DisplayText => $"{StartTime:HH:mm} - {EndTime:HH:mm}";
+        public string DisplayText => DateTimeUtils.ToTimeRangeString(StartTime, EndTime);
     }
 }

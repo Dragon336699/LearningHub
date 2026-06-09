@@ -1,8 +1,16 @@
-namespace LearningHub.Application.Common.Constants;
+﻿namespace LearningHub.Application.Common.Constants;
 
 
 public static class Messages
 {
+    public static class SystemError
+    {
+        public static string DefaultError(string message)
+        {
+            return $"An error occurred: {message}";
+        }
+    }
+
     public static class Auth
     {
         public const string UserAlreadyExists = "An account may already exist for this email. Please sign in or use a different email address.";
@@ -46,11 +54,70 @@ public static class Messages
 
     }
     
-        public static class Email
-        {
-            public const string NewRequestSubject = "New Session Booking Request";
-            public const string ApprovedSubject = "Session Booking Approved";
-            public const string CancelledSubject = "Session Booking Request Cancelled";
+    public static class Email
+    {
+        //subject
+        public const string NewRequestSubject = "New Session Booking Request";
+        public const string ApprovedSubject = "Session Booking Approved";
+        public const string CancelledSubject = "Session Booking Request Cancelled";
+
+        //body 
+        public static string CancelSessionBody(string date, string timeRange) {
+            return $@"
+                <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
+                    <h3 style='color: #e53e3e; margin-top: 0;'>❌ Session Booking Request Cancelled</h3>
+                    <p>Dear Trainee,</p>
+                    <p>We regret to inform you that your session booking request has been cancelled because the mentor approved another request at the same time slot:</p>
+            
+                    <div style='background-color: #edf2f7; padding: 12px; border-radius: 6px; margin: 15px 0; font-size: 14px;'>
+                        <p style='margin: 4px 0;'><strong>Date:</strong> {date}</p>
+                        <p style='margin: 4px 0;'><strong>Time:</strong> {timeRange}</p>
+                    </div>
+                    <p>Please log back in to the system to book another available slot or select another mentor.</p>
+            
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
+                    <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
+                </div>"; 
         }
+
+        public static string RequestSessionBody(string date, string timeRange)
+        {
+            return $@"
+                <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
+                    <h3 style='color: #2b6cb0; margin-top: 0;'>🔔 Notification: New Session Booking Request</h3>
+                    <p>Dear Mentor,</p>
+                    <p>A trainee has submitted a new session booking request that is currently awaiting your review:</p>
+            
+                    <div style='background-color: #edf2f7; padding: 12px; border-radius: 6px; margin: 15px 0; font-size: 14px;'>
+                        <p style='margin: 4px 0;'><strong>Date:</strong> {date}</p>
+                        <p style='margin: 4px 0;'><strong>Time:</strong> {timeRange}</p>
+                    </div>
+
+                    <p>Please log in to the website and navigate to your <strong>Session Management</strong> page to review and process this request.</p>
+            
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
+                    <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
+                </div>";
+        }
+
+        public static string AprroveSessionBody(string date, string timeRange)
+        {
+            return $@"
+                <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
+                    <h3 style='color: #2b6cb0; margin-top: 0;'>✅ Session Booking Approved</h3>
+                    <p>Dear Trainee,</p>
+                    <p>Your session booking request has been approved by the mentor. Here are the details of your upcoming session:</p>
+            
+                    <div style='background-color: #edf2f7; padding: 12px; border-radius: 6px; margin: 15px 0; font-size: 14px;'>
+                        <p style='margin: 4px 0;'><strong>Date:</strong> {date}</p>
+                        <p style='margin: 4px 0;'><strong>Time:</strong> {timeRange}</p>
+                    </div>
+                    <p>Please make sure to be prepared for the session and log in to the website a few minutes before the scheduled time.</p>
+            
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
+                    <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
+                </div>";
+        }
+    }
 
 }

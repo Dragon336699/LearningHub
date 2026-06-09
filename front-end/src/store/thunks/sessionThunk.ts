@@ -2,12 +2,13 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { AvailableSlotsRequest, AvailableSlotsResponse, CreateBookingSessionRequest, GetSessionsRequest, SessionResponse } from "../../types/session";
 import { Result } from "../../types/result";
 import { HttpClient } from "../../lib/client";
+import { API_ROUTES } from "../../configs/api_routes";
 
 export const createBookingSession = createAsyncThunk<any, CreateBookingSessionRequest, { rejectValue: string }>(
   "booking/createSession",
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await HttpClient.post<Result<any>>("/session", payload);
+      const response = await HttpClient.post<Result<any>>(API_ROUTES.SESSIONS.DEFAULT, payload);
       
       if (!response.isSuccess) {
         return rejectWithValue(response.errors?.[0] || "Failed to create booking session");
@@ -30,7 +31,7 @@ export const fetchAvailableSlots = createAsyncThunk<
   async (requestData, { rejectWithValue }) => {
     
     try {
-        const response = await HttpClient.get<Result<AvailableSlotsResponse[]>>("/session/available-slots", { params: requestData });
+        const response = await HttpClient.get<Result<AvailableSlotsResponse[]>>(API_ROUTES.SESSIONS.AVAILABLE_SLOTS, { params: requestData });
         if (!response.isSuccess) {
           return rejectWithValue(response.errors?.[0] || "Failed to fetch available slots");
         }
@@ -50,7 +51,7 @@ export const fetchUserSessions = createAsyncThunk<
   "session/fetchUserSessions",
   async ({ userId, date, sessionStatus }, { rejectWithValue }) => {
     try {
-      const response = await HttpClient.get<any>("/session", {
+      const response = await HttpClient.get<any>(API_ROUTES.SESSIONS.DEFAULT, {
         params: { UserId: userId, Date: date, Status: sessionStatus }
       });
       return response;
@@ -69,7 +70,7 @@ export const approveSession = createAsyncThunk<
   "session/approveSession",
   async (sessionId, { rejectWithValue }) => {
     try {
-      const response = await HttpClient.put<Result<any>>(`/session/approve/${sessionId}`,{});
+      const response = await HttpClient.put<Result<any>>(`${API_ROUTES.SESSIONS.APPROVE}/${sessionId}`,{});
       if (!response.isSuccess) {
         return rejectWithValue(response.errors?.[0] || "Failed to approve session");
       }
@@ -89,7 +90,7 @@ export const cancelSession = createAsyncThunk<
   "session/cancelSession",
   async (sessionId, { rejectWithValue }) => {
     try {
-      const response = await HttpClient.put<Result<any>>(`/session/cancel/${sessionId}`,{});
+      const response = await HttpClient.put<Result<any>>(`${API_ROUTES.SESSIONS.CANCEL}/${sessionId}`,{});
       if (!response.isSuccess) {
         return rejectWithValue(response.errors?.[0] || "Failed to cancel session");
       }

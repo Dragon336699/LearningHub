@@ -1,12 +1,13 @@
 ﻿using LearningHub.Application.Dtos.BookingSession;
 using LearningHub.Application.Interfaces.Services;
+using LearningHub.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LearningHub.API.Controllers
 {
     [ApiController]
-    [Route("session")]
+    [Route("sessions")]
     public class BookingSessionController: ControllerBase
     {
         private readonly IBookingSessionService _bookingSessionService;
@@ -19,7 +20,7 @@ namespace LearningHub.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "Trainee")]
+        [Authorize(Policy = RoleName.Trainee)]
         public async Task<IActionResult> CreateSession([FromBody] CreateBookingSessionRequest request)
         {
             var validationResult = await _validationService.ValidateAsync(request);
@@ -39,7 +40,7 @@ namespace LearningHub.API.Controllers
         }
 
         [HttpPut("approve/{id:guid}")]
-        [Authorize(Roles = "Mentor")]
+        [Authorize(Policy = RoleName.Mentor)]
         public async Task<IActionResult> ApproveSession(Guid id)
         {
             var result = await _bookingSessionService.ApproveSessionAsync(id);

@@ -120,5 +120,10 @@ namespace LearningHub.Infrastructure.Repositories
         {
             _context.Set<T>().Update(entity);
         }
+
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            _context.UpdateRange(entities);
+        }
     }
 }

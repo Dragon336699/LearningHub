@@ -1,4 +1,5 @@
 ﻿using LearningHub.Application.Interfaces.Repositories;
+using LearningHub.Domain.Constants;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
 using LearningHub.Infrastructure.Data;
@@ -12,22 +13,19 @@ namespace LearningHub.Infrastructure.Repositories
         {
         }
 
-        public async Task<bool> IsTraineeBusyAsync(Guid traineeId, DateTime startTime, DateTime endTime)
-        {
-            return await _context.BookingSessions
-                .AnyAsync(s => s.TraineeId == traineeId
-                            && s.Status != SessionStatus.Cancelled
-                            && startTime < s.EndTime
-                            && endTime > s.StartTime);
-        }
+        
 
-        public async Task<bool> IsMentorBusyAsync(Guid mentorId, DateTime startTime, DateTime endTime)
+        public async Task<bool> IsUserBusyAsync(Guid userId, DateTime startTime, DateTime endTime, string roleName)
         {
-            return await _context.BookingSessions
-                .AnyAsync(s => s.MentorId == mentorId
-                            && s.Status == SessionStatus.Approved
-                            && startTime < s.EndTime
-                            && endTime > s.StartTime);
+            IQueryable<BookingSession> query = _context.BookingSessions;
+
+            query = roleName switch
+            {
+                RoleName.Trainee => query.Where(s => s.TraineeId == userId && s.Status != SessionStatus.Cancelled),
+                _ => query.Where(s => s.MentorId == userId && s.Status == SessionStatus.Approved), //default is mentor
+            };
+
+            return await query.AnyAsync(s => startTime < s.EndTime && endTime > s.StartTime);
         }
 
         public async Task<List<BookingSession>> GetBusySlotsAsync(Guid mentorId, DateTime targetDate, DateTime nextDay )

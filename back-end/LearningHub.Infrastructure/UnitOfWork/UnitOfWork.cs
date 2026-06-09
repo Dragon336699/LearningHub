@@ -1,6 +1,7 @@
 ﻿using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LearningHub.Infrastructure.UnitOfWork
@@ -77,6 +78,11 @@ namespace LearningHub.Infrastructure.UnitOfWork
         public void Dispose()
         {
             _context.Dispose();
+        }
+
+        public void UpdateRange<T>(IEnumerable<T> entities) where T : class
+        {
+            _context.UpdateRange(entities);
         }
     }
 }
