@@ -9,10 +9,9 @@ interface BookSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   mentorId: string;
-  traineeId: string;
 }
 
-export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onClose, mentorId, traineeId }) => {
+export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onClose, mentorId }) => {
   const dispatch = useAppDispatch();
   
   const [date, setDate] = useState<string>("");
@@ -73,7 +72,6 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
     
     try {
       await dispatch(createBookingSession({
-        traineeId,
         mentorId,
         sessionType: Number(sessionType),
         topic,
@@ -212,7 +210,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || availableSlots.length === 0 || selectedSlotIndex === ""}
+              disabled={isSubmitting || availableSlots.length === 0 || selectedSlotIndex === ""|| sessionType === ""}
               className="px-6 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"
             >
               {isSubmitting ? (

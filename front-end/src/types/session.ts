@@ -11,7 +11,6 @@ export interface BookingSession {
 }
 
 export interface CreateBookingSessionRequest {
-  traineeId: string;
   mentorId: string;
   sessionType: number;
   topic?: string;
@@ -47,5 +46,6 @@ export interface SessionResponse {
 export interface GetSessionsRequest {
   userId: string;
   date: string; // YYYY-MM-DD
+  sessionStatus?: string; 
 }
 

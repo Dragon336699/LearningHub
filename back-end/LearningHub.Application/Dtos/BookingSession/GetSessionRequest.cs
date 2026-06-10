@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LearningHub.Domain.Enums;
 
 namespace LearningHub.Application.Dtos.BookingSession
 {
@@ -8,5 +6,6 @@ namespace LearningHub.Application.Dtos.BookingSession
     {
         public Guid UserId { get; set; }
         public DateTime Date { get; set; }
+        public SessionStatus? Status { get; set; }
     }
 }

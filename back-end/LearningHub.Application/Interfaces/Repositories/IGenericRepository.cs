@@ -20,5 +20,6 @@ namespace LearningHub.Application.Interfaces.Repositories
         Task AddAsync(T entity);
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> expression);
         void Update(T entity);
+        void UpdateRange(IEnumerable<T> entities);
     }
 }

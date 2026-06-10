@@ -1,8 +1,5 @@
 ﻿using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.BookingSession;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LearningHub.Application.Interfaces.Services
 {
