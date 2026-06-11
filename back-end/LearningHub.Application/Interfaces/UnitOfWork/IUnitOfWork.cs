@@ -12,6 +12,7 @@ namespace LearningHub.Application.Interfaces.UnitOfWork
         IBookingSessionRepository BookingSessions { get; }
         IAvailabilitySlotRepository AvailabilitySlots { get; }
         IUserAvailabilitySettingRepository UserAvailabilitySetting { get; }
+        IResourceRepository Resources { get; }
         int Complete();
         Task<int> CompleteAsync();
         Task BeginTransactionAsync();

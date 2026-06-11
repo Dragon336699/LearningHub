@@ -19,8 +19,8 @@ export const courseService = {
         const response = await HttpClient.put<Result<Course>>(`${API_ROUTES.COURSE.CHANGE_STATUS}`, request);
         return response.data;
     },
-    getCoursesByMentor: async (page: number = 1, pageSize: number = 5) => {
-        const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.MENTOR}?page=${page}&pageSize=${pageSize}`);
+    getCoursesByMentor: async (page: number = 1, pageSize: number = 5, keyword ?: string) => {
+        const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.MENTOR}?page=${page}&pageSize=${pageSize}${keyword ? `&keyword=${keyword}` : ''}`);
         return response.data;
     },
     getCoursesByTrainee: async (page: number = 1, pageSize: number = 5) => {

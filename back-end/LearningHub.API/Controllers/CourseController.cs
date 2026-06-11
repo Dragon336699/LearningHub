@@ -1,5 +1,5 @@
 ﻿using LearningHub.API.Contracts.Common;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +46,7 @@ namespace LearningHub.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetPagedAllCourses([FromQuery] GetPageQuery query)
+        public async Task<IActionResult> GetPagedAllCourses([FromQuery] GetPageQuery query, string? keyword)
         {
             var validationResult = await _validationService.ValidateAsync(query);
 
@@ -65,7 +65,7 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Mentor")]
         [HttpGet]
         [Route("mentor")]
-        public async Task<IActionResult> GetCoursesByMentor([FromQuery] GetPageQuery query)
+        public async Task<IActionResult> GetCoursesByMentor([FromQuery] GetPageQuery query, string? keyword)
         {
             var validationResult = await _validationService.ValidateAsync(query);
 
@@ -80,7 +80,7 @@ namespace LearningHub.API.Controllers
                 return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
             }
 
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetCoursesByMentor(query.Page, query.PageSize, Guid.Parse(userId));
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetCoursesByMentor(query.Page, query.PageSize, keyword, Guid.Parse(userId));
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 

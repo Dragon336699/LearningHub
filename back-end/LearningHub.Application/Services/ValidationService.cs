@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Interfaces.Services;
 
 namespace LearningHub.Application.Services

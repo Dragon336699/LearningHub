@@ -14,5 +14,6 @@ namespace LearningHub.Domain.Entities
         public CourseStatus Status { get; set; } = CourseStatus.Draft;
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
+        public ICollection<Resource> Resources { get; set; } = new List<Resource>();
     }
 }
