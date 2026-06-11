@@ -1,4 +1,4 @@
-﻿using LearningHub.Application.Common;
+﻿using LearningHub.Application.Common.Results;
 using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Dtos.BookingSession;
 using LearningHub.Application.Interfaces.Repositories;

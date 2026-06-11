@@ -36,6 +36,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IUserAvailabilitySettingRepository, UserAvailabilitySettingRepository>();
             services.AddScoped<IAvailabilitySlotRepository, AvailabilitySlotRepository>();
             services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
+            services.AddScoped<IResourceRepository, ResourceRepository>();
 
             //services
             services.AddScoped<IUserService, UserService>();
@@ -48,12 +49,13 @@ namespace LearningHub.API.Configs
             services.AddScoped<IUserAvailabilityService, UserAvailabilityService>();
             services.AddScoped<ICacheService, MemoryCacheService>();
             services.AddScoped<IBookingSessionService, BookingSessionService>();
+            services.AddScoped<IResourceService, ResourceService>();
+            services.AddScoped<ICurrentSessionService, CurrentSessionService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
             services.AddScoped<IDataSeeder, RoleSeeder>();
             services.AddScoped<IDataSeeder, UserSeeder>();
-
 
             //Add DI for validation
             services.AddScoped<IValidationService, ValidationService>();
@@ -68,7 +70,8 @@ namespace LearningHub.API.Configs
             services.AddValidatorsFromAssemblyContaining<AvailableSlotsRequest>();
             services.AddValidatorsFromAssemblyContaining<GetSessionsRequest>();
 
-            services.AddScoped<IDataSeeder, UserSeeder>();
+            //Add httpContextAccessor
+            services.AddHttpContextAccessor();
         }
     }
 }

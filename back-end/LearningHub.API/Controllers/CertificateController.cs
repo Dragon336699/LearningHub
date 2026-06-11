@@ -1,6 +1,6 @@
 ﻿using LearningHub.API.Contracts.Certificates;
 using LearningHub.API.Extensions;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Certificates;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;

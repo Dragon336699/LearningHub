@@ -1,4 +1,4 @@
-﻿using LearningHub.Application.Common;
+﻿using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Auth;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Services;

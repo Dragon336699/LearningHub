@@ -22,10 +22,10 @@ namespace LearningHub.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<Course>> GetCoursesByMentor(int page, int pageSize, Guid mentorId)
+        public async Task<List<Course>> GetCoursesByMentor(int page, int pageSize, string keyword, Guid mentorId)
         {
             return await _context.Set<Course>()
-                .Where(c => c.UserId == mentorId)
+                .Where(c => c.UserId == mentorId && c.Title.Contains(keyword))
                 .OrderByDescending(c => c.UpdatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

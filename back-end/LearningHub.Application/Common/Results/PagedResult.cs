@@ -1,4 +1,4 @@
-﻿namespace LearningHub.Application.Common
+﻿namespace LearningHub.Application.Common.Results
 {
     public class PagedResult<T> where T : class
     {

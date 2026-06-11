@@ -31,7 +31,20 @@ public static class Messages
         public const string RefreshTokenRequired = "Refresh Token is required.";
         public const string RefreshInvalidOrExpired = "Invalid or expired refresh token. Please login again.";
         public const string JwtKeyMissing = "JWT Secret Key is missing!";
-    
+        public const string UserIndentifierMissing = "User identifier is missing in the token.";
+        public const string ActionForbidden = "You do not have permission to perform this action.";
+    }
+
+    public static class ResourceMessage
+    {
+        public const string TitleRequired = "Title is required.";
+        public const string TitleMaxLength = "Title must not exceed 100 characters.";
+        public const string DescriptionRequired = "Description is required.";
+        public const string DescriptionMaxLength = "Description must not exceed 500 characters.";
+        public const string ResourceFileRequired = "Resource file is required.";
+        public const string FileExtensionNotAllowed = "Invalid file type. Allowed types are: pdf, doc, docx, txt, mov, mp4.";
+        public const string FileSizeInvalid = "Invalid file size. Videos must not exceed 10MB, documents must not exceed 5MB, and file size must be greater than 0 bytes.";
+        public const string ResourceNotFound = "Resource not found.";
     }
 
     public static class BookingSession
@@ -53,7 +66,7 @@ public static class Messages
         public const string CancelSuccess = "Session Cancelled successfully.";
 
     }
-    
+
     public static class Email
     {
         //subject
@@ -62,7 +75,8 @@ public static class Messages
         public const string CancelledSubject = "Session Booking Request Cancelled";
 
         //body 
-        public static string CancelSessionBody(string date, string timeRange) {
+        public static string CancelSessionBody(string date, string timeRange)
+        {
             return $@"
                 <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
                     <h3 style='color: #e53e3e; margin-top: 0;'>❌ Session Booking Request Cancelled</h3>
@@ -77,7 +91,7 @@ public static class Messages
             
                     <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
                     <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
-                </div>"; 
+                </div>";
         }
 
         public static string RequestSessionBody(string date, string timeRange)
@@ -120,4 +134,8 @@ public static class Messages
         }
     }
 
+    public static class UploadFile
+    {
+        public const string UploadFailed = "File upload failed. Please try again.";
+    }
 }
