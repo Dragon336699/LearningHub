@@ -350,7 +350,7 @@ export const MentorAvailabilityPage = () => {
 
         const availableSlots = (timeSlots?.timeSlots ?? []).filter((timeSlot) => {
             const isBooked = bookedStartTimes.has(formatTime(timeSlot.startTime));
-            const isPastTime = convertTimeToString(selectedDay) === convertTimeToString(now) && timeSlot.startTime <= currentTime;
+            const isPastTime = (convertTimeToString(selectedDay) === convertTimeToString(now) && timeSlot.startTime <= currentTime) || convertTimeToString(selectedDay) < convertTimeToString(now);
 
             return !isBooked && !isPastTime;
         })
