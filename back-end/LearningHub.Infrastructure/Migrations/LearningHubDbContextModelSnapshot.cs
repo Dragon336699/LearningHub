@@ -87,7 +87,6 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Topic")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TraineeId")
