@@ -28,8 +28,6 @@ export const CreateResourceModal = ({ isLoading, onSubmit, onClose }: CreateReso
     const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(null);
     const {
         register,
-        setValue,
-        getValues,
         handleSubmit,
         control,
         watch,

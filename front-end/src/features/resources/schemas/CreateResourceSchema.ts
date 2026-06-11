@@ -10,16 +10,16 @@ export const CreateResourceSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "Title is required")
-    .max(100, "Title must not exceed 100 characters"),
+    .min(1, "Title is required.")
+    .max(100, "Title must not exceed 100 characters."),
   description: z
     .string()
     .trim()
     .min(1, "Description is required")
-    .max(500, "Description must not exceed 500 characters"),
+    .max(500, "Description must not exceed 500 characters."),
   courseId: z.string(),
   file: z
-    .instanceof(File, { message: "File is required" })
+    .instanceof(File, { message: "File is required." })
     .refine(
       (file) => {
         const ext = file.name.split(".").pop()?.toLocaleLowerCase();
@@ -38,15 +38,22 @@ export const CreateResourceSchema = z.object({
       if (TEXT_EXT.includes(ext) && file.size > MAX_TEXT_SIZE) {
         ctx.addIssue({
           code: "custom",
-          message: "Text file must not exceed 5MB",
+          message: "Text file must not exceed 5MB.",
         });
       }
 
       if (VIDEO_EXT.includes(ext) && file.size > MAX_VIDEO_SIZE) {
         ctx.addIssue({
           code: "custom",
-          message: "Video file must not exceed 10MB",
+          message: "Video file must not exceed 10MB.",
         });
+      }
+
+      if (file.size === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: "File size must be larger than 0 byte."
+        })
       }
     }),
 });
