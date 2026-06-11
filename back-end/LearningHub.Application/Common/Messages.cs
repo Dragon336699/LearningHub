@@ -14,7 +14,7 @@ public static class Messages
     public static class Auth
     {
         public const string UserAlreadyExists = "An account may already exist for this email. Please sign in or use a different email address.";
-        public const string InvalidRole = "Invalid role selection.";
+        public const string InvalidRole = "Invalid role.";
         public const string RoleNotFound = "Role does not exist.";
         public const string RegisterSuccess = "Register successfully!";
         public const string LogoutSuccess = "Logout success.";
@@ -67,7 +67,7 @@ public static class Messages
                 <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
                     <h3 style='color: #e53e3e; margin-top: 0;'>❌ Session Booking Request Cancelled</h3>
                     <p>Dear Trainee,</p>
-                    <p>We regret to inform you that your session booking request has been cancelled because the mentor approved another request at the same time slot:</p>
+                    <p>We regret to inform you that your session booking request has been cancelled:</p>
             
                     <div style='background-color: #edf2f7; padding: 12px; border-radius: 6px; margin: 15px 0; font-size: 14px;'>
                         <p style='margin: 4px 0;'><strong>Date:</strong> {date}</p>

@@ -67,7 +67,6 @@ namespace LearningHub.Application.Services
         {
             Guid mentorId = TokenUtils.GetNameIdentifier(_httpContextAccessor);
 
-            //tuple for dynamic error validation
             var (isValid, errorMessage, currentSession, trainee) = await ValidateApprovalAsync(sessionId, mentorId);
 
             if (!isValid)
@@ -80,6 +79,29 @@ namespace LearningHub.Application.Services
             {
                 currentSession!.Status = SessionStatus.Approved;
                 _unitOfWork.BookingSessions.Update(currentSession);
+
+                // --- BẮT ĐẦU: LOGIC CẬP NHẬT TRẠNG THÁI SLOT THÀNH BOOKED ---
+                DateOnly sessionDate = DateOnly.FromDateTime(currentSession.StartTime);
+                TimeOnly sessionStartTime = TimeOnly.FromDateTime(currentSession.StartTime);
+                TimeOnly sessionEndTime = TimeOnly.FromDateTime(currentSession.EndTime);
+
+                // Lấy cài đặt thời gian rảnh của Mentor trong ngày diễn ra session
+                List<UserAvailabilitySetting> mentorAvailabilities = await _userAvailabilitySettingRepository
+                    .GetUserAvailabilities(currentSession.MentorId, sessionDate, sessionDate);
+
+                UserAvailabilitySetting? dailySetting = mentorAvailabilities.FirstOrDefault(ua => ua.SettingDay == sessionDate);
+
+                if (dailySetting != null && dailySetting.AvailabilitySlots != null)
+                {
+                    var bookedSlots = dailySetting.AvailabilitySlots
+                        .Where(slot => slot.StartTime < sessionEndTime && slot.EndTime > sessionStartTime)
+                        .ToList();
+
+                    foreach (var slot in bookedSlots)
+                    {
+                        slot.Status = UserAvailabilityStatus.Booked;
+                    }
+                }
 
                 List<BookingSession> overlappingSessions = await _bookingSessionRepository.GetOverlapingSession(currentSession);
                 if (overlappingSessions.Any())
@@ -103,7 +125,7 @@ namespace LearningHub.Application.Services
                     var emailTasks = overlappingSessions
                         .Where(s => cancelledTraineesDict.TryGetValue(s.TraineeId, out var email) && !string.IsNullOrEmpty(email))
                         .Select(s => SendCancellationEmailToTraineeAsync(cancelledTraineesDict[s.TraineeId]!, s));
-                    //parallel instead of foreach
+                    
                     await Task.WhenAll(emailTasks);
                 }
 
@@ -127,15 +149,29 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<string>> CancelSessionAsync(Guid sessionId)
         {
+            string roleName = TokenUtils.GetRoleIdentifier(_httpContextAccessor);
+
             BookingSession? currentSession = await _bookingSessionRepository
                 .FirstOrDefaultAsync(s => s.Id == sessionId && s.Status == SessionStatus.Pending);
+
             if (currentSession == null)
             {
                 return Result<string>.Failure(Messages.BookingSession.NotFoundOrProcessed);
             }
+
             currentSession.Status = SessionStatus.Cancelled;
             _bookingSessionRepository.Update(currentSession);
             await _unitOfWork.CompleteAsync();
+            if (roleName == RoleName.Mentor)
+            {
+                User? trainee = await _userManager.FindByIdAsync(currentSession.TraineeId.ToString());
+
+                if (trainee != null && !string.IsNullOrEmpty(trainee.Email))
+                {
+                    await SendCancellationEmailToTraineeAsync(trainee.Email, currentSession);
+                }
+            }
+
             return Result<string>.Success(Messages.BookingSession.CancelSuccess);
         }
 
