@@ -1,4 +1,4 @@
-﻿namespace LearningHub.Application.Common
+﻿namespace LearningHub.Application.Common.Results
 {
     public record Result<T>(bool IsSuccess, T? Data, List<string>? Errors)
     {

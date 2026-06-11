@@ -4,7 +4,7 @@ import { RootState } from "../../../store";
 import { Toaster } from "sonner";
 import { URL_ROUTES } from "../../../configs/url_routes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faGauge, faSearch, faSignOutAlt, faUser, faUserGroup, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faGauge, faSearch, faSignOutAlt, faUser, faUserGroup, faCalendarAlt, faFileLines } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
@@ -32,6 +32,7 @@ export const AppLayout = () => {
         { name: 'Profile', icon: <FontAwesomeIcon className="mr-2" icon={faUser} />, path: URL_ROUTES.PROFILE },
         { name: 'User Management', icon: <FontAwesomeIcon className="mr-2" icon={faUserGroup} />, path: URL_ROUTES.ALL_USERS, roles: ['Admin'] },
         { name: 'Sessions', icon: <FontAwesomeIcon className="mr-2" icon={faUserGroup} />, path: URL_ROUTES.SESSION, roles: ['Mentor', 'Trainee'] },
+        { name: 'Resources', icon: <FontAwesomeIcon className="mr-2" icon={faFileLines} />, path: URL_ROUTES.RESOURCE, roles: ['Mentor', 'Trainee'] },
     ]
 
     const visibleItems = navigateItems.filter((item) => {

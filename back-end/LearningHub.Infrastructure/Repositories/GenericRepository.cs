@@ -42,7 +42,7 @@ namespace LearningHub.Infrastructure.Repositories
         {
             IQueryable<T> query = _context.Set<T>();
             if (filter != null)
-                query.Where(filter);
+                query = query.Where(filter);
 
             return await query
                 .Skip((page - 1) * pageSize)

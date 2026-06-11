@@ -4,8 +4,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { AppDispatch, RootState } from "../../../store";
 import { loginUser } from "../../../store/thunks/authThunks";
 import { clearAuthMessages } from "../../../store/slices/authSlice";
-import { loginSchema } from "../types";
 import { URL_ROUTES } from "../../../configs/url_routes";
+import { loginSchema } from "../schemas/LoginSchema";
 
 export const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
