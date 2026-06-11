@@ -8,7 +8,7 @@ import { fetchRoles } from "../../../store/thunks/roleThunks";
 import { clearAuthMessages } from "../../../store/slices/authSlice";
 import { CustomSelect } from "../../../shared/ui/components/CustomSelect";
 import { URL_ROUTES } from "../../../configs/url_routes";
-import { registerSchema } from "../types";
+import { registerSchema } from "../schemas/RegisterSchema";
 
 export const RegisterPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();

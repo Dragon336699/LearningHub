@@ -1,4 +1,4 @@
-﻿using LearningHub.Application.Common;
+﻿using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Certificates;
 
 namespace LearningHub.Application.Interfaces.Services

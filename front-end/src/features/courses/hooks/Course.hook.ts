@@ -1,13 +1,42 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { courseService } from "../services/Course.service";
 import { CreateCourseForm } from "../schemas/CreateCourseSchema";
 import { UpdateCourseForm } from "../schemas/UpdateCourseSchema";
+import { CourseOption } from "../../resources/modals/CreateResourceModal";
+import { GroupBase, OptionsOrGroups } from "react-select";
 
-export const useMentorCourses = (page: number = 1, pageSize: number = 5) => {
+export const useMentorCourses = (page: number = 1, pageSize: number = 5, keyword ?: string) => {
   return useQuery({
-    queryKey: ["mentor-courses", page, pageSize],
-    queryFn: async () => await courseService.getCoursesByMentor(page, pageSize),
+    queryKey: ["mentor-courses", page, pageSize, keyword],
+    queryFn: async () => await courseService.getCoursesByMentor(page, pageSize, keyword),
   });
+};
+
+export const useLoadCourseOptions = () => {
+  const loadCourseOptions = async (
+    search: string,
+    loadedOptions: OptionsOrGroups<CourseOption, GroupBase<CourseOption>>,
+    additional?: { page: number }
+  ) => {
+    const page = additional?.page ?? 1;
+    const response = await courseService.getCoursesByMentor(page, 10, search);
+
+    return {
+      options: response.items.map((course) => ({
+        value: course.id,
+        label: course.title,
+      })),
+      hasMore: loadedOptions.length + response.items.length < response.totalCount,
+      additional: { page: page + 1 },
+    };
+  };
+
+  return { loadCourseOptions };
 };
 
 export const useAdminCourses = (page: number = 1, pageSize: number = 5) => {

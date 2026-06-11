@@ -3,8 +3,7 @@ import { API_ROUTES } from "../../configs/api_routes";
 import { LoginResponse } from "../../types/auth";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { User } from "../../types/user";
-import { Result } from "../../types/result";
-
+import {Result} from "../../types/result";
 
 export const registerUser = createAsyncThunk<string, any, { rejectValue: string }>(
   "auth/register",

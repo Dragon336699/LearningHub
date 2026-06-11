@@ -1,4 +1,4 @@
-﻿using LearningHub.Application.Common;
+﻿using LearningHub.Application.Common.Results;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;

@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 
 namespace LearningHub.API.Common.Middlewares
 {
@@ -49,6 +49,16 @@ namespace LearningHub.API.Common.Middlewares
 
                 case UnauthorizedAccessException ex:
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    response = Result<object>.Failure([ex.Message]);
+                    break;
+
+                case IOException ex:
+                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    response = Result<object>.Failure([ex.Message]);
+                    break;
+
+                case Exception ex:
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     response = Result<object>.Failure([ex.Message]);
                     break;
 

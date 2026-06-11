@@ -1,4 +1,4 @@
-﻿using LearningHub.Application.Common;
+﻿using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Expertises;
 using LearningHub.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
