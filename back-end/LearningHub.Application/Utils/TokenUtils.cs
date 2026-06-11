@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using LearningHub.Application.Common.Constants;
+using LearningHub.Domain.Constants;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace LearningHub.Application.Utils;
 
@@ -12,5 +15,17 @@ public static class TokenUtils
             return Guid.Empty;
         }
         return Guid.Parse(userId);
+    }
+
+    public static string GetRoleIdentifier(IHttpContextAccessor httpContextAccessor)
+    {
+        string? userRole = httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Role);
+
+        return userRole switch
+        {
+            RoleName.Mentor => RoleName.Mentor,
+            RoleName.Trainee => RoleName.Trainee,
+            _ => throw new InvalidOperationException(Messages.Auth.InvalidRole)
+        };
     }
 }
