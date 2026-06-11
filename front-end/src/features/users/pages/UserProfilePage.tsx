@@ -589,12 +589,10 @@ export const UserProfilePage = () => {
           isOpen={isBookModalOpen}
           onClose={() => setIsBookModalOpen(false)}
           mentorId={id || ""}
-          traineeId={currentUser?.id || ""}
         />
       )}
 
 
-      {/* Status Change Confirmation Modal */}
       {isStatusModalOpen && (
         <ConfirmModal
           title={String(user?.status).toLowerCase() === "active" || String(user?.status).toLowerCase() === "0" ? "Are you sure you want to deactivate this user?" : "Are you sure you want to activate this user?"}

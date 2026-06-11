@@ -25,5 +25,11 @@ export const API_ROUTES = {
   },
   AVAILABILITY: {
     COMMON: "/availability",
+  },
+  SESSIONS:{
+    DEFAULT: "/sessions",
+    AVAILABLE_SLOTS: "/sessions/available-slots",
+    APPROVE: "/sessions/approve",
+    CANCEL: "/sessions/cancel"
   }
 };

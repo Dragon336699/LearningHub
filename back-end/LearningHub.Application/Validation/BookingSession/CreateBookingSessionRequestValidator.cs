@@ -13,9 +13,6 @@ namespace LearningHub.Application.Validation.BookingSession
             RuleFor(rq => rq.MentorId)
                 .NotEmpty().WithMessage("MentorId is required");
 
-            RuleFor(rq => rq.TraineeId)
-                .NotEmpty().WithMessage("TraineeId is required");
-
             RuleFor(rq => rq.StartTime)
                 .NotEmpty().WithMessage("StartTime is required")
                 .GreaterThan(DateTime.Now).WithMessage("StartTime must be in the future");

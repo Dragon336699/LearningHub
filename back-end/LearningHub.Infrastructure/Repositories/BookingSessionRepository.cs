@@ -1,13 +1,9 @@
-﻿using Azure.Core;
-using LearningHub.Application.Dtos.BookingSession;
-using LearningHub.Application.Interfaces.Repositories;
+﻿using LearningHub.Application.Interfaces.Repositories;
+using LearningHub.Domain.Constants;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
 using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LearningHub.Infrastructure.Repositories
 {
@@ -17,22 +13,19 @@ namespace LearningHub.Infrastructure.Repositories
         {
         }
 
-        public async Task<bool> IsTraineeBusyAsync(Guid traineeId, DateTime startTime, DateTime endTime)
-        {
-            return await _context.BookingSessions
-                .AnyAsync(s => s.TraineeId == traineeId
-                            && s.Status != SessionStatus.Cancelled
-                            && startTime < s.EndTime
-                            && endTime > s.StartTime);
-        }
+        
 
-        public async Task<bool> IsMentorBusyAsync(Guid mentorId, DateTime startTime, DateTime endTime)
+        public async Task<bool> IsUserBusyAsync(Guid userId, DateTime startTime, DateTime endTime, string roleName)
         {
-            return await _context.BookingSessions
-                .AnyAsync(s => s.MentorId == mentorId
-                            && s.Status == SessionStatus.Approved
-                            && startTime < s.EndTime
-                            && endTime > s.StartTime);
+            IQueryable<BookingSession> query = _context.BookingSessions;
+
+            query = roleName switch
+            {
+                RoleName.Trainee => query.Where(s => s.TraineeId == userId && s.Status != SessionStatus.Cancelled),
+                _ => query.Where(s => s.MentorId == userId && s.Status == SessionStatus.Approved), //default is mentor
+            };
+
+            return await query.AnyAsync(s => startTime < s.EndTime && endTime > s.StartTime);
         }
 
         public async Task<List<BookingSession>> GetBusySlotsAsync(Guid mentorId, DateTime targetDate, DateTime nextDay )
@@ -46,21 +39,38 @@ namespace LearningHub.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-		public async Task<List<BookingSession>> GetSessionsByUserAndDateAsync(Guid userId, DateTime targetDate)
-		{
-			DateTime startOfDay = targetDate.Date;
-			DateTime endOfDay = startOfDay.AddDays(1);
+        public async Task<List<BookingSession>> GetSessionsByUserAndDateAsync(Guid userId, DateTime targetDate, SessionStatus? status)
+        {
+            DateTime startOfDay = targetDate.Date;
+            DateTime endOfDay = startOfDay.AddDays(1);
 
-			var sessions = await _context.BookingSessions
-				.Where(s =>
-					(s.MentorId == userId || s.TraineeId == userId) &&
-					s.StartTime >= startOfDay && s.StartTime < endOfDay)
+            var query = _context.BookingSessions
+                .Where(s =>
+                    (s.MentorId == userId || s.TraineeId == userId) &&
+                    s.StartTime >= startOfDay && s.StartTime < endOfDay);
+
+            if (status.HasValue)
+            {
+                query = query.Where(s => s.Status == status.Value);
+            }
+
+            return await query
                 .Include(s => s.Mentor)
                 .Include(s => s.Trainee)
-				.OrderBy(s => s.StartTime) 
-				.ToListAsync();
+                .OrderBy(s => s.StartTime)
+                .ToListAsync();
+        }
 
-			return sessions;
-		}
+        public async Task<List<BookingSession>> GetOverlapingSession(BookingSession currentSession)
+        {
+            List<BookingSession> bookingSessions = await _context.BookingSessions.Where(s => s.Id != currentSession.Id
+                             && s.MentorId == currentSession.MentorId
+                             && s.Status == SessionStatus.Pending
+                             && s.StartTime < currentSession.EndTime
+                             && s.EndTime > currentSession.StartTime)
+                    .ToListAsync();
+            return bookingSessions;
+        }
+
 	}
 }
