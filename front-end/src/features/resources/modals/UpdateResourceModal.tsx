@@ -57,7 +57,7 @@ export const UpdateResourceModal = ({ data, isLoading, onSubmit, onClose }: Upda
         });
     }, [data])
     return (
-        <DialogShell isLoading={isLoading} open={true} title="Create New Resource" onClose={onClose}>
+        <DialogShell isLoading={isLoading} open={true} title="Update Resource" onClose={onClose}>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex flex-col space-y-4">
                     <input hidden type="text" {...register("id")} />
