@@ -1,4 +1,4 @@
-﻿using LearningHub.Application.Dtos.DashboardSummaries;
+using LearningHub.Application.Dtos.DashboardSummaries;
 
 namespace LearningHub.Application.Common.Constants;
 
@@ -35,6 +35,13 @@ public static class Messages
         public const string JwtKeyMissing = "JWT Secret Key is missing!";
         public const string UserIndentifierMissing = "User identifier is missing in the token.";
         public const string ActionForbidden = "You do not have permission to perform this action.";
+    }
+
+    public static class AvailabilityMessage
+    {
+        public const string InvalidTimeSlot = "Cannot create available time slot for past time.";
+        public const string TimeSlotDurationInvalid = "Each time slot duration must be equal to the specified session duration.";
+        public const string TimeSlotBufferInvalid = "Time break between slots must be greater than or equal to the specified buffer time.";
     }
 
     public static class ResourceMessage
