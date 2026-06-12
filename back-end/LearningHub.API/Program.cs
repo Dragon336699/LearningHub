@@ -69,11 +69,19 @@ if (app.Environment.IsDevelopment())
     app.UseHangfireDashboard("/hangfire");
 }
 
+var jobOptions = builder.Configuration
+    .GetSection(BackgroundJobsOptions.SectionName)
+    .Get<BackgroundJobsOptions>() ?? new BackgroundJobsOptions();
+
+//Hangfire
 RecurringJob.AddOrUpdate<DashboardSummaryJob>(
-    "Snapshot-Dashboard-Summaries",
+    jobOptions.Dashboard.JobName,
     service => service.RunDailySnapshotAsync(),
-    "0 1 * * *",
-    new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time") }
+    jobOptions.Dashboard.Schedule,
+    new RecurringJobOptions 
+    { 
+        TimeZone = jobOptions.TimeZoneInfo 
+    }
 );
 
 var allowedOrigins = builder.Configuration

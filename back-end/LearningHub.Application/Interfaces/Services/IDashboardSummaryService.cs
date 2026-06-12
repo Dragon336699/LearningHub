@@ -8,5 +8,6 @@ namespace LearningHub.Application.Interfaces.Services
     {
         Task SaveOrUpdateDashboardSummaryAsync();
         Task<Result<IEnumerable<DashboardSummary>>> GetByTimeRangeAsync(GetDashboardSummaryRequest request);
+        Task<ZenQuote> GetDailyQuoteAsync();
     }
 }

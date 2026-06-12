@@ -186,23 +186,21 @@ namespace LearningHub.Infrastructure.Migrations
 
             modelBuilder.Entity("LearningHub.Domain.Entities.DashboardSummary", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("TotalResource")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TotalResource")
+                        .HasColumnType("int");
 
-                    b.Property<long>("TotalSession")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TotalSession")
+                        .HasColumnType("int");
 
-                    b.Property<long>("TotalUser")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TotalUser")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

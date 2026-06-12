@@ -10,3 +10,8 @@ export interface DashboardFilterParams {
   FromDate: string;
   ToDate: string;
 }
+
+export interface ZenQuote {
+  q: string;
+  a: string;
+}

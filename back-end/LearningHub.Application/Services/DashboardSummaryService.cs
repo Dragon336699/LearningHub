@@ -1,32 +1,48 @@
-﻿using LearningHub.Application.Common.Results;
+﻿using LearningHub.Application.Common.Constants;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.DashboardSummaries;
 using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Application.Mappers;
 using LearningHub.Domain.Entities;
+using Microsoft.Extensions.Configuration;
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace LearningHub.Application.Services
 {
     public class DashboardSummaryService: IDashboardSummaryService
     {
+        private readonly IConfiguration _configuration;
         private readonly IDashboardSummaryRepository _dashboardSummaryRepository;
         private readonly IUserRepository _userRepository;
         private readonly IResourceRepository _resourceRepository;
         private readonly IBookingSessionRepository _bookingSessionRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICacheService _cacheService;
+        private readonly HttpClient _httpClient;
+        private readonly string _zenQuoteAPI;
+        private readonly string _quoteKey = "ZenQuote";
 
         public DashboardSummaryService(IDashboardSummaryRepository dashboardSummaryRepository,
             IUserRepository userRepository,
             IResourceRepository resourceRepository,
             IBookingSessionRepository bookingSessionRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IConfiguration configuration,
+            ICacheService cacheService,
+            HttpClient httpClient)
         {
             _dashboardSummaryRepository = dashboardSummaryRepository;
             _userRepository = userRepository;
             _resourceRepository = resourceRepository;
             _bookingSessionRepository = bookingSessionRepository;
             _unitOfWork = unitOfWork;
+            _configuration = configuration;
+            _cacheService = cacheService;
+            _zenQuoteAPI = _configuration["ZenQuotesAPI"];
+            _httpClient = httpClient;
         }
 
         //Hybrid Strategy: A background job runs overnight to calculate the cumulative total and saves it to a compact vertical table, releasing fb workload.
@@ -71,47 +87,53 @@ namespace LearningHub.Application.Services
             DateTime endDate = request.ToDate.Date;
             DateTime today = DateTime.Now.Date;
 
-            if (startDate > endDate)
-            {
-                return Result<IEnumerable<DashboardSummary>>.Success(new List<DashboardSummary>());
-            }
-
             if (endDate < today)
             {
                 DateTime nextDayOfEndDate = endDate.AddDays(1);
-
-                List<DashboardSummary> historicalSummaries = await _dashboardSummaryRepository.FindAllAsync(
-                    d => d.CreatedAt >= startDate && d.CreatedAt < nextDayOfEndDate
-                );
-
-                var sortedHistories = historicalSummaries.OrderBy(d => d.CreatedAt).ToList();
-                return Result<IEnumerable<DashboardSummary>>.Success(sortedHistories);
+                
+                IEnumerable<DashboardSummary> historicalSummaries = await _dashboardSummaryRepository
+                    .GetSummariesInRangeAsync(startDate, nextDayOfEndDate);
+                
+                return Result<IEnumerable<DashboardSummary>>.Success(historicalSummaries);
             }
             else
             {
-                List<DashboardSummary> summariesUntilYesterday = await _dashboardSummaryRepository.FindAllAsync(
-                    d => d.CreatedAt >= startDate && d.CreatedAt < today
-                );
-
-                List<DashboardSummary> resultList = summariesUntilYesterday.OrderBy(d => d.CreatedAt).ToList();
+                List<DashboardSummary> summariesUntilYesterday = (await _dashboardSummaryRepository
+                    .GetSummariesInRangeAsync(startDate, today)).ToList();
 
                 DateTime endOfToday = today.AddDays(1).AddTicks(-1);
                 var (totalActiveUsers, totalResources, totalSessions) = await GetCumulativeMetricsAsync(endOfToday);
 
-                DashboardSummary todayLiveSummary = new DashboardSummary
-                {
-                    TotalUser = totalActiveUsers,
-                    TotalResource = totalResources,
-                    TotalSession = totalSessions,
-                    CreatedAt = today
-                };
+                DashboardSummary todayLiveSummary = DashboardSummaryMappingProfile.ToEntity(
+                    totalActiveUsers, 
+                    totalResources, 
+                    totalSessions,
+                    today);
 
-                resultList.Add(todayLiveSummary);
-
-                return Result<IEnumerable<DashboardSummary>>.Success(resultList);
+                summariesUntilYesterday.Add(todayLiveSummary);
+                return Result<IEnumerable<DashboardSummary>>.Success(summariesUntilYesterday);
             }
         }
 
+        public async Task<ZenQuote> GetDailyQuoteAsync()
+        {
+            ZenQuote? cachedQuote = await _cacheService.GetAsync<ZenQuote>(_quoteKey);
+            if (cachedQuote != null) return cachedQuote;
+
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<List<ZenQuote>>(_zenQuoteAPI);
+                var item = response?.FirstOrDefault();
+                
+
+                await _cacheService.SetAsync(_quoteKey, item, TimeSpan.FromHours(24));
+                return item;
+            }
+            catch
+            {
+                return Messages.Dashboard.DefaultQuote();
+            }
+        }
         private async Task<(int TotalUsers, int TotalResources, int TotalSessions)> GetCumulativeMetricsAsync(DateTime endOfDate)
         {
             int totalActiveUsers = await _userRepository.Count();

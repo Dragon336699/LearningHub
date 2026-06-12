@@ -1,9 +1,7 @@
 ﻿using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Domain.Entities;
 using LearningHub.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace LearningHub.Infrastructure.Repositories
 {
@@ -12,6 +10,14 @@ namespace LearningHub.Infrastructure.Repositories
         public DashboardSummaryRepository(LearningHubDbContext context) : base(context)
         {
 
+        }
+        public async Task<IEnumerable<DashboardSummary>> GetSummariesInRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            IQueryable<DashboardSummary> query = _context.DashboardSummaries
+                .Where(d => d.CreatedAt >= startDate && d.CreatedAt < endDate)
+                .OrderBy(d => d.CreatedAt);
+
+            return await query.ToListAsync();
         }
     }
 }

@@ -4,5 +4,6 @@ namespace LearningHub.Application.Interfaces.Repositories
 {
     public interface IDashboardSummaryRepository : IGenericRepository<DashboardSummary>
     {
+        Task<IEnumerable<DashboardSummary>> GetSummariesInRangeAsync(DateTime startDate, DateTime endDate);
     }
 }

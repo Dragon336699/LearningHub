@@ -7,6 +7,7 @@ namespace LearningHub.Application.Mappers
         public static DashboardSummary ToEntity(int totalUserCount, int totalResourceCount, int totalSessionCount, DateTime date) {
             return new DashboardSummary
             {
+                Id= Guid.CreateVersion7(),
                 TotalUser = totalUserCount,
                 TotalResource = totalResourceCount,
                 TotalSession = totalSessionCount,

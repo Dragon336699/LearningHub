@@ -37,6 +37,7 @@ export const API_ROUTES = {
     CANCEL: "/sessions/cancel",
   },
   DASHBOARD:{
-    SUMMARY: "/dashboard"
+    SUMMARY: "/dashboards",
+    DAILY_QUOTE: "/dashboards/daily-quotes"
   }
 };

@@ -1,7 +1,5 @@
-﻿using LearningHub.Application.Dtos.BookingSession;
-using LearningHub.Application.Dtos.DashboardSummaries;
+﻿using LearningHub.Application.Dtos.DashboardSummaries;
 using LearningHub.Application.Interfaces.Services;
-using LearningHub.Application.Services;
 using LearningHub.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LearningHub.API.Controllers
 {
     [ApiController]
-    [Route("dashboard")] //dashboard is uncountable
+    [Route("dashboards")] // but dashboard is uncountable... :(
     [Authorize]
     public class DashboardSummaryController:ControllerBase
     {
@@ -38,6 +36,13 @@ namespace LearningHub.API.Controllers
 
             return Ok(result.Data);
 
+        }
+
+        [HttpGet("daily-quotes")]
+        public async Task<IActionResult> GetDailyQuote()
+        {
+            ZenQuote result = await _dashboardSummaryService.GetDailyQuoteAsync();
+            return Ok(result);
         }
     }
 }

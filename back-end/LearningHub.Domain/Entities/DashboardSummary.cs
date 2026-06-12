@@ -2,10 +2,10 @@
 {
     public class DashboardSummary
     {
-        public long Id { get; set; }
-        public long TotalUser { get; set; }
-        public long TotalSession { get; set; }
-        public long TotalResource { get; set; }
+        public Guid Id { get; set; }
+        public int TotalUser { get; set; }
+        public int TotalSession { get; set; }
+        public int TotalResource { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

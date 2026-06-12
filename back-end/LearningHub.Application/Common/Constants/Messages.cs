@@ -1,4 +1,6 @@
-﻿namespace LearningHub.Application.Common.Constants;
+﻿using LearningHub.Application.Dtos.DashboardSummaries;
+
+namespace LearningHub.Application.Common.Constants;
 
 
 public static class Messages
@@ -53,7 +55,7 @@ public static class Messages
         public const string MentorInvalid = "Mentor is invalid";
         public const string TraineeNotFound = "Trainee not found";
         public const string TraineeInvalid = "Trainee is invalid";
-        public const string MentorAlreadyBusy = "The mentor already has a confirmed session at this time.";
+        public const string MentorAlreadyBusy = "The mentor already busy at this time.";
         public const string TraineeAlreadyBusy = "You are having another session in this time.";
         public const string CreateSuccess = "Booking session created successfully and waiting for mentor's approval.";
 
@@ -137,5 +139,16 @@ public static class Messages
     public static class UploadFile
     {
         public const string UploadFailed = "File upload failed. Please try again.";
+    }
+
+    public static class Dashboard
+    {
+        public static ZenQuote DefaultQuote(){
+            return new ZenQuote {
+                Q= "Bright minds, deep dreams, wild love.",
+                A= "Juki Stricker"
+
+            };
+        }
     }
 }

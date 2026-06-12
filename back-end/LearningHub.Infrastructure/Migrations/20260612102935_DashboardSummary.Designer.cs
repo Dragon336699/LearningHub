@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearningHubDbContext))]
-    [Migration("20260611173957_CreateDashboardSummaryTable")]
-    partial class CreateDashboardSummaryTable
+    [Migration("20260612102935_DashboardSummary")]
+    partial class DashboardSummary
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -189,23 +189,21 @@ namespace LearningHub.Infrastructure.Migrations
 
             modelBuilder.Entity("LearningHub.Domain.Entities.DashboardSummary", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("TotalResource")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TotalResource")
+                        .HasColumnType("int");
 
-                    b.Property<long>("TotalSession")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TotalSession")
+                        .HasColumnType("int");
 
-                    b.Property<long>("TotalUser")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TotalUser")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -358,7 +356,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Resource");
+                    b.ToTable("Resources");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Role", b =>

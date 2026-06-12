@@ -22,63 +22,14 @@ namespace LearningHub.API.Configs
     {
         public static void AddInfrastructure(this IServiceCollection services)
         {
-            //third party services
-            services.AddMemoryCache();
-            services.AddScoped<ICacheService, MemoryCacheService>();
-            services.AddHttpClient<INotificationService, EmailService>();
-            services.AddScoped<DashboardSummaryJob>();
+            services.AddThirdPartyServices()
+                    .AddRepositoriesAndUnitOfWork()
+                    .AddApplicationServices()
+                    .AddMappingServices()
+                    .AddSeederService()
+                    .AddFluentValidation()
+                    .AddHttpContextAccessor();
 
-            //repositories and unit of work
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<IExpertiseRepository, ExpertiseRepository>();
-            services.AddScoped<IExperienceRepository, ExperienceRepository>();
-            services.AddScoped<ICertificateRepository, CertificateRepository>();
-            services.AddScoped<ICourseRepository, CourseRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IUserAvailabilitySettingRepository, UserAvailabilitySettingRepository>();
-            services.AddScoped<IAvailabilitySlotRepository, AvailabilitySlotRepository>();
-            services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
-            services.AddScoped<IResourceRepository, ResourceRepository>();
-            services.AddScoped<IDashboardSummaryRepository, DashboardSummaryRepository>();
-
-            //services
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IRoleService, RoleService>();
-            services.AddScoped<ICertificateService, CertificateService>();
-            services.AddScoped<IExpertiseService, ExpertiseService>();
-            services.AddScoped<IFileStorageService, FileStorageService>();
-            services.AddScoped<ICourseService, CourseService>();
-            services.AddScoped<IUserAvailabilityService, UserAvailabilityService>();
-            services.AddScoped<ICacheService, MemoryCacheService>();
-            services.AddScoped<IBookingSessionService, BookingSessionService>();
-            services.AddScoped<IResourceService, ResourceService>();
-            services.AddScoped<ICurrentSessionService, CurrentSessionService>();
-            services.AddScoped<IDashboardSummaryService, DashboardSummaryService>();
-
-            services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
-
-            services.AddScoped<IDataSeeder, RoleSeeder>();
-            services.AddScoped<IDataSeeder, UserSeeder>();
-            services.AddScoped<IDataSeeder, DashboardSummarySeeder>();
-
-            //Add DI for validation
-            services.AddScoped<IValidationService, ValidationService>();
-            
-            //Add assembly validator project Application
-            services.AddValidatorsFromAssemblyContaining<UpdateUserProfileCommandValidator>();
-
-            //Add assembly validator project API
-            services.AddValidatorsFromAssemblyContaining<CreateCertificateRequest>();
-            services.AddValidatorsFromAssemblyContaining<RegisterRequest>();
-            services.AddValidatorsFromAssemblyContaining<CreateBookingSessionRequest>();
-            services.AddValidatorsFromAssemblyContaining<AvailableSlotsRequest>();
-            services.AddValidatorsFromAssemblyContaining<GetSessionsRequest>();
-            services.AddValidatorsFromAssemblyContaining<GetDashboardSummaryRequest>();
-
-            //Add httpContextAccessor
-            services.AddHttpContextAccessor();
         }
     }
 }

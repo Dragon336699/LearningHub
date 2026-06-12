@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../store";
-import { fetchDashboardSummary } from "../../../store/thunks/dashboardThunks";
+import { fetchDailyQuote, fetchDashboardSummary } from "../../../store/thunks/dashboardThunks";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 import { useAppSelector } from "../../../store/hooks";
 import { fetchUserSessions } from "../../../store/thunks/sessionThunk";
@@ -16,6 +16,7 @@ export const DashboardPage = () => {
   );
 
   const { sessions } = useAppSelector((state: RootState) => state.session);
+  const {quote} =  useAppSelector((state: RootState) => state.dashboard);
 
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const currentUserRole = String(
@@ -74,6 +75,7 @@ export const DashboardPage = () => {
         console.warn(`Unknown role or role not loaded yet: ${currentUserRole}`);
         break;
     }
+    dispatch(fetchDailyQuote());
   }, [dispatch, timeRange, currentUserRole]);
 
   const { currentMetrics, trends } = useMemo(() => {
@@ -459,10 +461,10 @@ export const DashboardPage = () => {
         
         <div className="border-l-2 border-orange-500/70 pl-4 py-1 relative z-10">
           <p className="text-lg font-medium text-zinc-100 italic tracking-wide">
-            "Bright minds, deep dreams, wild love."
+            {quote?.q}
           </p>
           <p className="text-base text-zinc-400 mt-2 italic font-light tracking-wide">
-            "Học tốt, mơ nhiều, yêu say đắm."
+            {quote?.a}
           </p>
         </div>
 
