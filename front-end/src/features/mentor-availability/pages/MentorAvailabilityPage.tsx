@@ -531,11 +531,6 @@ export const MentorAvailabilityPage = () => {
 
         isUserChangeRef.current = false;
 
-        // if (isInitialMountRef.current) {
-        //     isInitialMountRef.current = false;
-        //     return;
-        // }
-
         const item = {
             workStartTime: current.workStartTime,
             workEndTime: current.workEndTime,
@@ -601,17 +596,10 @@ export const MentorAvailabilityPage = () => {
             })),
         }));
 
-        const fetchedDays = new Set(mapped.map((m) => m.settingDay));
-
-        const preserved = currentAvailabilities.filter(
-            (a) => !fetchedDays.has(a.settingDay)
-        );
-
         const todayKey = convertTimeToString(selectedDay);
         const hasTodayEntry = mapped.some((m) => m.settingDay === todayKey);
 
         const merged = [
-            ...preserved,
             ...mapped,
             ...(hasTodayEntry ? [] : [{
                 workStartTime: defaultStartTime,
@@ -799,7 +787,12 @@ export const MentorAvailabilityPage = () => {
                                 >
                                     <div className="flex flex-col">
                                         <p>{slot.startTime} - {slot.endTime}</p>
-                                        {isDisabled && <p>Past</p>}
+                                        {(() => {
+                                            if (isDisabled) return <p className="text-sm">Past</p>
+                                            if (isBooked) return <p className="text-sm">Booked</p>
+                                            if (isSelected) return <p className="text-sm">Available</p>
+                                            return <p className="text-sm">Unavailable</p>
+                                        })()}
                                     </div>
                                 </button>
                             );

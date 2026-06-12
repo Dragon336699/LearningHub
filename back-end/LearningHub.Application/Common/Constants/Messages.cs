@@ -35,6 +35,13 @@ public static class Messages
         public const string ActionForbidden = "You do not have permission to perform this action.";
     }
 
+    public static class AvailabilityMessage
+    {
+        public const string InvalidTimeSlot = "Cannot create available time slot for past time.";
+        public const string TimeSlotDurationInvalid = "Each time slot duration must be equal to the specified session duration.";
+        public const string TimeSlotBufferInvalid = "Time break between slots must be greater than or equal to the specified buffer time.";
+    }
+
     public static class ResourceMessage
     {
         public const string TitleRequired = "Title is required.";
