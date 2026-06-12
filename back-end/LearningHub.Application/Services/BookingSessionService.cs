@@ -80,12 +80,10 @@ namespace LearningHub.Application.Services
                 currentSession!.Status = SessionStatus.Approved;
                 _unitOfWork.BookingSessions.Update(currentSession);
 
-                // --- BẮT ĐẦU: LOGIC CẬP NHẬT TRẠNG THÁI SLOT THÀNH BOOKED ---
                 DateOnly sessionDate = DateOnly.FromDateTime(currentSession.StartTime);
                 TimeOnly sessionStartTime = TimeOnly.FromDateTime(currentSession.StartTime);
                 TimeOnly sessionEndTime = TimeOnly.FromDateTime(currentSession.EndTime);
 
-                // Lấy cài đặt thời gian rảnh của Mentor trong ngày diễn ra session
                 List<UserAvailabilitySetting> mentorAvailabilities = await _userAvailabilitySettingRepository
                     .GetUserAvailabilities(currentSession.MentorId, sessionDate, sessionDate);
 
@@ -227,7 +225,8 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<List<BookingSessionResponse>>> GetBookingSessions(GetSessionsRequest request)
         {
-            List<BookingSession> bookingSessions = await _bookingSessionRepository.GetSessionsByUserAndDateAsync(request.UserId, request.Date, request.Status);
+            Guid? userId = TokenUtils.GetNameIdentifier(_httpContextAccessor);
+            List<BookingSession> bookingSessions = await _bookingSessionRepository.GetSessionsByUserAndDateAsync(userId.Value, request.Date, request.Status);
             List<BookingSessionResponse> responses = BookingSessionMappingProfile.ToResponseList(bookingSessions);
             return Result<List<BookingSessionResponse>>.Success(responses);
 

@@ -2,6 +2,7 @@
 using LearningHub.API.Contracts.Certificates;
 using LearningHub.Application.Dtos.Auth;
 using LearningHub.Application.Dtos.BookingSession;
+using LearningHub.Application.Dtos.DashboardSummaries;
 using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.Seeder;
 using LearningHub.Application.Interfaces.Services;
@@ -9,6 +10,7 @@ using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Application.Mappers;
 using LearningHub.Application.Services;
 using LearningHub.Application.Validation.User;
+using LearningHub.Infrastructure.BackgroundJobs;
 using LearningHub.Infrastructure.Persistence.Seed;
 using LearningHub.Infrastructure.Repositories;
 using LearningHub.Infrastructure.Services;
@@ -24,6 +26,7 @@ namespace LearningHub.API.Configs
             services.AddMemoryCache();
             services.AddScoped<ICacheService, MemoryCacheService>();
             services.AddHttpClient<INotificationService, EmailService>();
+            services.AddScoped<DashboardSummaryJob>();
 
             //repositories and unit of work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -37,6 +40,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IAvailabilitySlotRepository, AvailabilitySlotRepository>();
             services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
             services.AddScoped<IResourceRepository, ResourceRepository>();
+            services.AddScoped<IDashboardSummaryRepository, DashboardSummaryRepository>();
 
             //services
             services.AddScoped<IUserService, UserService>();
@@ -51,11 +55,13 @@ namespace LearningHub.API.Configs
             services.AddScoped<IBookingSessionService, BookingSessionService>();
             services.AddScoped<IResourceService, ResourceService>();
             services.AddScoped<ICurrentSessionService, CurrentSessionService>();
+            services.AddScoped<IDashboardSummaryService, DashboardSummaryService>();
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 
             services.AddScoped<IDataSeeder, RoleSeeder>();
             services.AddScoped<IDataSeeder, UserSeeder>();
+            services.AddScoped<IDataSeeder, DashboardSummarySeeder>();
 
             //Add DI for validation
             services.AddScoped<IValidationService, ValidationService>();
@@ -69,6 +75,7 @@ namespace LearningHub.API.Configs
             services.AddValidatorsFromAssemblyContaining<CreateBookingSessionRequest>();
             services.AddValidatorsFromAssemblyContaining<AvailableSlotsRequest>();
             services.AddValidatorsFromAssemblyContaining<GetSessionsRequest>();
+            services.AddValidatorsFromAssemblyContaining<GetDashboardSummaryRequest>();
 
             //Add httpContextAccessor
             services.AddHttpContextAccessor();
