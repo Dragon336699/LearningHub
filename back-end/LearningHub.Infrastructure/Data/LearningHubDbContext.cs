@@ -16,11 +16,9 @@ namespace LearningHub.Infrastructure.Data
         public DbSet<Expertise> Expertises { get; set; }
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<BookingSession> BookingSessions { get; set; }
-        public DbSet<Resource> Resources { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<UserAvailabilitySetting> UserAvailabilitySettings { get; set; }
         public DbSet<AvailabilitySlot> AvailabilitySlots { get; set; }
-        public DbSet<DashboardSummary> DashboardSummaries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

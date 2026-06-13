@@ -58,11 +58,5 @@ namespace LearningHub.Infrastructure.Repositories
                 TotalCount = totalCount
             };
         }
-
-        public async Task<int> CountByDate(DateTime date) {
-            return await _context.Resources
-                .AsNoTracking()
-                .CountAsync(r => r.CreatedAt <= date);
-        }
     }
 }

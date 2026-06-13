@@ -49,10 +49,10 @@ export const fetchUserSessions = createAsyncThunk<
   { rejectValue: string }
 >(
   "session/fetchUserSessions",
-  async ({ date, sessionStatus }, { rejectWithValue }) => {
+  async ({ userId, date, sessionStatus }, { rejectWithValue }) => {
     try {
       const response = await HttpClient.get<any>(API_ROUTES.SESSIONS.DEFAULT, {
-        params: { Date: date, Status: sessionStatus }
+        params: { UserId: userId, Date: date, Status: sessionStatus }
       });
       return response;
     } catch (error: any) {

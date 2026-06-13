@@ -1,12 +1,11 @@
-using Hangfire;
 using LearningHub.API.Common.Middlewares;
 using LearningHub.API.Configs;
 using LearningHub.Application.Interfaces.Seeder;
-using LearningHub.Application.Interfaces.Services;
-using LearningHub.Domain.Constants;
-using LearningHub.Infrastructure.BackgroundJobs;
 using LearningHub.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,18 +37,9 @@ builder.Services.AddDbContext<LearningHubDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-builder.Services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddHangfireServer();
-
 builder.Services.AddAuthorization(options => {
-    options.AddPolicy(RoleName.Mentor, policy => policy.RequireRole(RoleName.Mentor));
-    options.AddPolicy(RoleName.Trainee, policy => policy.RequireRole(RoleName.Trainee));
-    options.AddPolicy(RoleName.Admin, policy => policy.RequireRole(RoleName.Admin));
+    options.AddPolicy("Mentor", policy => policy.RequireRole("Mentor"));
+    options.AddPolicy("Trainee", policy => policy.RequireRole("Trainee"));
 
 });
 
@@ -66,23 +56,7 @@ if (app.Environment.IsDevelopment())
         context.Response.Redirect("/swagger");
         return Task.CompletedTask;
     });
-    app.UseHangfireDashboard("/hangfire");
 }
-
-var jobOptions = builder.Configuration
-    .GetSection(BackgroundJobsOptions.SectionName)
-    .Get<BackgroundJobsOptions>() ?? new BackgroundJobsOptions();
-
-//Hangfire
-RecurringJob.AddOrUpdate<DashboardSummaryJob>(
-    jobOptions.Dashboard.JobName,
-    service => service.RunDailySnapshotAsync(),
-    jobOptions.Dashboard.Schedule,
-    new RecurringJobOptions 
-    { 
-        TimeZone = jobOptions.TimeZoneInfo 
-    }
-);
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")

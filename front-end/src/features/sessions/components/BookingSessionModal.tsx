@@ -153,10 +153,11 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
                 className="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
               >
                 <option value="" disabled>Select duration type...</option>
-                <option value={1}>15 Minutes</option>
-                <option value={2}>30 Minutes</option>
-                <option value={3}>45 Minutes</option>
-                <option value={4}>1 Hour</option>
+                <option value={1}>30 Minutes</option>
+                <option value={2}>45 Minutes</option>
+                <option value={3}>1 Hour</option>
+                <option value={4}>1.5 Hours</option>
+                <option value={5}>2 Hours</option>
               </select>
             </div>
           </div>
