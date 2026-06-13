@@ -103,7 +103,7 @@ namespace LearningHub.Application.Services
             var commandToday = command.Where(c => c.SettingDay == today);
             var vietnamNow = DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(7));
 
-            if (commandToday != null)
+            if (commandToday.Any())
             {
                 foreach (var cmd in commandToday)
                 {
