@@ -184,6 +184,32 @@ namespace LearningHub.Infrastructure.Migrations
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.DashboardSummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalResource")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSession")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalUser")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_DashboardSummary_CreatedAt");
+
+                    b.ToTable("DashboardSummaries");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
                 {
                     b.Property<Guid>("Id")
@@ -327,7 +353,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Resource");
+                    b.ToTable("Resources");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Role", b =>
