@@ -54,7 +54,7 @@ export const fetchExpertises = createAsyncThunk<Expertise[], void, { rejectValue
   }
 );
 
-export const searchMentors = createAsyncThunk<User[], SearchUserProfileCommand, { rejectValue: string }>(
+export const searchMentors = createAsyncThunk<PagedResult<User>, SearchUserProfileCommand, { rejectValue: string }>(
   "user/searchMentors",
   async (params, { rejectWithValue }) => {
     try {
@@ -68,12 +68,15 @@ export const searchMentors = createAsyncThunk<User[], SearchUserProfileCommand, 
         params.expertiseIds.forEach(id => queryParams.append("ExpertiseIds", id));
       }
 
+      queryParams.append("page", String(params.page));
+      queryParams.append("pageSize", String(params.pageSize));
+
       const queryString = queryParams.toString();
       const endpoint = queryString 
         ? `${API_ROUTES.USER.PROFILE}/filter?${queryString}` 
         : `${API_ROUTES.USER.PROFILE}/filter`;
 
-      const response = await HttpClient.get<Result<User[]>>(endpoint);
+      const response = await HttpClient.get<Result<PagedResult<User>>>(endpoint);
 
       if (!response.isSuccess) {
          return rejectWithValue(response.errors?.[0] || "Find mentors failed");

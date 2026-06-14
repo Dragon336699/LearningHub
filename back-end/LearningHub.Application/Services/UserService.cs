@@ -51,42 +51,21 @@ namespace LearningHub.Application.Services
 
         //Search user profile 
 
-        public async Task<Result<List<UserDto>>> SearchUserProfile(SearchUserProfileCommand command)
+        public async Task<Result<PagedResult<UserDto>>> SearchUserProfile(SearchUserProfileCommand command)
         {
-            var mentors = await _userManager.GetUsersInRoleAsync("Mentor");
+            var (mentors, totalCount) = await _unitOfWork.Users.GetPagedMentors(command);
 
-            IEnumerable<Guid> mentorsIds = mentors.Select(m => m.Id);
-
-            mentors = await _unitOfWork.Users.GetMentorsByIdsAsync(mentorsIds);
             var userDtos = _mapper.Map<List<UserDto>>(mentors);
+            userDtos.ForEach(x => x.RoleName = "Mentor");
 
-            foreach (var dto in userDtos)
+            var result = new PagedResult<UserDto>
             {
-                var user = mentors.First(x => x.Id == dto.Id);
-
-                var roles = await _userManager.GetRolesAsync(user);
-                dto.RoleName = roles.FirstOrDefault();
-            }
-
-            if (string.IsNullOrEmpty(command.Keyword) && command.ExpertiseIds?.Count == 0)
-            {
-                return Result<List<UserDto>>.Success(userDtos);
-            }
-
-            List<Guid> expertiseIds = command.ExpertiseIds;
-
-            var usersFilteredByKeyword = userDtos
-                .Where(u => (u.FirstName.ToLower().Contains(command.Keyword.ToLower()) && !string.IsNullOrEmpty(u.FirstName)) 
-                || (u.LastName?.ToLower().Contains(command.Keyword.ToLower()) == true && !string.IsNullOrEmpty(u.LastName)));
-
-            if (command.ExpertiseIds?.Count == 0)
-            {
-                return Result<List<UserDto>>.Success(usersFilteredByKeyword.ToList());
-            }
-
-            var usersFiltered = usersFilteredByKeyword.Where(u => u.Expertises.Any(e => expertiseIds.Contains(e.Id)));
-
-            return Result<List<UserDto>>.Success(usersFiltered.ToList());
+                Page = command.Page,
+                PageSize = command.PageSize,
+                Items = userDtos,
+                TotalCount = totalCount
+            };
+            return Result<PagedResult<UserDto>>.Success(result);
         }
 
         //Update user profile

@@ -14,6 +14,7 @@ import { UpdateResourceForm } from "../schemas/UpdateResourceSchema";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store";
 import { UserRole } from "../../auth/types/auth.types";
+import { ThreeColumnsPageSizeOptions } from "../../../shared/types/pageSizeOptions";
 
 export const ResourcePage = () => {
     const currentUser = useSelector((state: RootState) => state.auth.currentUser);
@@ -21,7 +22,7 @@ export const ResourcePage = () => {
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [page, setPage] = useState(1);
-    const [pageSize] = useState(9);
+    const [pageSize, setPageSize] = useState(9);
     const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
     const createResourceMutation = useCreateResource();
     const deleteResourceMutation = useDeleteResource();
@@ -94,6 +95,13 @@ export const ResourcePage = () => {
         a.remove();
 
         window.URL.revokeObjectURL(tempUrl);
+    }
+
+    const handleChangePageSize = (newPageSize: number) => {
+        const firstItemIndex = (page - 1) * pageSize + 1;
+        const newPage = Math.ceil(firstItemIndex / newPageSize);
+        setPage(newPage);
+        setPageSize(newPageSize);
     }
 
     useEffect(() => {
@@ -195,6 +203,9 @@ export const ResourcePage = () => {
 
                 {!isLoading && (resources?.totalCount ?? 0) > 0 && (
                     <Pagination
+                        pageSizeOptions={ThreeColumnsPageSizeOptions.map(size => ({ label: size, value: size }))}
+                        onPageSizeChange={handleChangePageSize}
+                        currentPageSize={pageSize}
                         totalPages={totalPages}
                         currentPage={page}
                         onPageChange={setPage}
@@ -216,7 +227,7 @@ export const ResourcePage = () => {
             {isUpdateModalOpen &&
                 <UpdateResourceModal
                     data={selectedResource!}
-                    isLoading={deleteResourceMutation.isPending}
+                    isLoading={updateResourceMutation.isPending}
                     onSubmit={handleUpdateResource}
                     onClose={() => setIsUpdateModalOpen(false)} />}
         </div>

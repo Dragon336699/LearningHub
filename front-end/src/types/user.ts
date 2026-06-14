@@ -25,4 +25,6 @@ export interface User {
 export interface SearchUserProfileCommand {
   keyword: string;
   expertiseIds: string[];
+  page: number;
+  pageSize: number;
 }

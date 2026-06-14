@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Result } from "../../../types/result";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faCircleXmark, faExclamationCircle, faEye, faSearch, faUserSlash } from "@fortawesome/free-solid-svg-icons";
+import { CommonPageSizeOptions } from "../../../shared/types/pageSizeOptions";
 
 export const UserManagementPage = () => {
   const dispatch = useAppDispatch();
@@ -26,7 +27,7 @@ export const UserManagementPage = () => {
     status: string;
   } | null>(null);
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
   const totalPage = Math.ceil(rawUsers.totalCount / pageSize);
 
   useEffect(() => {
@@ -69,6 +70,13 @@ export const UserManagementPage = () => {
     }
   };
 
+  const handleChangePageSize = (newPageSize: number) => {
+    const firstItemIndex = (page - 1) * pageSize + 1;
+    const newPage = Math.ceil(firstItemIndex / newPageSize);
+    setPage(newPage);
+    setPageSize(newPageSize);
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200 p-6 space-y-6 animate-in fade-in duration-300">
 
@@ -80,7 +88,7 @@ export const UserManagementPage = () => {
       {uiFeedback && (
         <div className={`p-4 rounded-xl border flex items-center gap-2 text-xs font-semibold ${uiFeedback.type === "success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"
           }`}>
-          
+
           <FontAwesomeIcon icon={faExclamationCircle} className={`w-4 h-4 ${uiFeedback.type === "success" ? "text-emerald-400" : "text-red-400"}`} />
           <span>{uiFeedback.msg}</span>
         </div>
@@ -185,14 +193,6 @@ export const UserManagementPage = () => {
           </div>
         )}
 
-        {totalPage > 0 && <div className="mt-4 mb-4">
-          <Pagination
-            currentPage={page}
-            totalPages={totalPage}
-            onPageChange={setPage}
-          />
-        </div>}
-
         {isConfirmModalOpen && (
           <ConfirmModal
             title="Are you sure you want to change user status"
@@ -205,6 +205,16 @@ export const UserManagementPage = () => {
           />
         )}
       </div>
+      {totalPage > 0 && <div className="mt-4 mb-4">
+        <Pagination
+          onPageSizeChange={handleChangePageSize}
+          pageSizeOptions={CommonPageSizeOptions.map(pageSize => ({ label: pageSize, value: pageSize }))}
+          currentPageSize={pageSize}
+          currentPage={page}
+          totalPages={totalPage}
+          onPageChange={setPage}
+        />
+      </div>}
 
     </div>
   );
