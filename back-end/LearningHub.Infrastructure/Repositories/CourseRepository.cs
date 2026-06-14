@@ -61,7 +61,7 @@ namespace LearningHub.Infrastructure.Repositories
                 .CountAsync(c => c.Status == CourseStatus.Published);
         }
 
-        public async Task<List<CourseTraineeDto>> GetTraineesWithEnrollmentStatusAsync(Guid courseId)
+        public async Task<List<CourseTraineeDto>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string keyword)
         {
             var enrolledTraineeIds = await _context.Set<CourseTrainee>()
                 .Where(ct => ct.CourseId == courseId)
@@ -74,7 +74,7 @@ namespace LearningHub.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
 
             var traineeUsers = await _context.Users
-                .Where(u => u.EmailConfirmed && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == traineeRoleId))
+                .Where(u => u.EmailConfirmed && ((!string.IsNullOrEmpty(u.FirstName) && u.FirstName.ToLower().Contains(keyword)) || (u.LastName != null && u.LastName.ToLower().Contains(keyword))) && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == traineeRoleId))
                 .ToListAsync();
 
             return traineeUsers.Select(u => new CourseTraineeDto

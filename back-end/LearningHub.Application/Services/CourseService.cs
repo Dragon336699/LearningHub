@@ -228,9 +228,13 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<CourseDto>>.Success(pageCourses);
         }
 
-        public async Task<Result<List<CourseTraineeDto>>> GetTraineesWithEnrollmentStatusAsync(Guid courseId)
+        public async Task<Result<List<CourseTraineeDto>>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string? keyword)
         {
-            var allUsersWithStatus = await _unitOfWork.Courses.GetTraineesWithEnrollmentStatusAsync(courseId);
+            if (keyword != null)
+            {
+                keyword = keyword.Trim().ToLower();
+            }
+            var allUsersWithStatus = await _unitOfWork.Courses.GetTraineesWithEnrollmentStatusAsync(courseId, keyword ?? "");
 
             var roles = await _unitOfWork.Roles.GetAllAsync();
             var traineeRole = roles.FirstOrDefault(r => r.Name == "Trainee");

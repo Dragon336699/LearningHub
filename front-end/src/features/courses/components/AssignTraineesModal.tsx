@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { DialogShell } from "../../../shared/ui/components/DialogShell";
-import { courseService } from "../../../features/courses/services/Course.service";
+import { courseService, CourseTraineeDto } from "../../../features/courses/services/Course.service";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faCheckCircle, faUsers, faUserPlus, faClock } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "sonner";
+import { Result } from "../../../types/result";
+import { usegetTraineesStatusByCourse } from "../hooks/Course.hook";
 
 interface AssignTraineesModalProps {
   courseId: string;
@@ -15,7 +17,7 @@ interface AssignTraineesModalProps {
 
 export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess }: AssignTraineesModalProps) => {
   const [activeTab, setActiveTab] = useState<"current" | "assign">("current");
-  const [traineeList, setTraineeList] = useState<any[]>([]);
+  const [searchQueryDisplay, setSearchQueryDisplay] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,35 +26,12 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
   });
 
   const watchedTraineeIds = watch("traineeIds") || [];
-
-  const loadTraineesStatus = async () => {
-    try {
-      const res = await courseService.getTraineesStatusByCourse(courseId);
-      
-      if (res?.isSuccess && res.data) {
-        setTraineeList(res.data);
-      } else {
-        setTraineeList([]); 
-      }
-    } catch (err) {
-      console.error(err);
-      setTraineeList([]); 
-    }
-  };
-
-  useEffect(() => {
-    loadTraineesStatus();
-  }, [courseId]);
+  const { data: traineeList } = usegetTraineesStatusByCourse(courseId, searchQuery);
 
   // Phân tách dữ liệu cục bộ thành 2 nhóm riêng biệt dựa vào cờ IsEnrolled
-  const currentEnrolled = traineeList.filter(t => t.isEnrolled);
-  const nonEnrolled = traineeList.filter(t => !t.isEnrolled);
-
-  // Bộ lọc tìm kiếm cho tab gán mới
-  const filteredNewTrainees = nonEnrolled.filter((t) => {
-    const fullName = `${t.firstName || ""} ${t.lastName || ""}`.toLowerCase();
-    return fullName.includes(searchQuery.toLowerCase());
-  });
+  const trainees = traineeList?.data ?? [];
+  const currentEnrolled = trainees.filter(t => t.isEnrolled);
+  const nonEnrolled = trainees.filter(t => !t.isEnrolled);
 
   const onSubmitForm = async (data: { traineeIds: string[] }) => {
     if (data.traineeIds.length === 0) return;
@@ -65,8 +44,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
 
       if (response?.isSuccess) {
         toast.success(`Successfully assigned ${data.traineeIds.length} trainees to this course!`);
-        reset({ traineeIds: [] }); 
-        loadTraineesStatus();      
+        reset({ traineeIds: [] });
         onSuccess();
       }
     } catch (err) {
@@ -76,10 +54,18 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
     }
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchQueryDisplay);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQueryDisplay]);
+
   return (
     <DialogShell open={true} title="Manage Course Trainees" isLoading={isSubmitting} onClose={onClose}>
       <div className="space-y-4 py-1 text-white">
-        
+
         <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-3.5">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Course</span>
           <h4 className="text-sm font-bold text-orange-500 mt-0.5 truncate">{courseTitle}</h4>
@@ -89,9 +75,8 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
           <button
             type="button"
             onClick={() => setActiveTab("current")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
-              activeTab === "current" ? "border-orange-500 text-orange-500" : "border-transparent text-slate-400 hover:text-slate-200"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${activeTab === "current" ? "border-orange-500 text-orange-500" : "border-transparent text-slate-400 hover:text-slate-200"
+              }`}
           >
             <FontAwesomeIcon icon={faUsers} />
             Enrolled Trainees ({currentEnrolled.length})
@@ -99,9 +84,8 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
           <button
             type="button"
             onClick={() => setActiveTab("assign")}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${
-              activeTab === "assign" ? "border-orange-500 text-orange-500" : "border-transparent text-slate-400 hover:text-slate-200"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all ${activeTab === "assign" ? "border-orange-500 text-orange-500" : "border-transparent text-slate-400 hover:text-slate-200"
+              }`}
           >
             <FontAwesomeIcon icon={faUserPlus} />
             Assign New Trainees
@@ -139,14 +123,16 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
               <input
                 type="text"
                 placeholder="Search new trainees to add..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchQueryDisplay}
+                onChange={(e) => {
+                  setSearchQueryDisplay(e.target.value);
+                }}
                 className="w-full bg-slate-950 border border-slate-800 text-white rounded-xl text-sm pl-11 pr-4 py-2.5 focus:outline-none focus:border-orange-500/50 transition-all placeholder:text-slate-600"
               />
             </div>
 
             <div className="border border-slate-900 bg-slate-950/20 rounded-xl max-h-[30vh] overflow-y-auto divide-y divide-slate-900 scrollbar-thin">
-              {filteredNewTrainees.map((t) => {
+              {nonEnrolled.map((t) => {
                 const isChecked = watchedTraineeIds.includes(t.id);
                 return (
                   <label key={t.id} className={`flex items-center justify-between p-3 hover:bg-slate-900/30 transition-colors cursor-pointer select-none ${isChecked ? "bg-orange-500/5" : ""}`}>
@@ -162,7 +148,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
                   </label>
                 );
               })}
-              {filteredNewTrainees.length === 0 && (
+              {nonEnrolled.length === 0 && (
                 <p className="text-xs text-slate-500 italic text-center py-12">No new trainees available to assign.</p>
               )}
             </div>
