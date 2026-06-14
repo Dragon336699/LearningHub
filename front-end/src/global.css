@@ -150,6 +150,11 @@ select {
   background: #64748b;
 }
 
+.course-select__option:active {
+    background-color: #f97316 !important;
+    color: #ffffff !important;
+}
+
 /* Layout */
 .app-layout {
   @apply flex min-h-screen bg-background text-foreground;

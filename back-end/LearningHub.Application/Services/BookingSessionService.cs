@@ -1,163 +1,184 @@
-﻿using AutoMapper;
-using LearningHub.Application.Common;
+﻿using LearningHub.Application.Common.Results;
+using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Dtos.BookingSession;
 using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Application.Mappers;
+using LearningHub.Application.Utils;
+using LearningHub.Domain.Constants;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LearningHub.Application.Services
 {
-    public class BookingSessionService: IBookingSessionService
+    public class BookingSessionService : IBookingSessionService
     {
         private readonly IBookingSessionRepository _bookingSessionRepository;
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
-
-        public BookingSessionService(IBookingSessionRepository bookingSessionRepository, 
-            IUnitOfWork unitOfWork, 
-            IUserRepository userRepository, 
-            RoleManager<Role> roleManager, 
-            UserManager<User> userManager, 
-            INotificationService notificationService
-            )
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUserAvailabilitySettingRepository _userAvailabilitySettingRepository;
+        public BookingSessionService(IBookingSessionRepository bookingSessionRepository,
+            IUnitOfWork unitOfWork,
+            RoleManager<Role> roleManager,
+            UserManager<User> userManager,
+            INotificationService notificationService,
+            IHttpContextAccessor httpContextAccessor,
+            IUserAvailabilitySettingRepository userAvailabilitySettingRepository)
         {
             _bookingSessionRepository = bookingSessionRepository;
             _unitOfWork = unitOfWork;
             _roleManager = roleManager;
             _userManager = userManager;
             _notificationService = notificationService;
+            _httpContextAccessor = httpContextAccessor;
+            _userAvailabilitySettingRepository = userAvailabilitySettingRepository;
         }
 
         public async Task<Result<string>> CreateBookingSessionAsync(CreateBookingSessionRequest request)
         {
-            //(juki) i have to get user and match roleId manually instead of eager loading because someone forgot to define custom identity userrole when initing backend
-            List<Role> roles = await _roleManager.Roles.ToListAsync();
-            User? mentor = await _userManager.FindByIdAsync(request.MentorId.ToString());
+            Guid traineeId = TokenUtils.GetNameIdentifier(_httpContextAccessor);
 
-            if (mentor == null) { 
-                return Result<string>.Failure("Mentor not found");
-            }
-            bool isMentor = await _userManager.IsInRoleAsync(mentor, "Mentor");
+            // tuple for dynamic error validation
+            var (isValid, errorMessage, mentor) = await ValidateCreateSessionAsync(request, traineeId);
 
-            if (!isMentor)
+            if (!isValid)
             {
-                return Result<string>.Failure("Mentor is invalid");
+                return Result<string>.Failure(errorMessage!);
             }
 
-            User? trainee = await _userManager.FindByIdAsync(request.TraineeId.ToString());
-            if(trainee == null)
-            {
-                return Result<string>.Failure("Trainee not found");
-            }
-
-            bool isTrainee = await _userManager.IsInRoleAsync(trainee, "Trainee");
-
-            if (!isMentor)
-            {
-                return Result<string>.Failure("Trainee is invalid");
-            }
-
-            bool isTraineeBusy = await _bookingSessionRepository.IsTraineeBusyAsync(request.TraineeId, request.StartTime, request.EndTime);
-
-            if (isTraineeBusy)
-            {
-                return Result<string>.Failure("You are having another session in this time.");
-            }
-
-            var newSession = new BookingSession
-            {
-                Id = Guid.NewGuid(),
-                MentorId = request.MentorId,
-                TraineeId = request.TraineeId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                SessionType = request.SessionType,
-                Topic= request.Topic,
-                Status = SessionStatus.Pending
-            };
+            BookingSession newSession = BookingSessionMappingProfile.ToEntity(request, traineeId);
 
             await _bookingSessionRepository.AddAsync(newSession);
             await _unitOfWork.CompleteAsync();
 
-            await SendNotificationEmailToMentorAsync(mentor.Email, newSession);
+            await SendNotificationEmailToMentorAsync(mentor!.Email!, newSession);
 
-            return Result<string>.Success("Booking session created successfully and waiting for mentor's approval.");
+            return Result<string>.Success(Messages.BookingSession.CreateSuccess);
         }
 
         public async Task<Result<string>> ApproveSessionAsync(Guid sessionId)
         {
-            await _unitOfWork.BeginTransactionAsync();
+            Guid mentorId = TokenUtils.GetNameIdentifier(_httpContextAccessor);
 
+            var (isValid, errorMessage, currentSession, trainee) = await ValidateApprovalAsync(sessionId, mentorId);
+
+            if (!isValid)
+            {
+                return Result<string>.Failure(errorMessage!);
+            }
+
+            await _unitOfWork.BeginTransactionAsync();
             try
             {
-                BookingSession? currentSession = await _unitOfWork.BookingSessions
-                    .FirstOrDefaultAsync(s => s.Id == sessionId && s.Status == SessionStatus.Pending);
-
-                if (currentSession == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync(); 
-                    return Result<string>.Failure("Session not found or already processed.");
-                }
-
-                User? trainee = await _unitOfWork.Users.GetByIdAsync(currentSession.TraineeId);
-                if (trainee == null)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return Result<string>.Failure("Trainee not found");
-                }
-
-                bool isMentorBusy = await _unitOfWork.BookingSessions
-                    .IsMentorBusyAsync(currentSession.MentorId, currentSession.StartTime, currentSession.EndTime);
-
-                if (isMentorBusy)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return Result<string>.Failure("Cannot approve this session because the mentor has another confirmed session at the same time.");
-                }
-
-                currentSession.Status = SessionStatus.Approved;
+                currentSession!.Status = SessionStatus.Approved;
                 _unitOfWork.BookingSessions.Update(currentSession);
+
+                // --- BẮT ĐẦU: LOGIC CẬP NHẬT TRẠNG THÁI SLOT THÀNH BOOKED ---
+                DateOnly sessionDate = DateOnly.FromDateTime(currentSession.StartTime);
+                TimeOnly sessionStartTime = TimeOnly.FromDateTime(currentSession.StartTime);
+                TimeOnly sessionEndTime = TimeOnly.FromDateTime(currentSession.EndTime);
+
+                // Lấy cài đặt thời gian rảnh của Mentor trong ngày diễn ra session
+                List<UserAvailabilitySetting> mentorAvailabilities = await _userAvailabilitySettingRepository
+                    .GetUserAvailabilities(currentSession.MentorId, sessionDate, sessionDate);
+
+                UserAvailabilitySetting? dailySetting = mentorAvailabilities.FirstOrDefault(ua => ua.SettingDay == sessionDate);
+
+                if (dailySetting != null && dailySetting.AvailabilitySlots != null)
+                {
+                    var bookedSlots = dailySetting.AvailabilitySlots
+                        .Where(slot => slot.StartTime < sessionEndTime && slot.EndTime > sessionStartTime)
+                        .ToList();
+
+                    foreach (var slot in bookedSlots)
+                    {
+                        slot.Status = UserAvailabilityStatus.Booked;
+                    }
+                }
+
+                List<BookingSession> overlappingSessions = await _bookingSessionRepository.GetOverlapingSession(currentSession);
+                if (overlappingSessions.Any())
+                {
+                    overlappingSessions.ForEach(s => s.Status = SessionStatus.Cancelled);
+                    _unitOfWork.BookingSessions.UpdateRange(overlappingSessions);
+                }
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                await SendNotificationEmailToTraineeAsync(trainee.Email, currentSession);
+                await SendNotificationEmailToTraineeAsync(trainee!.Email, currentSession);
 
-                return Result<string>.Success("Session approved successfully.");
+                if (overlappingSessions.Any())
+                {
+                    List<Guid> cancelledTraineeIds = overlappingSessions.Select(s => s.TraineeId).Distinct().ToList();
+
+                    var cancelledTraineesDict = await _userManager.Users
+                        .Where(u => cancelledTraineeIds.Contains(u.Id))
+                        .ToDictionaryAsync(u => u.Id, u => u.Email);
+
+                    var emailTasks = overlappingSessions
+                        .Where(s => cancelledTraineesDict.TryGetValue(s.TraineeId, out var email) && !string.IsNullOrEmpty(email))
+                        .Select(s => SendCancellationEmailToTraineeAsync(cancelledTraineesDict[s.TraineeId]!, s));
+                    
+                    await Task.WhenAll(emailTasks);
+                }
+
+                return Result<string>.Success(Messages.BookingSession.ApproveSuccess);
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-
-                return Result<string>.Failure($"An error occurred while approving the session: {ex.Message}");
+                return Result<string>.Failure(Messages.SystemError.DefaultError(ex.Message));
             }
+        }
+
+        private async Task SendCancellationEmailToTraineeAsync(string traineeEmail, BookingSession session)
+        {
+            string timeRange = DateTimeUtils.ToTimeRangeString(session.StartTime, session.EndTime);
+            string dateStr = DateTimeUtils.ToDateString(session.StartTime);
+            string emailBody = Messages.Email.CancelSessionBody(dateStr, timeRange);
+
+            await _notificationService.SendMessageAsync(traineeEmail, Messages.Email.CancelledSubject, emailBody);
         }
 
         public async Task<Result<string>> CancelSessionAsync(Guid sessionId)
         {
+            string roleName = TokenUtils.GetRoleIdentifier(_httpContextAccessor);
+
             BookingSession? currentSession = await _bookingSessionRepository
                 .FirstOrDefaultAsync(s => s.Id == sessionId && s.Status == SessionStatus.Pending);
+
             if (currentSession == null)
             {
-                return Result<string>.Failure("Session not found or already processed.");
+                return Result<string>.Failure(Messages.BookingSession.NotFoundOrProcessed);
             }
+
             currentSession.Status = SessionStatus.Cancelled;
             _bookingSessionRepository.Update(currentSession);
             await _unitOfWork.CompleteAsync();
-            return Result<string>.Success("Session Cancelled successfully.");
+            if (roleName == RoleName.Mentor)
+            {
+                User? trainee = await _userManager.FindByIdAsync(currentSession.TraineeId.ToString());
+
+                if (trainee != null && !string.IsNullOrEmpty(trainee.Email))
+                {
+                    await SendCancellationEmailToTraineeAsync(trainee.Email, currentSession);
+                }
+            }
+
+            return Result<string>.Success(Messages.BookingSession.CancelSuccess);
         }
 
         public async Task<Result<List<AvailableSlotsResponse>>> GetAvailableSlotsAsync(AvailableSlotsRequest request)
         {
             DateTime targetDate = request.Date.Date;
             DateTime nextDay = targetDate.AddDays(1);
-
             DateTime currentTime = DateTime.Now;
 
             int durationMinutes = request.DurationType switch
@@ -170,48 +191,103 @@ namespace LearningHub.Application.Services
                 _ => 60
             };
 
-            var baseAvailabilities = new List<(DateTime Start, DateTime End)>
-        {
-            (targetDate, nextDay)
-        };
+            DateOnly targetDateOnly = DateOnly.FromDateTime(targetDate);
 
-            var busySlots = await _bookingSessionRepository.GetBusySlotsAsync(request.MentorId, targetDate, nextDay);
+            List<UserAvailabilitySetting> mentorAvailabilities = await _userAvailabilitySettingRepository
+                .GetUserAvailabilities(request.MentorId, targetDateOnly, targetDateOnly);
 
+            UserAvailabilitySetting? dailySetting = mentorAvailabilities.FirstOrDefault(ua => ua.SettingDay == targetDateOnly);
+
+            if (dailySetting == null || !dailySetting.AvailabilitySlots.Any())
+            {
+                return Result<List<AvailableSlotsResponse>>.Success(new List<AvailableSlotsResponse>());
+            }
+
+            var baseAvailabilities = dailySetting.AvailabilitySlots
+                .Where(slot => slot.Status == UserAvailabilityStatus.Available)
+                .Select(slot => (
+                    Start: targetDate.Add(slot.StartTime.ToTimeSpan()),
+                    End: targetDate.Add(slot.EndTime.ToTimeSpan())
+                ))
+                .OrderBy(s => s.Start)
+                .ToList();
+
+            List<BookingSession> busySlots = await _bookingSessionRepository.GetBusySlotsAsync(request.MentorId, targetDate, nextDay);
             var rawFreeIntervals = GetRawFreeIntervals(baseAvailabilities, busySlots);
 
-            var availableSlots = new List<AvailableSlotsResponse>();
-
-            foreach (var interval in rawFreeIntervals)
-            {
-                var slotStart = interval.Start;
-
-                while (slotStart.AddMinutes(durationMinutes) <= interval.End)
-                {
-                    var slotEnd = slotStart.AddMinutes(durationMinutes);
-
-                    if (slotStart > currentTime)
-                    {
-                        availableSlots.Add(new AvailableSlotsResponse
-                        {
-                            StartTime = slotStart,
-                            EndTime = slotEnd
-                        });
-                    }
-
-                    slotStart = slotEnd;
-                }
-            }
+            List<AvailableSlotsResponse> availableSlots = GenerateSlotsFromIntervals(
+                rawFreeIntervals,
+                durationMinutes,
+                dailySetting.BufferTimeMinutes,
+                currentTime
+            );
 
             return Result<List<AvailableSlotsResponse>>.Success(availableSlots);
         }
 
         public async Task<Result<List<BookingSessionResponse>>> GetBookingSessions(GetSessionsRequest request)
         {
-            List<BookingSession> bookingSessions= await _bookingSessionRepository.GetSessionsByUserAndDateAsync(request.UserId, request.Date);
+            List<BookingSession> bookingSessions = await _bookingSessionRepository.GetSessionsByUserAndDateAsync(request.UserId, request.Date, request.Status);
             List<BookingSessionResponse> responses = BookingSessionMappingProfile.ToResponseList(bookingSessions);
             return Result<List<BookingSessionResponse>>.Success(responses);
 
-        } 
+        }
+
+        // I thought about caching to load role into process memory, but in that case I still have to get roleId from table "UserRole"
+        // So I suggested keeping the validation logic like this, because "IsInRoleAsync" can do both get roleId from table "UserRole" and check roleId from table "Role"
+        private async Task<(bool IsValid, string? ErrorMessage, User? Mentor)> ValidateCreateSessionAsync(
+            CreateBookingSessionRequest request, Guid traineeId)
+        {
+            User? mentor = await _userManager.FindByIdAsync(request.MentorId.ToString());
+            if (mentor == null)
+                return (false, Messages.BookingSession.MentorNotFound, null);
+
+            if (!await _userManager.IsInRoleAsync(mentor, RoleName.Mentor))
+                return (false, Messages.BookingSession.MentorInvalid, null);
+
+            User? trainee = await _userManager.FindByIdAsync(traineeId.ToString());
+            if (trainee == null)
+                return (false, Messages.BookingSession.TraineeNotFound, null);
+
+            if (!await _userManager.IsInRoleAsync(trainee, RoleName.Trainee))
+                return (false, Messages.BookingSession.TraineeInvalid, null);
+
+            bool isMentorBusy = await _bookingSessionRepository
+                .IsUserBusyAsync(request.MentorId, request.StartTime, request.EndTime, RoleName.Mentor);
+            if (isMentorBusy)
+                return (false, Messages.BookingSession.MentorAlreadyBusy, null);
+
+            bool isTraineeBusy = await _bookingSessionRepository
+                .IsUserBusyAsync(traineeId, request.StartTime, request.EndTime, RoleName.Trainee);
+            if (isTraineeBusy)
+                return (false, Messages.BookingSession.TraineeAlreadyBusy, null);
+
+            return (true, null, mentor);
+        }
+
+        private async Task<(bool IsValid, string? ErrorMessage, BookingSession? Session, User? Trainee)> ValidateApprovalAsync(Guid sessionId, Guid mentorId)
+        {
+            var session = await _unitOfWork.BookingSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.Status == SessionStatus.Pending);
+
+            if (session == null)
+                return (false, Messages.BookingSession.NotFoundOrProcessed, null, null);
+
+            if (session.MentorId != mentorId)
+                return (false, Messages.BookingSession.NotAuthorized, null, null);
+
+            var trainee = await _unitOfWork.Users.GetByIdAsync(session.TraineeId);
+            if (trainee == null)
+                return (false, Messages.BookingSession.TraineeNotFound, null, null);
+
+            bool isMentorBusy = await _bookingSessionRepository
+                .IsUserBusyAsync(session.MentorId, session.StartTime, session.EndTime, RoleName.Mentor);
+
+            if (isMentorBusy)
+                return (false, Messages.BookingSession.MentorAlreadyBusy, null, null);
+
+            return (true, null, session, trainee);
+        }
 
         private List<(DateTime Start, DateTime End)> GetRawFreeIntervals(
             List<(DateTime Start, DateTime End)> baseAvailabilities,
@@ -245,50 +321,53 @@ namespace LearningHub.Application.Services
             return freeIntervals;
         }
 
+        private List<AvailableSlotsResponse> GenerateSlotsFromIntervals(
+            List<(DateTime Start, DateTime End)> freeIntervals,
+            int durationMinutes,
+            int bufferTime,
+            DateTime currentTime)
+        {
+            List<AvailableSlotsResponse> availableSlots = new List<AvailableSlotsResponse>();
+
+            foreach (var interval in freeIntervals)
+            {
+                DateTime slotStart = interval.Start;
+
+                while (slotStart.AddMinutes(durationMinutes) <= interval.End)
+                {
+                    DateTime slotEnd = slotStart.AddMinutes(durationMinutes);
+
+                    if (slotStart > currentTime)
+                    {
+                        availableSlots.Add(new AvailableSlotsResponse
+                        {
+                            StartTime = slotStart,
+                            EndTime = slotEnd
+                        });
+                    }
+
+                    slotStart = slotEnd.AddMinutes(bufferTime);
+                }
+            }
+
+            return availableSlots;
+        }
+
         private async Task SendNotificationEmailToMentorAsync(string mentorEmail, BookingSession session)
         {
-            string timeRange = $"{session.StartTime:HH:mm} - {session.EndTime:HH:mm}";
-            string dateStr = $"{session.StartTime:MM/dd/yyyy}";
-            string emailBody = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
-                    <h3 style='color: #2b6cb0; margin-top: 0;'>🔔 Notification: New Session Booking Request</h3>
-                    <p>Dear Mentor,</p>
-                    <p>A trainee has submitted a new session booking request that is currently awaiting your review:</p>
-            
-                    <div style='background-color: #edf2f7; padding: 12px; border-radius: 6px; margin: 15px 0; font-size: 14px;'>
-                        <p style='margin: 4px 0;'><strong>Date:</strong> {dateStr}</p>
-                        <p style='margin: 4px 0;'><strong>Time:</strong> {timeRange}</p>
-                    </div>
+            string timeRange = DateTimeUtils.ToTimeRangeString(session.StartTime, session.EndTime);
+            string dateStr = DateTimeUtils.ToDateString(session.StartTime);
+            string emailBody = Messages.Email.RequestSessionBody(dateStr, timeRange);
 
-                    <p>Please log in to the website and navigate to your <strong>Session Management</strong> page to review and process this request.</p>
-            
-                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
-                    <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
-                </div>";
-
-            await _notificationService.SendMessageAsync(mentorEmail, "New Session Booking Request", emailBody);
+            await _notificationService.SendMessageAsync(mentorEmail, Messages.Email.NewRequestSubject, emailBody);
         }
 
         private async Task SendNotificationEmailToTraineeAsync(string traineeEmail, BookingSession session)
         {
-            string timeRange = $"{session.StartTime:HH:mm} - {session.EndTime:HH:mm}";
-            string dateStr = $"{session.StartTime:MM/dd/yyyy}";
-            string emailBody = $@"
-                <div style='font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>
-                    <h3 style='color: #2b6cb0; margin-top: 0;'>✅ Session Booking Approved</h3>
-                    <p>Dear Trainee,</p>
-                    <p>Your session booking request has been approved by the mentor. Here are the details of your upcoming session:</p>
-            
-                    <div style='background-color: #edf2f7; padding: 12px; border-radius: 6px; margin: 15px 0; font-size: 14px;'>
-                        <p style='margin: 4px 0;'><strong>Date:</strong> {dateStr}</p>
-                        <p style='margin: 4px 0;'><strong>Time:</strong> {timeRange}</p>
-                    </div>
-                    <p>Please make sure to be prepared for the session and log in to the website a few minutes before the scheduled time.</p>
-            
-                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />
-                    <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
-                </div>";
-            _= _notificationService.SendMessageAsync(traineeEmail, "Session Booking Approved", emailBody);
+            string timeRange = DateTimeUtils.ToTimeRangeString(session.StartTime, session.EndTime);
+            string dateStr = DateTimeUtils.ToDateString(session.StartTime);
+            string emailBody = Messages.Email.AprroveSessionBody(dateStr, timeRange);
+            await _notificationService.SendMessageAsync(traineeEmail, Messages.Email.ApprovedSubject, emailBody);
         }
     }
 }

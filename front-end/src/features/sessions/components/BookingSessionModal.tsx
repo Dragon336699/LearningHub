@@ -9,15 +9,22 @@ interface BookSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   mentorId: string;
-  traineeId: string;
 }
 
-export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onClose, mentorId, traineeId }) => {
+const getLocalDateString = () => {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
+export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onClose, mentorId }) => {
   const dispatch = useAppDispatch();
+  const todayStr = getLocalDateString();
   
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<string>(todayStr);
   const [durationType, setDurationType] = useState<number | "">("");
-  const [sessionType, setSessionType] = useState<number | "">("");
+  const [sessionType, setSessionType] = useState<number | "">(1);  
   const [topic, setTopic] = useState<string>("");
   
   const [availableSlots, setAvailableSlots] = useState<AvailableSlotsResponse[]>([]);
@@ -26,6 +33,17 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setDate(todayStr);
+      setDurationType("");
+      setSessionType(1);
+      setTopic("");
+      setSelectedSlotIndex("");
+      setErrorMsg(null);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -57,8 +75,10 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
       }
     };
 
-    fetchSlots();
-  }, [date, durationType, mentorId]);
+    if (isOpen) {
+      fetchSlots();
+    }
+  }, [date, durationType, mentorId, isOpen]);
 
   if (!isOpen) return null;
 
@@ -73,7 +93,6 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
     
     try {
       await dispatch(createBookingSession({
-        traineeId,
         mentorId,
         sessionType: Number(sessionType),
         topic,
@@ -118,7 +137,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
               <input
                 type="date"
                 required
-                min={new Date().toISOString().split("T")[0]}
+                min={todayStr}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
@@ -158,7 +177,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
                 {isLoadingSlots 
                   ? "Loading slots..." 
                   : availableSlots.length === 0 
-                    ? "Select date & type first" 
+                    ? "No slots available for this configuration" 
                     : "Choose a time slot..."}
               </option>
               {availableSlots.map((slot, index) => (
@@ -167,39 +186,46 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
                 </option>
               ))}
             </select>
-            {availableSlots.length === 0 && date && durationType !== "" && !isLoadingSlots && (
-              <p className="text-xs text-red-400 mt-1">No slots available. Try another date.</p>
-            )}
+            {/* {availableSlots.length === 0 && date && durationType !== "" && !isLoadingSlots && (
+              <p className="text-xs text-red-400 mt-1">No slots available.</p>
+            )} */}
           </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                <MapPin className="h-4 w-4" /> Session Type
-              </label>
-              <select
-                required
-                value={sessionType}
-                onChange={(e) => setSessionType(Number(e.target.value))}
-                className="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-              >
-                <option value="" disabled>Select session type...</option>
-                <option value={1}>Virtual</option>
-                <option value={2}>Direct</option>
-              </select>
-            </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" /> What would you like to discuss?
+              <MapPin className="h-4 w-4" /> Session Type
             </label>
-            <textarea
-              rows={3}
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="E.g., I want to review my CV and practice system design interview..."
-              className="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors resize-none"
-            />
+            <select
+              required
+              value={sessionType}
+              onChange={(e) => setSessionType(Number(e.target.value))}
+              className="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+            >
+              <option value="" disabled>Select session type...</option>
+              <option value={1}>Virtual</option>
+              <option value={2}>Direct</option>
+            </select>
           </div>
+
+          <div className="space-y-1.5">
+  <div className="flex justify-between items-center">
+    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+      <MessageSquare className="h-4 w-4" /> What would you like to discuss?
+    </label>
+    <span className="text-xs text-gray-400">
+      {topic.length}/100
+    </span>
+  </div>
+  
+  <textarea
+    rows={3}
+    maxLength={100} 
+    value={topic}
+    onChange={(e) => setTopic(e.target.value)}
+    placeholder="E.g., I want to review my CV and practice system design interview..."
+    className="w-full bg-gray-900 border border-gray-700 rounded-md p-2.5 text-white text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors resize-none"
+  />
+</div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
             <button
@@ -212,7 +238,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || availableSlots.length === 0 || selectedSlotIndex === ""}
+              disabled={isSubmitting || availableSlots.length === 0 || selectedSlotIndex === "" || sessionType === ""}
               className="px-6 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"
             >
               {isSubmitting ? (

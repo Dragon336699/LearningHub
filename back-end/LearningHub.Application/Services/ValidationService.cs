@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Interfaces.Services;
 
 namespace LearningHub.Application.Services
@@ -24,6 +24,7 @@ namespace LearningHub.Application.Services
             {
                 var errors = validationResult.Errors
                     .Select(e => e.ErrorMessage)
+                    .Distinct()
                     .ToList();
                 return Result<T>.Failure(errors);
             }

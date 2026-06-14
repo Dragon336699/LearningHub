@@ -13,9 +13,13 @@ import { AdminCoursesPage } from "../features/courses/pages/AdminCoursesPage";
 import { TraineeCoursesPage } from "../features/courses/pages/TraineeCoursesPage";
 import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 import ProtectedLoginRoute from "./ProtectedAuthRoute";
+import { MentorAvailabilityPage } from "../features/mentor-availability/pages/MentorAvailabilityPage";
 import FindMentorPage from "../features/users/pages/FindMentorPage";
 import { UserManagementPage } from "../features/users/pages/UserManagementPage";
 import { SessionPage } from "../features/sessions/pages/SessionPage";
+import { ResourcePage } from "../features/resources/pages/ResourcePage";
+import { TermsPage } from "../features/auth/components/TermsPage";
+import { PrivacyPage } from "../features/auth/components/PrivacyPage";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +38,16 @@ export const router = createBrowserRouter([
         path: URL_ROUTES.REGISTER,
         element:
           <ProtectedLoginRoute><RegisterPage /></ProtectedLoginRoute>,
+      },
+      {
+        path: URL_ROUTES.TERM,
+        element:
+          <ProtectedLoginRoute><TermsPage /></ProtectedLoginRoute>,
+      },
+      {
+        path: URL_ROUTES.PRIVACY,
+        element:
+          <ProtectedLoginRoute><PrivacyPage /></ProtectedLoginRoute>,
       },
       {
         path: URL_ROUTES.CHECK_EMAIL,
@@ -66,6 +80,12 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: URL_ROUTES.MENTOR_AVAILABILITY,
+            element: (
+              <ProtectedRoute allowedRoles={["Mentor"]}><MentorAvailabilityPage /></ProtectedRoute>
+            ),
+          },
+          {
             path: URL_ROUTES.All_COURSES,
             element: (
               <ProtectedRoute allowedRoles={["Admin"]}><AdminCoursesPage /></ProtectedRoute>
@@ -75,6 +95,12 @@ export const router = createBrowserRouter([
             path: URL_ROUTES.TRAINEE_COURSES,
             element: (
               <ProtectedRoute allowedRoles={["Trainee"]}><TraineeCoursesPage /></ProtectedRoute>
+            ),
+          },
+          {
+            path: URL_ROUTES.RESOURCE,
+            element: (
+              <ProtectedRoute allowedRoles={["Mentor", "Trainee"]}><ResourcePage /></ProtectedRoute>
             ),
           },
           {

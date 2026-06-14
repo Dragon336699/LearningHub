@@ -1,6 +1,7 @@
 ﻿using LearningHub.Application.Interfaces.Repositories;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LearningHub.Infrastructure.UnitOfWork
@@ -15,6 +16,9 @@ namespace LearningHub.Infrastructure.UnitOfWork
         public ICourseRepository Courses { get; }
         public IUserRepository Users { get; }
         public IBookingSessionRepository BookingSessions { get; }
+        public IAvailabilitySlotRepository AvailabilitySlots { get; }
+        public IUserAvailabilitySettingRepository UserAvailabilitySetting { get; }
+        public IResourceRepository Resources { get; }
         public ICourseTraineeRepository CourseTrainees { get; }
         public IRoleRepository Roles { get; }
         public UnitOfWork(
@@ -24,6 +28,11 @@ namespace LearningHub.Infrastructure.UnitOfWork
             ICertificateRepository certificateRepository,
             ICourseRepository courseRepository,
             IUserRepository userRepository,
+            IBookingSessionRepository bookingSessionRepository,
+            IAvailabilitySlotRepository availabilitySlotRepository,
+            IUserAvailabilitySettingRepository userAvailabilitySettingRepository,
+            IResourceRepository resourceRepository
+        )
             IBookingSessionRepository bookingSessionRepository,
             ICourseTraineeRepository courseTraineeRepository,
             IRoleRepository roleRepository
@@ -36,6 +45,9 @@ namespace LearningHub.Infrastructure.UnitOfWork
             Courses = courseRepository;
             Users = userRepository;
             BookingSessions = bookingSessionRepository;
+            AvailabilitySlots = availabilitySlotRepository;
+            UserAvailabilitySetting = userAvailabilitySettingRepository;
+            Resources = resourceRepository;
             CourseTrainees = courseTraineeRepository;
             Roles = roleRepository;
         }
@@ -77,6 +89,11 @@ namespace LearningHub.Infrastructure.UnitOfWork
         public void Dispose()
         {
             _context.Dispose();
+        }
+
+        public void UpdateRange<T>(IEnumerable<T> entities) where T : class
+        {
+            _context.UpdateRange(entities);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using LearningHub.Application.Common.Results;
 using Microsoft.EntityFrameworkCore;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Courses;
@@ -74,11 +75,13 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<CourseDto>>.Success(pageCourses);
         }
 
-        public async Task<Result<PagedResult<CourseDto>>> GetCoursesByMentor(int page, int pageSize, Guid mentorId)
+        public async Task<Result<PagedResult<CourseDto>>> GetCoursesByMentor(int page, int pageSize, string? keyword, Guid mentorId)
         {
-            List<Course> courses = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, mentorId);
+            keyword  = keyword?.Trim() ?? "";
 
-            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == mentorId);
+            List<Course> courses = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, keyword, mentorId);
+
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == mentorId && c.Title.Contains(keyword));
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 

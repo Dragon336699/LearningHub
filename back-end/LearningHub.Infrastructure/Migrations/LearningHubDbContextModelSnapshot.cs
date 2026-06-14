@@ -37,6 +37,31 @@ namespace LearningHub.Infrastructure.Migrations
                     b.ToTable("ExpertiseUser");
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.AvailabilitySlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserAvailabilitySettingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserAvailabilitySettingId");
+
+                    b.ToTable("AvailabilitySlots");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.BookingSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -62,7 +87,6 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Topic")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TraineeId")
@@ -157,7 +181,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Course");
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.CourseTrainee", b =>
@@ -290,6 +314,43 @@ namespace LearningHub.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.Resource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("Resource");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -418,6 +479,37 @@ namespace LearningHub.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.UserAvailabilitySetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("BufferTimeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SessionDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("SettingDay")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeOnly>("WorkEndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly>("WorkStartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAvailabilitySettings");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
@@ -536,6 +628,17 @@ namespace LearningHub.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.AvailabilitySlot", b =>
+                {
+                    b.HasOne("LearningHub.Domain.Entities.UserAvailabilitySetting", "UserAvailabilitySetting")
+                        .WithMany("AvailabilitySlots")
+                        .HasForeignKey("UserAvailabilitySettingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserAvailabilitySetting");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.BookingSession", b =>
                 {
                     b.HasOne("LearningHub.Domain.Entities.User", "Mentor")
@@ -607,6 +710,28 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.Resource", b =>
+                {
+                    b.HasOne("LearningHub.Domain.Entities.Course", "Course")
+                        .WithMany("Resources")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("LearningHub.Domain.Entities.UserAvailabilitySetting", b =>
+                {
+                    b.HasOne("LearningHub.Domain.Entities.User", "User")
+                        .WithMany("UserAvailabilitySettings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("LearningHub.Domain.Entities.Role", null)
@@ -660,6 +785,11 @@ namespace LearningHub.Infrastructure.Migrations
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Course", b =>
                 {
+                    b.Navigation("Resources");
+                });
+
+            modelBuilder.Entity("LearningHub.Domain.Entities.Course", b =>
+                {
                     b.Navigation("CourseTrainees");
                 });
 
@@ -670,6 +800,13 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Navigation("Courses");
 
                     b.Navigation("Experiences");
+
+                    b.Navigation("UserAvailabilitySettings");
+                });
+
+            modelBuilder.Entity("LearningHub.Domain.Entities.UserAvailabilitySetting", b =>
+                {
+                    b.Navigation("AvailabilitySlots");
                 });
 #pragma warning restore 612, 618
         }

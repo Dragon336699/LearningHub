@@ -42,7 +42,7 @@ namespace LearningHub.Infrastructure.Repositories
         {
             IQueryable<T> query = _context.Set<T>();
             if (filter != null)
-                query.Where(filter);
+                query = query.Where(filter);
 
             return await query
                 .Skip((page - 1) * pageSize)
@@ -86,6 +86,17 @@ namespace LearningHub.Infrastructure.Repositories
             return await query.FirstOrDefaultAsync(predicate);
         }
 
+        public async Task<List<T>> GetListWithConditionAndIncludeAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _context.Set<T>();
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.Where(predicate).ToListAsync();
+        }
+
 
         public async Task<List<T>> GetByIdsAsync(IEnumerable<Guid> ids)
         {
@@ -108,6 +119,11 @@ namespace LearningHub.Infrastructure.Repositories
         public void Update(T entity)
         {
             _context.Set<T>().Update(entity);
+        }
+
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            _context.UpdateRange(entities);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using LearningHub.API.Contracts.Common;
 using LearningHub.API.Contracts.Users;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
@@ -45,7 +45,7 @@ namespace LearningHub.API.Controllers
         public async Task<IActionResult> SearchUsersProfile([FromQuery] SearchUserProfileCommand request)
         {
             var validationResult = await _validationService.ValidateAsync(request);
-            
+
             if (!validationResult.IsSuccess)
             {
                 return BadRequest(validationResult);

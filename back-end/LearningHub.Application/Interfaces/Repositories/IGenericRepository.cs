@@ -14,10 +14,12 @@ namespace LearningHub.Application.Interfaces.Repositories
         void RemoveRange(IEnumerable<T> entities);
         Task<T?> GetByIdAsync(Guid id);
         Task<T?> GetWithConditionAndIncludeAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
+        Task<List<T>> GetListWithConditionAndIncludeAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
         Task<List<T>> GetByIdsAsync(IEnumerable<Guid> ids);
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> expression);
         void Update(T entity);
+        void UpdateRange(IEnumerable<T> entities);
     }
 }

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using LearningHub.Application.Common;
+using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
 using LearningHub.Application.Interfaces.Services;
@@ -76,7 +76,8 @@ namespace LearningHub.Application.Services
             List<Guid> expertiseIds = command.ExpertiseIds;
 
             var usersFilteredByKeyword = userDtos
-                .Where(u => (u.FirstName.ToLower().Contains(command.Keyword.ToLower()) && !string.IsNullOrEmpty(u.FirstName)) || (u.LastName?.ToLower().Contains(command.Keyword.ToLower()) == true && !string.IsNullOrEmpty(u.LastName)));
+                .Where(u => (u.FirstName.ToLower().Contains(command.Keyword.ToLower()) && !string.IsNullOrEmpty(u.FirstName)) 
+                || (u.LastName?.ToLower().Contains(command.Keyword.ToLower()) == true && !string.IsNullOrEmpty(u.LastName)));
 
             if (command.ExpertiseIds?.Count == 0)
             {

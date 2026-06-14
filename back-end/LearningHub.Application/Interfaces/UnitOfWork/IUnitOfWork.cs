@@ -10,6 +10,9 @@ namespace LearningHub.Application.Interfaces.UnitOfWork
         ICourseRepository Courses { get; }
         IUserRepository Users { get; }
         IBookingSessionRepository BookingSessions { get; }
+        IAvailabilitySlotRepository AvailabilitySlots { get; }
+        IUserAvailabilitySettingRepository UserAvailabilitySetting { get; }
+        IResourceRepository Resources { get; }
         ICourseTraineeRepository CourseTrainees { get; }
         IRoleRepository Roles { get; }
         int Complete();
