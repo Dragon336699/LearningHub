@@ -10,6 +10,6 @@ namespace LearningHub.Application.Interfaces.Repositories
         Task<List<Course>> GetCoursesByTrainee(int page, int pageSize);
         Task<List<Course>> GetCoursesByTraineeAsync(int page, int pageSize, Guid traineeId);
         Task<int> GetTotalCoursesByTraineeAsync(Guid traineeId);
-        Task<List<CourseTraineeDto>> GetTraineesWithEnrollmentStatusAsync(Guid courseId);
+        Task<List<CourseTraineeDto>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string keyword);
     }
 }

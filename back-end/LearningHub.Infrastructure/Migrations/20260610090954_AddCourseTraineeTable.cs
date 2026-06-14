@@ -31,7 +31,7 @@ namespace LearningHub.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_CourseTrainee_Course_CourseId",
                         column: x => x.CourseId,
-                        principalTable: "Course",
+                        principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });

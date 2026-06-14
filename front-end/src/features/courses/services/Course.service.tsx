@@ -45,9 +45,9 @@ export const courseService = {
         const response = await HttpClient.delete<Result<void>>(`${API_ROUTES.COURSE.COMMON}/${courseId}?testUserId=019E7253-728A-7FDD-87C0-8C4A2D081CF6`);
         return response;
     },
-    getTraineesStatusByCourse: async (courseId: string): Promise<Result<CourseTraineeDto[]>> => {
+    getTraineesStatusByCourse: async (courseId: string, keyword: string): Promise<Result<CourseTraineeDto[]>> => {
         return HttpClient.get<Result<CourseTraineeDto[]>>(
-            `/courses/${courseId}/trainees`
+            `/courses/${courseId}/trainees?keyword=${keyword}`
         );
     },
     assignTrainees: async (payload: { courseId: string; traineeIds: string[] }): Promise<Result<string>> => {

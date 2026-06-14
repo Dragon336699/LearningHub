@@ -25,7 +25,7 @@ export const useLoadCourseOptions = () => {
   ) => {
     const page = additional?.page ?? 1;
     const response = await courseService.getCoursesByMentor(page, 10, search);
-
+    if (!response) return;
     return {
       options: response.items.map((course) => ({
         value: course.id,
@@ -83,3 +83,10 @@ export const useDeleteCourse = () => {
       await courseService.deleteCourse(courseId),
   });
 };
+
+export const usegetTraineesStatusByCourse = (courseId: string, keyword: string) => {
+  return useQuery({
+    queryKey: ["trainee-course", courseId, keyword],
+    queryFn: async () => await courseService.getTraineesStatusByCourse(courseId, keyword)
+  })
+}

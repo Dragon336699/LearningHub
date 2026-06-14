@@ -201,9 +201,9 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Mentor")]
         [HttpGet]
         [Route("{courseId}/trainees")]
-        public async Task<IActionResult> GetTraineesStatusByCourse(Guid courseId)
+        public async Task<IActionResult> GetTraineesStatusByCourse(Guid courseId, [FromQuery] string? keyword)
         {
-            var result = await _courseService.GetTraineesWithEnrollmentStatusAsync(courseId);
+            var result = await _courseService.GetTraineesWithEnrollmentStatusAsync(courseId, keyword);
 
             if (!result.IsSuccess)
             {

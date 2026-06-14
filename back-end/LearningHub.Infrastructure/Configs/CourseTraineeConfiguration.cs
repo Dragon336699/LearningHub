@@ -16,7 +16,7 @@ namespace LearningHub.Infrastructure.Configs
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(ct => ct.Trainee)
-                .WithMany()
+                .WithMany(t => t.CourseTrainees)
                 .HasForeignKey(ct => ct.TraineeId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
