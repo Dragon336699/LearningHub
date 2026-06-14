@@ -80,7 +80,7 @@ namespace LearningHub.Application.Services
 
             List<Course> courses = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, keyword, mentorId);
 
-            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == mentorId);
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == mentorId && c.Title.Contains(keyword));
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 

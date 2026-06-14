@@ -3,20 +3,28 @@ import {
   fetchExpertises,
   searchMentors,
 } from "../../../store/thunks/userThunks";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { useAppDispatch } from "../../../store/hooks";
 import { useNavigate } from "react-router-dom";
+import { Pagination } from "../../../shared/ui/components/Pagination";
+import { ThreeColumnsPageSizeOptions } from "../../../shared/types/pageSizeOptions";
+import { PagedResult } from "../../../shared/types/pagedResult";
+import { User } from "../../../types/user";
 
 export const FindMentorPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const [expertises, setExpertises] = useState<any[]>([]);
-  const [mentors, setMentors] = useState<any[]>([]);
+  const [mentors, setMentors] = useState<PagedResult<User>>();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
   const [keyword, setKeyword] = useState("");
   const [selectedExpertiseIds, setSelectedExpertiseIds] = useState<string[]>(
     [],
+  );
+  const totalPages = Math.ceil(
+    (mentors?.totalCount ?? 0) / pageSize
   );
 
   useEffect(() => {
@@ -27,25 +35,30 @@ export const FindMentorPage = () => {
       }
     };
     initData();
+
+    console.log(mentors);
+
   }, [dispatch]);
 
+  const fetchFilteredMentors = async () => {
+    setIsLoading(true);
+    const trimmedKeyword = keyword.trim();
+    const actionResult = await dispatch(
+      searchMentors({
+        keyword: trimmedKeyword,
+        expertiseIds: selectedExpertiseIds,
+        page: page,
+        pageSize: pageSize
+      }),
+    );
+
+    if (searchMentors.fulfilled.match(actionResult)) {
+      setMentors(actionResult.payload);
+    }
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    const fetchFilteredMentors = async () => {
-      setIsLoading(true);
-      const trimmedKeyword = keyword.trim();
-      const actionResult = await dispatch(
-        searchMentors({
-          keyword: trimmedKeyword,
-          expertiseIds: selectedExpertiseIds,
-        }),
-      );
-
-      if (searchMentors.fulfilled.match(actionResult)) {
-        setMentors(actionResult.payload);
-      }
-      setIsLoading(false);
-    };
-
     const delayDebounceFn = setTimeout(() => {
       fetchFilteredMentors();
     }, 500);
@@ -53,11 +66,22 @@ export const FindMentorPage = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [keyword, selectedExpertiseIds, dispatch]);
 
+  useEffect(() => {
+    fetchFilteredMentors();
+  }, [page, pageSize]);
+
   const toggleExpertise = (id: string) => {
     setSelectedExpertiseIds((prev) =>
       prev.includes(id) ? prev.filter((expId) => expId !== id) : [...prev, id],
     );
   };
+
+  const handleChangePageSize = (newPageSize: number) => {
+    const firstItemIndex = (page - 1) * pageSize + 1;
+    const newPage = Math.ceil(firstItemIndex / newPageSize);
+    setPage(newPage);
+    setPageSize(newPageSize);
+  }
 
   return (
     <main className="flex-1 overflow-y-auto bg-gray-900 p-6 min-h-screen text-gray-200">
@@ -110,11 +134,10 @@ export const FindMentorPage = () => {
                   <button
                     key={exp.id}
                     onClick={() => toggleExpertise(exp.id)}
-                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                      isSelected
-                        ? "bg-orange-500 text-white hover:bg-orange-600"
-                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${isSelected
+                      ? "bg-orange-500 text-white hover:bg-orange-600"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                      }`}
                   >
                     {exp.expertiseName}
                   </button>
@@ -133,11 +156,11 @@ export const FindMentorPage = () => {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mentors.length === 0 && !isLoading && (
+            {mentors?.items.length === 0 && !isLoading && (
               <p className="text-gray-400">No mentors found.</p>
             )}
 
-            {mentors.map((mentor) => (
+            {mentors?.items.map((mentor) => (
               <div
                 key={mentor.id}
                 className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
@@ -209,6 +232,18 @@ export const FindMentorPage = () => {
             ))}
           </div>
         </div>
+        {mentors && mentors.totalCount > 0 && (
+          <div className="mt-6 mb-4">
+            <Pagination
+              pageSizeOptions={ThreeColumnsPageSizeOptions.map(size => ({ label: size, value: size }))}
+              currentPage={page}
+              currentPageSize={pageSize}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              onPageSizeChange={handleChangePageSize}
+            />
+          </div>
+        )}
       </main>
     </main>
   );

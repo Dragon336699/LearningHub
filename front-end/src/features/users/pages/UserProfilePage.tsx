@@ -379,10 +379,10 @@ export const UserProfilePage = () => {
 
                   <div className="mt-6 md:mt-0 flex gap-3">
 
-                    {!isCurrentUser && profileIsMentor && (
+                    {!isCurrentUser && profileIsMentor && !currentIsAdmin && !currentIsMentor && (
                       <button
                         className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20"
-                        onClick={() => setIsBookModalOpen(true)}>
+                        onClick={() => setIsBookModalOpen(true)}>c
                         Book a Session
                       </button>
                     )}

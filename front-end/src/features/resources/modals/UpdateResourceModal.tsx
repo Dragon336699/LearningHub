@@ -35,7 +35,6 @@ export const UpdateResourceModal = ({ data, isLoading, onSubmit, onClose }: Upda
     const {
         register,
         reset,
-        setValue,
         handleSubmit,
         control,
         watch,
