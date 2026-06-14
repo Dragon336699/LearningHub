@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { DialogShell } from "../../../shared/ui/components/DialogShell"
 import { Course } from "../types/Course.types";
+import { AssignTraineesModal } from "./AssignTraineesModal";
 
 type ViewCourseDetailModalProps = {
     course: Course;
+    userRole: string;
     onClose: () => void;
 }
 
@@ -12,7 +15,9 @@ const statusColors = {
     "Archived": "text-info"
 };
 
-export const ViewCourseDetailModal = ({ course, onClose }: ViewCourseDetailModalProps) => {
+export const ViewCourseDetailModal = ({ course, userRole, onClose }: ViewCourseDetailModalProps) => {
+    const [showAssignModal, setShowAssignModal] = useState(false);
+
     const formatDate = (date: Date) => {
         return new Date(date).toLocaleDateString();
     }
@@ -57,6 +62,30 @@ export const ViewCourseDetailModal = ({ course, onClose }: ViewCourseDetailModal
                     {course.learningObjectives}
                 </p>
             </div>
+
+            <div className="mt-6 flex justify-end gap-3 border-t border-slate-800 pt-4">                
+                {/* Only allow assigns if Published */}
+                {course.status === "Published" && userRole == "Mentor" && (
+                    <button
+                        type="button"
+                        onClick={() => setShowAssignModal(true)}
+                        className="px-5 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-all duration-200"
+                    >
+                    Assign Trainees
+                    </button>
+                )}
+            </div>
+
+            {showAssignModal && (
+                <AssignTraineesModal
+                    courseId={course.id}
+                    courseTitle={course.title}
+                    onClose={() => setShowAssignModal(false)} 
+                    onSuccess={() => {
+                        setShowAssignModal(false);
+                    }}
+                />
+            )}
         </DialogShell>
     )
 }

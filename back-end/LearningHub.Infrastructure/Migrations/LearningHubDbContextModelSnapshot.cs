@@ -160,6 +160,27 @@ namespace LearningHub.Infrastructure.Migrations
                     b.ToTable("Course");
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.CourseTrainee", b =>
+                {
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Progress")
+                        .HasColumnType("int");
+
+                    b.HasKey("CourseId", "TraineeId");
+
+                    b.HasIndex("TraineeId");
+
+                    b.ToTable("CourseTrainee");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
                 {
                     b.Property<Guid>("Id")
@@ -556,6 +577,25 @@ namespace LearningHub.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LearningHub.Domain.Entities.CourseTrainee", b =>
+                {
+                    b.HasOne("LearningHub.Domain.Entities.Course", "Course")
+                        .WithMany("CourseTrainees")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LearningHub.Domain.Entities.User", "Trainee")
+                        .WithMany()
+                        .HasForeignKey("TraineeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Trainee");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
                 {
                     b.HasOne("LearningHub.Domain.Entities.User", "User")
@@ -616,6 +656,11 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LearningHub.Domain.Entities.Course", b =>
+                {
+                    b.Navigation("CourseTrainees");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.User", b =>

@@ -14,5 +14,6 @@ namespace LearningHub.Application.Interfaces.Services
         Task<Result<string>> DeleteAvatar(Guid userId);
         Task<Result<string>> ChangeUserStatus(UpdateUserStatusCommand command, Guid userId);
         Task<Result<PagedResult<UserDto>>> GetAllUsersForManagementAsync(int page, int pageSize, string? keyword);
+        Task<Result<List<UserDto>>> GetAllTraineesAsync();
     }
 }

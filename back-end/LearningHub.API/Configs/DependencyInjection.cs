@@ -34,6 +34,10 @@ namespace LearningHub.API.Configs
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
+            services.AddScoped<ICourseTraineeRepository, CourseTraineeRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+
+            //seeders
 
             //services
             services.AddScoped<IUserService, UserService>();
@@ -44,6 +48,7 @@ namespace LearningHub.API.Configs
             services.AddScoped<IFileStorageService, FileStorageService>();
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<IBookingSessionService, BookingSessionService>();
+            
 
             services.AddAutoMapper(typeof(ExperienceMappingProfile).Assembly);
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Interfaces.Services;
@@ -174,5 +175,68 @@ namespace LearningHub.Application.Services
             _unitOfWork.Courses.Remove(course);
             await _unitOfWork.CompleteAsync();
         }
+
+        public async Task<Result<string>> AssignTraineesToCourseAsync(AssignTraineesCommand command)
+        {
+            var course = await _unitOfWork.Courses.GetByIdAsync(command.CourseId);
+            if (course == null) return Result<string>.Failure("Course not found.");
+            if (course.Status != CourseStatus.Published) 
+            {
+                return Result<string>.Failure("Cannot assign trainees to an unpublished course.");
+            }
+
+            foreach (var traineeId in command.TraineeIds)
+            {
+                var existingEnrollment = await _unitOfWork.CourseTrainees
+                    .FirstOrDefaultAsync(ct => ct.CourseId == command.CourseId && ct.TraineeId == traineeId);
+
+                if (existingEnrollment == null)
+                {
+                    var enrollment = new CourseTrainee
+                    {
+                        CourseId = command.CourseId,
+                        TraineeId = traineeId,
+                        AssignedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.CourseTrainees.AddAsync(enrollment);
+                }
+            }
+
+            await _unitOfWork.CompleteAsync();
+            return Result<string>.Success($"Successfully assigned {command.TraineeIds.Count} trainees to the course.");
+        }
+
+        public async Task<Result<PagedResult<CourseDto>>> GetEnrolledCoursesForTraineeAsync(int page, int pageSize, Guid traineeId)
+        {
+            List<Course> enrolledCourses = await _unitOfWork.Courses.GetCoursesByTraineeAsync(page, pageSize, traineeId);
+
+            int totalCourses = await _unitOfWork.Courses.GetTotalCoursesByTraineeAsync(traineeId);
+
+            List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(enrolledCourses);
+
+            PagedResult<CourseDto> pageCourses = new PagedResult<CourseDto>
+            {
+                Items = coursesDto,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCourses
+            };
+
+            return Result<PagedResult<CourseDto>>.Success(pageCourses);
+        }
+
+        public async Task<Result<List<CourseTraineeDto>>> GetTraineesWithEnrollmentStatusAsync(Guid courseId)
+        {
+            var allUsersWithStatus = await _unitOfWork.Courses.GetTraineesWithEnrollmentStatusAsync(courseId);
+
+            var roles = await _unitOfWork.Roles.GetAllAsync();
+            var traineeRole = roles.FirstOrDefault(r => r.Name == "Trainee");
+
+            if (traineeRole == null) return Result<List<CourseTraineeDto>>.Success(allUsersWithStatus);
+
+            var filteredTrainees = allUsersWithStatus.Where(u => u.RoleId == traineeRole.Id).ToList();
+            return Result<List<CourseTraineeDto>>.Success(filteredTrainees);
+        }
     }
+    
 }

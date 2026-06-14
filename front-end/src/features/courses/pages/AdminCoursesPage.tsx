@@ -50,7 +50,7 @@ export const AdminCoursesPage = () => {
 
                 return {
                     ...oldData,
-                    items: oldData.items.map((item: Course) => item.id === updatedCourse.id ? updatedCourse : item)
+                    items: oldData.items.map((item: Course) => item.id === updatedCourse?.id ? updatedCourse : item)
                 };
             });
 
@@ -176,6 +176,7 @@ export const AdminCoursesPage = () => {
             {isViewModalOpen && (
                 <ViewCourseDetailModal
                     course={selectedCourse!}
+                    userRole="Admin"
                     onClose={() => setIsViewModalOpen(false)}
                 />
             )}

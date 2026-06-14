@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { fetchAllUsersForAdmin } from "../../../store/thunks/userThunks";
 import { userService } from "../../../services/user.service";
@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Pagination } from "../../../shared/ui/components/Pagination";
 import { ConfirmModal } from "../../../shared/ui/components/ConfirmModal";
 import { toast } from "sonner";
-import { Result } from "../../../types/result";
+import { Result } from "../../../shared/types/result";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faCircleXmark, faExclamationCircle, faEye, faSearch, faUserSlash } from "@fortawesome/free-solid-svg-icons";
 

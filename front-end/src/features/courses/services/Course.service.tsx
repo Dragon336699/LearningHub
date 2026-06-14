@@ -1,10 +1,20 @@
 import { API_ROUTES } from "../../../configs/api_routes";
 import { HttpClient } from "../../../lib/client";
 import { PagedResult } from "../../../shared/types/pagedResult";
-import { Result } from "../../../types/result";
+import { Result } from "../../../shared/types/result";
 import { CreateCourseForm } from "../schemas/CreateCourseSchema";
 import { UpdateCourseForm } from "../schemas/UpdateCourseSchema";
 import { ChangeCourseStatusRequest, Course } from "../types/Course.types";
+
+export interface CourseTraineeDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  isEnrolled: boolean;
+  trainingStatus: string;
+}
 
 export const courseService = {
     createCourse: async (course: CreateCourseForm) => {
@@ -34,5 +44,16 @@ export const courseService = {
     deleteCourse: async (courseId: string) => {
         const response = await HttpClient.delete<Result<void>>(`${API_ROUTES.COURSE.COMMON}/${courseId}?testUserId=019E7253-728A-7FDD-87C0-8C4A2D081CF6`);
         return response;
+    },
+    getTraineesStatusByCourse: async (courseId: string): Promise<Result<CourseTraineeDto[]>> => {
+        return HttpClient.get<Result<CourseTraineeDto[]>>(
+            `/courses/${courseId}/trainees`
+        );
+    },
+    assignTrainees: async (payload: { courseId: string; traineeIds: string[] }): Promise<Result<string>> => {
+        return HttpClient.post<Result<string>>("/courses/assign", {
+            CourseId: payload.courseId,
+            TraineeIds: payload.traineeIds,
+        });
     },
 }

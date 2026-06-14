@@ -4,6 +4,7 @@ export const API_ROUTES = {
     ADMIN_GET_ALL: "/user/admin/users",
     UPDATE: "/user/profile",
     EXPERTISE: "/expertise",
+    GET_TRAINEES: "/user/trainees"
   },
   AUTH: {
     LOGIN: "/auth/login",

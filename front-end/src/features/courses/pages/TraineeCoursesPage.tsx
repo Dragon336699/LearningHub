@@ -100,6 +100,7 @@ export const TraineeCoursesPage = () => {
             {isViewModalOpen && (
                 <ViewCourseDetailModal
                     course={selectedCourse!}
+                    userRole="Trainee"
                     onClose={() => setIsViewModalOpen(false)}
                 />
             )}

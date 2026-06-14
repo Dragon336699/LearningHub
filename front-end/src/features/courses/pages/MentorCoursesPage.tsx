@@ -231,6 +231,7 @@ export const MentorCoursesPage = () => {
             {isViewModalOpen && (
                 <ViewCourseDetailModal
                     course={selectedCourse!}
+                    userRole="Mentor"
                     onClose={() => setIsViewModalOpen(false)}
                 />
             )}
