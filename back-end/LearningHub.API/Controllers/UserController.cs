@@ -51,7 +51,7 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<List<UserDto>> result = await _userService.SearchUserProfile(request);
+            Result<PagedResult<UserDto>> result = await _userService.SearchUserProfile(request);
 
             if (!result.IsSuccess)
             {

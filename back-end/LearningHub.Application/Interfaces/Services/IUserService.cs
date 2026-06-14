@@ -8,7 +8,7 @@ namespace LearningHub.Application.Interfaces.Services
     {
         Task<Result<UserDto>> GetUserProfile(Guid userId);
         Task<Result<UserDto>> UpdateUserProfile(UpdateUserProfileCommand command, Guid userId);
-        Task<Result<List<UserDto>>> SearchUserProfile(SearchUserProfileCommand command);
+        Task<Result<PagedResult<UserDto>>> SearchUserProfile(SearchUserProfileCommand command);
         Task<Result<UploadAvatarResponse>> UploadAvatarFile(FileUploadDto avatarFileUpload, Guid userId);
         Task<Result<string>> DeleteAvatar(Guid userId);
         Task<Result<string>> ChangeUserStatus(UpdateUserStatusCommand command, Guid userId);
