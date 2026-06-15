@@ -7,6 +7,7 @@ using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
+using LearningHub.Application.Common.Constants;
 
 namespace LearningHub.Application.Services
 {
@@ -33,7 +34,7 @@ namespace LearningHub.Application.Services
 
             if (rowAffected == 0)
             {
-                throw new Exception("No changes were saved");
+                throw new Exception(Messages.CourseMessage.NoChangesSaved);
             }
 
             return Result<CourseDto>.Success(_mapper.Map<CourseDto>(course));
@@ -121,12 +122,12 @@ namespace LearningHub.Application.Services
 
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course not found.");
+                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
             }
 
             if (course.UserId != userId)
             {
-                throw new UnauthorizedAccessException("You are not authorized to update this course.");
+                throw new UnauthorizedAccessException(Messages.CourseMessage.NotAuthorizedToUpdate);
             }
 
             course.Title = command.Title.Trim();
@@ -145,12 +146,19 @@ namespace LearningHub.Application.Services
 
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course not found.");
+                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
+            }
+
+            CourseTrainee? courseTrainee = await _unitOfWork.CourseTrainees.FirstOrDefaultAsync(ct => ct.CourseId == course.Id);
+
+            if (courseTrainee != null)
+            {
+                throw new Exception(Messages.CourseMessage.FailToChangeToDraft);
             }
 
             if (course.Status == command.Status)
             {
-                return Result<CourseDto>.Failure($"Course is already in {command.Status} status.");
+                return Result<CourseDto>.Failure(string.Format(Messages.CourseMessage.AlreadyInStatus, command.Status));
             }
 
             course.Status = command.Status;
@@ -167,12 +175,12 @@ namespace LearningHub.Application.Services
 
             if (course == null)
             {
-                throw new KeyNotFoundException($"Course not found.");
+                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
             }
 
             if (!isAdmin && course.UserId != userId)
             {
-                throw new UnauthorizedAccessException("You are not authorized to delete this course.");
+                throw new UnauthorizedAccessException(Messages.CourseMessage.NotAuthorizedToDelete);
             }
 
             _unitOfWork.Courses.Remove(course);
@@ -182,10 +190,10 @@ namespace LearningHub.Application.Services
         public async Task<Result<string>> AssignTraineesToCourseAsync(AssignTraineesCommand command)
         {
             var course = await _unitOfWork.Courses.GetByIdAsync(command.CourseId);
-            if (course == null) return Result<string>.Failure("Course not found.");
+            if (course == null) return Result<string>.Failure(Messages.CourseMessage.CourseNotFound);
             if (course.Status != CourseStatus.Published) 
             {
-                return Result<string>.Failure("Cannot assign trainees to an unpublished course.");
+                return Result<string>.Failure(Messages.CourseMessage.FailToAssignToUnpublish);
             }
 
             foreach (var traineeId in command.TraineeIds)
@@ -206,7 +214,7 @@ namespace LearningHub.Application.Services
             }
 
             await _unitOfWork.CompleteAsync();
-            return Result<string>.Success($"Successfully assigned {command.TraineeIds.Count} trainees to the course.");
+            return Result<string>.Success(string.Format(Messages.CourseMessage.SuccesfullyAssignTrainee, command.TraineeIds.Count()));
         }
 
         public async Task<Result<PagedResult<CourseDto>>> GetEnrolledCoursesForTraineeAsync(int page, int pageSize, Guid traineeId)

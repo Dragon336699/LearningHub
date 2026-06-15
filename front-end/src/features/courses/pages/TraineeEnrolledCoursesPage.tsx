@@ -3,13 +3,13 @@ import { Pagination } from "../../../shared/ui/components/Pagination";
 import { Course } from "../types/Course.types";
 import { ViewCourseDetailModal } from "../components/ViewCourseDetailModal";
 import { useTraineeEnrolledCourses } from "../hooks/Course.hook"; // Hook mới anh em mình vừa thống nhất
-import { CommonPageSizeOptions } from "../../../shared/types/pageSizeOptions";
+import { CommonPageSizeOptions, ThreeColumnsPageSizeOptions } from "../../../shared/types/pageSizeOptions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBook, faGraduationCap } from "@fortawesome/free-solid-svg-icons";
 
 export const TraineeEnrolledCoursesPage = () => {
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(6); 
+    const [pageSize, setPageSize] = useState(9); 
     const { data: pagedCourses, isLoading, isError } = useTraineeEnrolledCourses(page, pageSize);
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -72,10 +72,10 @@ export const TraineeEnrolledCoursesPage = () => {
                                         setSelectedCourse(course);
                                         setIsViewModalOpen(true);
                                     }}
-                                    className="w-full cursor-pointer rounded-xl bg-info px-4 py-2.5 text-sm font-medium text-white transition hover:bg-info-hover active:scale-95 flex items-center justify-center space-x-2"
+                                    className="w-full cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover active:scale-95 flex items-center justify-center space-x-2"
                                 >
                                     <FontAwesomeIcon icon={faGraduationCap} />
-                                    <span>Learn Now</span>
+                                    <span>View detail</span>
                                 </button>
                             </div>
                         </div>
@@ -93,7 +93,7 @@ export const TraineeEnrolledCoursesPage = () => {
             {pagedCourses && pagedCourses.totalCount > 0 && (
                 <div className="mt-8 mb-4">
                     <Pagination
-                        pageSizeOptions={CommonPageSizeOptions.map(size => ({ label: size, value: size }))}
+                        pageSizeOptions={ThreeColumnsPageSizeOptions.map(size => ({ label: size, value: size }))}
                         currentPage={page}
                         currentPageSize={pageSize}
                         totalPages={totalPages}

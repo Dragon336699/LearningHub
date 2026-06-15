@@ -19,6 +19,8 @@ namespace LearningHub.Infrastructure.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<UserAvailabilitySetting> UserAvailabilitySettings { get; set; }
         public DbSet<AvailabilitySlot> AvailabilitySlots { get; set; }
+        public DbSet<Resource> Resources { get; set; }
+        public DbSet<CourseTrainee> CourseTrainees { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

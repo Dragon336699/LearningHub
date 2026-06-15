@@ -59,8 +59,8 @@ export const AdminCoursesPage = () => {
 
             toast.success("Change course status successfully");
         } catch (error: Result<any> | any) {
-            if (error?.errors) {
-                error.errors.forEach((err: string) => toast.error(err));
+            if (error) {
+                error.forEach((err: string) => toast.error(err));
                 return;
             }
 
