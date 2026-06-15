@@ -1,10 +1,20 @@
 import { API_ROUTES } from "../../../configs/api_routes";
 import { HttpClient } from "../../../lib/client";
 import { PagedResult } from "../../../shared/types/pagedResult";
-import { Result } from "../../../types/result";
+import { Result } from "../../../shared/types/result";
 import { CreateCourseForm } from "../schemas/CreateCourseSchema";
 import { UpdateCourseForm } from "../schemas/UpdateCourseSchema";
 import { ChangeCourseStatusRequest, Course } from "../types/Course.types";
+
+export interface CourseTraineeDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  isEnrolled: boolean;
+  trainingStatus: string;
+}
 
 export const courseService = {
     createCourse: async (course: CreateCourseForm) => {
@@ -35,4 +45,21 @@ export const courseService = {
         const response = await HttpClient.delete<Result<void>>(`${API_ROUTES.COURSE.COMMON}/${courseId}?testUserId=019E7253-728A-7FDD-87C0-8C4A2D081CF6`);
         return response;
     },
+    getTraineesStatusByCourse: async (courseId: string, keyword: string): Promise<Result<CourseTraineeDto[]>> => {
+        return HttpClient.get<Result<CourseTraineeDto[]>>(
+            `${API_ROUTES.COURSE.COMMON}/${courseId}/trainees?keyword=${keyword}`
+        );
+    },
+    assignTrainees: async (payload: { courseId: string; traineeIds: string[] }): Promise<Result<string>> => {
+        return HttpClient.post<Result<string>>(`${API_ROUTES.COURSE.COMMON}/assign`, {
+            CourseId: payload.courseId,
+            TraineeIds: payload.traineeIds,
+        });
+    },
+    getEnrolledCourses: async (page: number = 1, pageSize: number = 6) => {
+        const response = await HttpClient.get<Result<PagedResult<Course>>>(
+            `${API_ROUTES.COURSE.ENROLLED}?page=${page}&pageSize=${pageSize}`
+        );
+        return response.data;
+    }
 }

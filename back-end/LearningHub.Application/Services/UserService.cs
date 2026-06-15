@@ -262,5 +262,13 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<UserDto>>.Success(pagedUsers);
         }
 
+        public async Task<Result<List<UserDto>>> GetAllTraineesAsync()
+        {
+            var trainees = await _userManager.GetUsersInRoleAsync("Trainee");
+
+            var traineesDto = _mapper.Map<List<UserDto>>(trainees);
+
+            return Result<List<UserDto>>.Success(traineesDto);
+        }
     }
 }

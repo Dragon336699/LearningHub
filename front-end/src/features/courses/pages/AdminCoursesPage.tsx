@@ -57,14 +57,14 @@ export const AdminCoursesPage = () => {
 
                 return {
                     ...oldData,
-                    items: oldData.items.map((item: Course) => item.id === updatedCourse.id ? updatedCourse : item)
+                    items: oldData.items.map((item: Course) => item.id === updatedCourse?.id ? updatedCourse : item)
                 };
             });
 
             toast.success("Change course status successfully");
         } catch (error: Result<any> | any) {
-            if (error?.errors) {
-                error.errors.forEach((err: string) => toast.error(err));
+            if (error) {
+                error.forEach((err: string) => toast.error(err));
                 return;
             }
 
@@ -222,6 +222,7 @@ export const AdminCoursesPage = () => {
             {isViewModalOpen && (
                 <ViewCourseDetailModal
                     course={selectedCourse!}
+                    userRole="Admin"
                     onClose={() => setIsViewModalOpen(false)}
                 />
             )}

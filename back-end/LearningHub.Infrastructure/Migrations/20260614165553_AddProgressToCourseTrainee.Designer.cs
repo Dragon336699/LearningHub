@@ -4,6 +4,7 @@ using LearningHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LearningHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearningHubDbContext))]
-    partial class LearningHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260614165553_AddProgressToCourseTrainee")]
+    partial class AddProgressToCourseTrainee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,15 +199,15 @@ namespace LearningHub.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Progress")
-
                         .HasColumnType("int");
+
                     b.HasKey("CourseId", "TraineeId");
+
                     b.HasIndex("TraineeId");
 
-
                     b.ToTable("CourseTrainees");
-
                 });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
                 {
                     b.Property<Guid>("Id")
@@ -348,7 +351,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Resource");
+                    b.ToTable("Resources");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Role", b =>

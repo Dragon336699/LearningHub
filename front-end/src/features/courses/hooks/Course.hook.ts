@@ -1,5 +1,4 @@
 import {
-  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -25,7 +24,7 @@ export const useLoadCourseOptions = () => {
   ) => {
     const page = additional?.page ?? 1;
     const response = await courseService.getCoursesByMentor(page, 10, search);
-
+    if (!response) return;
     return {
       options: response.items.map((course) => ({
         value: course.id,
@@ -78,8 +77,25 @@ export const useUpdateCourse = () => {
 };
 
 export const useDeleteCourse = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (courseId: string) =>
       await courseService.deleteCourse(courseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mentor-courses"] });
+    },
+  });
+};
+
+export const useGetTraineesStatusByCourse = (courseId: string, keyword: string) => {
+  return useQuery({
+    queryKey: ["trainee-course", courseId, keyword],
+    queryFn: async () => await courseService.getTraineesStatusByCourse(courseId, keyword)
+  })
+}
+export const useTraineeEnrolledCourses = (page: number = 1, pageSize: number = 6) => {
+  return useQuery({
+    queryKey: ["trainee-enrolled-courses", page, pageSize],
+    queryFn: async () => await courseService.getEnrolledCourses(page, pageSize),
   });
 };

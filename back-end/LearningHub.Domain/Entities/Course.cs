@@ -15,5 +15,6 @@ namespace LearningHub.Domain.Entities
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
         public ICollection<Resource> Resources { get; set; } = new List<Resource>();
+        public ICollection<CourseTrainee> CourseTrainees { get; set; } = new List<CourseTrainee>();
     }
 }

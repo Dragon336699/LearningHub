@@ -38,4 +38,9 @@ export const userService = {
     );
   },
 
+  // GET: /user/trainees
+  getAllTrainees: () => {
+    return HttpClient.get<Result<User[]>>(`${API_ROUTES.USER.GET_TRAINEES}`);
+  },
+
 };

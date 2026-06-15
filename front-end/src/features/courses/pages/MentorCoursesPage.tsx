@@ -68,8 +68,8 @@ export const MentorCoursesPage = () => {
             toast.success(`Course ${course.title} was updated successfully`);
             setIsUpdateModalOpen(false);
         } catch (error: Result<any> | any) {
-            if (error?.errors) {
-                error.errors.forEach((err: string) => toast.error(err));
+            if (error) {
+                error.forEach((err: string) => toast.error(err));
                 return;
             }
 
@@ -89,8 +89,8 @@ export const MentorCoursesPage = () => {
             }
             await queryClient.invalidateQueries({ queryKey: ["mentor-courses"] });
         } catch (error: Result<any> | any) {
-            if (error?.errors) {
-                error.errors.forEach((err: string) => toast.error(err));
+            if (error) {
+                error.forEach((err: string) => toast.error(err));
                 return;
             }
 
@@ -275,6 +275,7 @@ export const MentorCoursesPage = () => {
             {isViewModalOpen && (
                 <ViewCourseDetailModal
                     course={selectedCourse!}
+                    userRole="Mentor"
                     onClose={() => setIsViewModalOpen(false)}
                 />
             )}

@@ -20,7 +20,7 @@ namespace LearningHub.API.Controllers
             _validationService = validationService;
         }
 
-        [Authorize(Roles="Mentor")]
+        [Authorize(Roles = "Mentor")]
         [HttpPost]
         public async Task<IActionResult> CreateCourse(CreateCourseCommand command)
         {
@@ -106,7 +106,7 @@ namespace LearningHub.API.Controllers
             return Ok(getCoursesResult);
         }
 
-        [Authorize(Roles="Mentor")]
+        [Authorize(Roles = "Mentor")]
         [HttpPut]
         public async Task<IActionResult> UpdateCourse(UpdateCourseCommand command)
         {
@@ -130,7 +130,7 @@ namespace LearningHub.API.Controllers
             return Ok(updateResult);
         }
 
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         [Route("status")]
         public async Task<IActionResult> UpdateCourseStatus(UpdateCourseStatusCommand command)
@@ -149,7 +149,7 @@ namespace LearningHub.API.Controllers
             return Ok(updateResult);
         }
 
-        [Authorize(Roles="Mentor,Admin")]
+        [Authorize(Roles = "Mentor,Admin")]
         [HttpDelete("{courseId}")]
         public async Task<IActionResult> DeleteCourse(Guid courseId)
         {
@@ -173,6 +173,53 @@ namespace LearningHub.API.Controllers
         {
             await _courseService.CleanupCourses();
             return Ok();
+        }
+
+        [Authorize(Roles = "Mentor,Admin")]
+        [HttpPost("assign")]
+        public async Task<IActionResult> AssignTrainees([FromBody] AssignTraineesCommand command)
+        {
+            var validationResult = await _validationService.ValidateAsync(command);
+            if (!validationResult.IsSuccess) return BadRequest(validationResult);
+
+            var result = await _courseService.AssignTraineesToCourseAsync(command);
+            if (!result.IsSuccess) return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Trainee")]
+        [HttpGet("enrolled")]
+        public async Task<IActionResult> GetMyEnrolledCourses([FromQuery] GetPageQuery query)
+        {
+            var validationResult = await _validationService.ValidateAsync(query);
+            if (!validationResult.IsSuccess) return BadRequest(validationResult);
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
+            }
+
+            var result = await _courseService.GetEnrolledCoursesForTraineeAsync(query.Page, query.PageSize, Guid.Parse(userId));
+            if (!result.IsSuccess) return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Mentor")]
+        [HttpGet]
+        [Route("{courseId}/trainees")]
+        public async Task<IActionResult> GetTraineesStatusByCourse(Guid courseId, [FromQuery] string? keyword)
+        {
+            var result = await _courseService.GetTraineesWithEnrollmentStatusAsync(courseId, keyword);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
     }
 }

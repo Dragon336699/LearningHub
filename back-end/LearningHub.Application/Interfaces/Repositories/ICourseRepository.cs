@@ -1,4 +1,5 @@
-﻿using LearningHub.Domain.Entities;
+﻿using LearningHub.Application.Dtos.Courses;
+using LearningHub.Domain.Entities;
 
 namespace LearningHub.Application.Interfaces.Repositories
 {
@@ -8,5 +9,8 @@ namespace LearningHub.Application.Interfaces.Repositories
         Task<(List<Course> courses, int totalItems)> GetAllCourses(int page, int pageSize, string keyword);
         Task<(List<Course> courses, int totalItems)> GetCoursesByMentor(int page, int pageSize, string keyword, Guid mentorId);
         Task<(List<Course> courses, int totalItems)> GetCoursesByTrainee(int page, int pageSize, string keyword);
+        Task<List<Course>> GetCoursesByTraineeAsync(int page, int pageSize, Guid traineeId);
+        Task<int> GetTotalCoursesByTraineeAsync(Guid traineeId);
+        Task<List<CourseTraineeDto>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string keyword);
     }
 }
