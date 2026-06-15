@@ -55,7 +55,7 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPagedAllCourses(query.Page, query.PageSize, keyword);
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPagedAllCourses(query.Page, query.PageSize);
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 
@@ -90,7 +90,7 @@ namespace LearningHub.API.Controllers
         [Authorize]
         [HttpGet]
         [Route("published")]
-        public async Task<IActionResult> GetPublishedCourses([FromQuery] GetPageQuery query, string? keyword)
+        public async Task<IActionResult> GetPublishedCourses([FromQuery] GetPageQuery query)
         {
             var validationResult = await _validationService.ValidateAsync(query);
 
@@ -99,7 +99,7 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPublishedCourses(query.Page, query.PageSize, keyword);
+            Result<PagedResult<CourseDto>> getCoursesResult = await _courseService.GetPublishedCourses(query.Page, query.PageSize);
 
             if (!getCoursesResult.IsSuccess) return BadRequest(getCoursesResult);
 

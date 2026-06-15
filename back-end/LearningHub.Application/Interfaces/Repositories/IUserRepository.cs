@@ -5,7 +5,6 @@ namespace LearningHub.Application.Interfaces.Repositories
 {
     public interface IUserRepository : IGenericRepository<User>
     {
-        Task<int> Count();
         Task<(List<User> Users, int TotalCount)> GetPagedMentors(SearchUserProfileCommand command);
     }
 }

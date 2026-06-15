@@ -23,12 +23,12 @@ export const courseService = {
         const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.MENTOR}?page=${page}&pageSize=${pageSize}${keyword ? `&keyword=${keyword}` : ''}`);
         return response.data;
     },
-    getCoursesByTrainee: async (page: number = 1, pageSize: number = 5, keyword: string) => {
-        const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.TRAINEE}?page=${page}&pageSize=${pageSize}&keyword=${keyword}`);
+    getCoursesByTrainee: async (page: number = 1, pageSize: number = 5) => {
+        const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.TRAINEE}?page=${page}&pageSize=${pageSize}`);
         return response.data;
     },
-    getAllCourses: async (page: number = 1, pageSize: number = 5, keyword: string) => {
-        const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.COMMON}?page=${page}&pageSize=${pageSize}&keyword=${keyword}`);
+    getAllCourses: async (page: number = 1, pageSize: number = 5) => {
+        const response = await HttpClient.get<Result<PagedResult<Course>>>(`${API_ROUTES.COURSE.COMMON}?page=${page}&pageSize=${pageSize}`);
         return response.data;
     },
     deleteCourse: async (courseId: string) => {

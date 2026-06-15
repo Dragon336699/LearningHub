@@ -41,12 +41,5 @@ namespace LearningHub.Infrastructure.Repositories
 
             return (users, totalCount);
         }
-        public async Task<int> Count()
-        {
-            return await _context.Users
-                .AsNoTracking()
-                .CountAsync(u => u.Status == UserStatus.Active);
-        }
-
     }
 }
