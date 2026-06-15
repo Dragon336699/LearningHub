@@ -25,19 +25,6 @@ namespace LearningHub.API.Configs
             services.AddScoped<ICacheService, MemoryCacheService>();
             services.AddHttpClient<INotificationService, EmailService>();
 
-            //repositories and unit of work
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<IExpertiseRepository, ExpertiseRepository>();
-            services.AddScoped<IExperienceRepository, ExperienceRepository>();
-            services.AddScoped<ICertificateRepository, CertificateRepository>();
-            services.AddScoped<ICourseRepository, CourseRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IUserAvailabilitySettingRepository, UserAvailabilitySettingRepository>();
-            services.AddScoped<IAvailabilitySlotRepository, AvailabilitySlotRepository>();
-            services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
-            services.AddScoped<IResourceRepository, ResourceRepository>();
-
             //services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
@@ -72,6 +59,8 @@ namespace LearningHub.API.Configs
 
             //Add httpContextAccessor
             services.AddHttpContextAccessor();
+
+            services.AddRepositoriesAndUnitOfWork();
         }
     }
 }
