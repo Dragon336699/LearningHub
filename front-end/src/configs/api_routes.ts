@@ -23,6 +23,7 @@ export const API_ROUTES = {
     MENTOR: "/courses/mentor",
     TRAINEE: "/courses/published",
     GET_DETAIL: (id: string) => `/courses/${id}`,
+    ENROLLED: "/courses/enrolled",
   },
   AVAILABILITY: {
     COMMON: "/availability",

@@ -5,8 +5,7 @@ import { courseService, CourseTraineeDto } from "../../../features/courses/servi
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faCheckCircle, faUsers, faUserPlus, faClock } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "sonner";
-import { Result } from "../../../types/result";
-import { usegetTraineesStatusByCourse } from "../hooks/Course.hook";
+import { useGetTraineesStatusByCourse } from "../hooks/Course.hook";
 
 interface AssignTraineesModalProps {
   courseId: string;
@@ -26,12 +25,11 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
   });
 
   const watchedTraineeIds = watch("traineeIds") || [];
-  const { data: traineeList } = usegetTraineesStatusByCourse(courseId, searchQuery);
+  const { data: traineeList } = useGetTraineesStatusByCourse(courseId, searchQuery);
 
-  // Phân tách dữ liệu cục bộ thành 2 nhóm riêng biệt dựa vào cờ IsEnrolled
   const trainees = traineeList?.data ?? [];
-  const currentEnrolled = trainees.filter(t => t.isEnrolled);
-  const nonEnrolled = trainees.filter(t => !t.isEnrolled);
+  const currentEnrolled = trainees.filter((t: { isEnrolled: any; }) => t.isEnrolled);
+  const nonEnrolled = trainees.filter((t: { isEnrolled: any; }) => !t.isEnrolled);
 
   const onSubmitForm = async (data: { traineeIds: string[] }) => {
     if (data.traineeIds.length === 0) return;
@@ -47,7 +45,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
         reset({ traineeIds: [] });
         onSuccess();
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to assign trainees. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -94,10 +92,10 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
 
         {activeTab === "current" && (
           <div className="border border-slate-900 bg-slate-950/20 rounded-xl max-h-[35vh] overflow-y-auto divide-y divide-slate-900 scrollbar-thin">
-            {currentEnrolled.map((t) => (
+            {currentEnrolled.map((t: CourseTraineeDto) => (
               <div key={t.id} className="flex items-center justify-between p-3.5">
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={t.avatarUrl || "https://placeholder.co/150"} className="w-8 h-8 rounded-full border border-slate-800 object-cover" alt="" />
+                  <img src={t.avatarUrl || t.firstName.charAt(0) || "U"} className="w-8 h-8 rounded-full border border-slate-800 object-cover" alt="" />
                   <div className="text-sm min-w-0">
                     <p className="font-bold text-gray-200 truncate">{`${t.firstName || ""} ${t.lastName || ""}`}</p>
                     <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || "LearningHub member"}</p>
@@ -132,13 +130,13 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
             </div>
 
             <div className="border border-slate-900 bg-slate-950/20 rounded-xl max-h-[30vh] overflow-y-auto divide-y divide-slate-900 scrollbar-thin">
-              {nonEnrolled.map((t) => {
+              {nonEnrolled.map((t: CourseTraineeDto) => {
                 const isChecked = watchedTraineeIds.includes(t.id);
                 return (
                   <label key={t.id} className={`flex items-center justify-between p-3 hover:bg-slate-900/30 transition-colors cursor-pointer select-none ${isChecked ? "bg-orange-500/5" : ""}`}>
                     <div className="flex items-center gap-3 min-w-0">
                       <input type="checkbox" value={t.id} {...register("traineeIds")} className="rounded border-slate-800 bg-slate-950 text-orange-600 focus:ring-0 w-4 h-4" />
-                      <img src={t.avatarUrl || "https://placeholder.co/150"} className="w-7 h-7 rounded-full object-cover" alt="" />
+                      <img src={t.avatarUrl || t.firstName.charAt(0) || "U"} className="w-7 h-7 rounded-full object-cover" alt="" />
                       <div className="text-sm min-w-0">
                         <p className="font-bold text-gray-200 truncate">{`${t.firstName || ""} ${t.lastName || ""}`}</p>
                         <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || "LearningHub member"}</p>

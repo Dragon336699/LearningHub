@@ -47,13 +47,19 @@ export const courseService = {
     },
     getTraineesStatusByCourse: async (courseId: string, keyword: string): Promise<Result<CourseTraineeDto[]>> => {
         return HttpClient.get<Result<CourseTraineeDto[]>>(
-            `/courses/${courseId}/trainees?keyword=${keyword}`
+            `${API_ROUTES.COURSE.COMMON}/${courseId}/trainees?keyword=${keyword}`
         );
     },
     assignTrainees: async (payload: { courseId: string; traineeIds: string[] }): Promise<Result<string>> => {
-        return HttpClient.post<Result<string>>("/courses/assign", {
+        return HttpClient.post<Result<string>>(`${API_ROUTES.COURSE.COMMON}/assign`, {
             CourseId: payload.courseId,
             TraineeIds: payload.traineeIds,
         });
     },
+    getEnrolledCourses: async (page: number = 1, pageSize: number = 6) => {
+        const response = await HttpClient.get<Result<PagedResult<Course>>>(
+            `${API_ROUTES.COURSE.ENROLLED}?page=${page}&pageSize=${pageSize}`
+        );
+        return response.data;
+    }
 }

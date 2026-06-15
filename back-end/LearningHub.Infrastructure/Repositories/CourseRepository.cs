@@ -63,33 +63,38 @@ namespace LearningHub.Infrastructure.Repositories
 
         public async Task<List<CourseTraineeDto>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string keyword)
         {
-            var enrolledTraineeIds = await _context.Set<CourseTrainee>()
-                .Where(ct => ct.CourseId == courseId)
-                .Select(ct => ct.TraineeId)
-                .ToListAsync();
 
             var traineeRoleId = await _context.Roles
                 .Where(r => r.Name == "Trainee")
                 .Select(r => r.Id)
                 .FirstOrDefaultAsync();
 
-            var traineeUsers = await _context.Users
-                .Where(u => u.EmailConfirmed && ((!string.IsNullOrEmpty(u.FirstName) && u.FirstName.ToLower().Contains(keyword)) || (u.LastName != null && u.LastName.ToLower().Contains(keyword))) && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == traineeRoleId))
-                .ToListAsync();
+            var query = _context.Users
+                .Where(u => u.EmailConfirmed && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == traineeRoleId));
 
-            return traineeUsers.Select(u => new CourseTraineeDto
+            if (!string.IsNullOrWhiteSpace(keyword))
             {
-                Id = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName ?? string.Empty,
-                AvatarUrl = u.AvatarUrl,
-                Bio = u.Bio,
-                
-                RoleId = traineeRoleId, 
-                
-                IsEnrolled = enrolledTraineeIds.Contains(u.Id),
-                TrainingStatus = "Incomplete"
-            }).ToList();
+                var lowerKeyword = keyword.Trim().ToLower();
+                query = query.Where(u => u.FirstName.Contains(lowerKeyword, StringComparison.CurrentCultureIgnoreCase)
+                                            || (u.LastName != null && u.LastName.Contains(lowerKeyword, StringComparison.CurrentCultureIgnoreCase)));
+            }
+
+            return await query
+                .SelectMany(
+                    u => u.CourseTrainees.Where(ct => ct.CourseId == courseId).DefaultIfEmpty(),
+                    (u, ct) => new CourseTraineeDto
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName ?? string.Empty,
+                        AvatarUrl = u.AvatarUrl,
+                        Bio = u.Bio,
+                        RoleId = traineeRoleId,
+                        IsEnrolled = ct != null, 
+                        AssignedAt = ct != null ? ct.AssignedAt : DateTime.UtcNow,
+                        Progress = ct != null ? ct.Progress : 0
+                    })
+                .ToListAsync();
         }
     }
 }

@@ -9,6 +9,18 @@ namespace LearningHub.Application.Dtos.Courses
         public string? Bio { get; set; }
         public bool IsEnrolled { get; set; }
         public Guid RoleId { get; set; }
-        public string TrainingStatus { get; set; } = "Incomplete";
+        public DateTime AssignedAt { get; set; }
+        public int Progress { get; set; }
+
+        public string TrainingStatus
+        {
+            get
+            {
+                if (!IsEnrolled) return "Not Enrolled";
+                if (Progress == 0) return "Enrolled";
+                if (Progress > 0 && Progress < 100) return "In Progress";
+                return "Completed";
+            }
+        }
     }
 }

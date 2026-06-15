@@ -10,7 +10,7 @@ import { VerifyEmailPage } from "../features/auth/components/VerifyEmailPage";
 import { AppLayout } from "../shared/ui/layout/AppLayout";
 import { MentorCoursesPage } from "../features/courses/pages/MentorCoursesPage";
 import { AdminCoursesPage } from "../features/courses/pages/AdminCoursesPage";
-import { TraineeCoursesPage } from "../features/courses/pages/TraineeCoursesPage";
+import { TraineeFindCoursesPage } from "../features/courses/pages/TraineeFindCoursesPage";
 import { DashboardPage } from "../features/dashboard/components/DashboardPage";
 import ProtectedLoginRoute from "./ProtectedAuthRoute";
 import { MentorAvailabilityPage } from "../features/mentor-availability/pages/MentorAvailabilityPage";
@@ -20,6 +20,7 @@ import { SessionPage } from "../features/sessions/pages/SessionPage";
 import { ResourcePage } from "../features/resources/pages/ResourcePage";
 import { TermsPage } from "../features/auth/components/TermsPage";
 import { PrivacyPage } from "../features/auth/components/PrivacyPage";
+import { TraineeEnrolledCoursesPage } from "../features/courses/pages/TraineeEnrolledCoursesPage";
 
 export const router = createBrowserRouter([
   {
@@ -94,8 +95,14 @@ export const router = createBrowserRouter([
           {
             path: URL_ROUTES.TRAINEE_COURSES,
             element: (
-              <ProtectedRoute allowedRoles={["Trainee"]}><TraineeCoursesPage /></ProtectedRoute>
+              <ProtectedRoute allowedRoles={["Trainee"]}><TraineeFindCoursesPage /></ProtectedRoute>
             ),
+          },
+          {
+            path: URL_ROUTES.TRAINEE_MY_COURSES,
+            element: (
+              <ProtectedRoute allowedRoles={["Trainee"]}><TraineeEnrolledCoursesPage /></ProtectedRoute>
+            )
           },
           {
             path: URL_ROUTES.RESOURCE,
