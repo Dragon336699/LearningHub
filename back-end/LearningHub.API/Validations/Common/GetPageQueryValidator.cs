@@ -12,6 +12,9 @@ namespace LearningHub.API.Validations.Common
 
             RuleFor(x => x.PageSize)
                 .GreaterThan(0).WithMessage("Page size number must be greater than 0.");
+
+            RuleFor(x => x.keyword)
+                .MaximumLength(100).WithMessage("Search query must not exceed 100 characters.");
         }
     }
 }

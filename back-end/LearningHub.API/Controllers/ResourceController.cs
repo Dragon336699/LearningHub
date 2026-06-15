@@ -36,7 +36,7 @@ namespace LearningHub.API.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetResourcesByTraineeAsync([FromQuery] GetPageQuery query, string? keyword)
+        public async Task<IActionResult> GetResourcesByTraineeAsync([FromQuery] GetPageQuery query)
         {
             var validationResult = await _validationService.ValidateAsync(query);
             if (!validationResult.IsSuccess)
@@ -44,7 +44,7 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            var result = await _resourceService.GetResourcesAsync(query.Page, query.PageSize, keyword ?? "");
+            var result = await _resourceService.GetResourcesAsync(query.Page, query.PageSize, query.keyword ?? "");
 
             return Ok(result);
         }
@@ -52,7 +52,7 @@ namespace LearningHub.API.Controllers
         [Authorize(Roles = "Mentor")]
         [HttpGet]
         [Route("mentor")]
-        public async Task<IActionResult> GetResourcesByMentorAsync([FromQuery] GetPageQuery query, string? keyword)
+        public async Task<IActionResult> GetResourcesByMentorAsync([FromQuery] GetPageQuery query)
         {
             var validationResult = await _validationService.ValidateAsync(query);
             if (!validationResult.IsSuccess)
@@ -60,7 +60,7 @@ namespace LearningHub.API.Controllers
                 return BadRequest(validationResult);
             }
 
-            var result = await _resourceService.GetResourcesByMentor(query.Page, query.PageSize, keyword ?? "");
+            var result = await _resourceService.GetResourcesByMentor(query.Page, query.PageSize, query.keyword ?? "");
 
             return Ok(result);
         }

@@ -29,7 +29,6 @@ export const AdminCoursesPage = () => {
     const [isConfirmChangeStatusOpen, setIsConfirmChangeStatusOpen] = useState(false);
     const [pendingStatus, setPendingStatus] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [searchQueryDisplay, setSearchQueryDisplay] = useState("");
     const debounceQuery = useDebounce(searchQuery, 500);
     const { data: pagedCourses } = useAdminCourses(page, pageSize, debounceQuery);
 
@@ -94,10 +93,10 @@ export const AdminCoursesPage = () => {
                     type="text"
                     placeholder="Search courses by name or code"
                     className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={searchQueryDisplay}
+                    value={searchQuery}
+                    maxLength={100}
                     onChange={(e) => {
                         setSearchQuery(e.target.value);
-                        setSearchQueryDisplay(e.target.value)
                     }}
                 />
                 <div className="absolute left-3 top-2.5 text-gray-400">
