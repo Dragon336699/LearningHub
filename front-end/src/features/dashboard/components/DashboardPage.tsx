@@ -1,3 +1,12 @@
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../../store";
+import { fetchDailyQuote, fetchDashboardSummary } from "../../../store/thunks/dashboardThunks";
+import { ResponsiveContainer, LineChart, Line } from "recharts";
+import { useAppSelector } from "../../../store/hooks";
+import { fetchUserSessions } from "../../../store/thunks/sessionThunk";
+import { useNavigate } from "react-router-dom";
+
 export const DashboardPage = () => {
     return (
         <div className="w-full max-w-4xl p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-lg text-white">
