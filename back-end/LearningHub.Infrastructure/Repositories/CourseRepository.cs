@@ -13,33 +13,49 @@ namespace LearningHub.Infrastructure.Repositories
             
         }
 
-        public async Task<List<Course>> GetAllCourses(int page, int pageSize)
+        public async Task<(List<Course> courses, int totalItems)> GetAllCourses(int page, int pageSize, string keyword)
         {
-            return await _context.Set<Course>()
-                .OrderByDescending(c => c.UpdatedAt)
+            var query = _context.Set<Course>()
+                .Where(c => c.CourseCode.ToLower().Contains(keyword) || c.Title.ToLower().Contains(keyword))
+                .OrderByDescending(c => c.UpdatedAt);
+
+            var courses = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+            var totalItems = await query.CountAsync();
+
+            return (courses, totalItems);
         }
 
-        public async Task<List<Course>> GetCoursesByMentor(int page, int pageSize, string keyword, Guid mentorId)
+        public async Task<(List<Course> courses, int totalItems)> GetCoursesByMentor(int page, int pageSize, string keyword, Guid mentorId)
         {
-            return await _context.Set<Course>()
-                .Where(c => c.UserId == mentorId && c.Title.Contains(keyword))
-                .OrderByDescending(c => c.UpdatedAt)
+            var query = _context.Set<Course>()
+                .Where(c => c.UserId == mentorId && (c.CourseCode.ToLower().Contains(keyword) || c.Title.ToLower().Contains(keyword)))
+                .OrderByDescending(c => c.UpdatedAt);
+
+            var courses = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+            var totalItems = await query.CountAsync();
+
+            return (courses, totalItems);
         }
 
-        public async Task<List<Course>> GetCoursesByTrainee(int page, int pageSize)
+        public async Task<(List<Course> courses, int totalItems)> GetCoursesByTrainee(int page, int pageSize, string keyword)
         {
-            return await _context.Set<Course>()
-                .Where(c => c.Status == CourseStatus.Published)
-                .OrderByDescending(c => c.UpdatedAt)
+            var query = _context.Set<Course>()
+                .Where(c => c.Status == CourseStatus.Published && (c.CourseCode.ToLower().Contains(keyword) || c.Title.ToLower().Contains(keyword)))
+                .OrderByDescending(c => c.UpdatedAt);
+
+            var courses = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+            var totalItems = await query.CountAsync();
+
+            return (courses, totalItems);
         }
     }
 }

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pagination } from "../../../shared/ui/components/Pagination";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faSearch, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ConfirmModal } from "../../../shared/ui/components/ConfirmModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { Result } from "../../../types/result";
@@ -14,6 +14,7 @@ import { UpdateCourseForm } from "../schemas/UpdateCourseSchema";
 import { useCreateCourse, useDeleteCourse, useMentorCourses, useUpdateCourse } from "../hooks/Course.hook";
 import { Course } from "../types/Course.types";
 import { CommonPageSizeOptions } from "../../../shared/types/pageSizeOptions";
+import { useDebounce } from "../../../shared/hooks/Common.hook";
 
 const statusColors = {
     "Published": "text-success bg-success-background",
@@ -31,7 +32,10 @@ export const MentorCoursesPage = () => {
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
-    const { data: pagedCourses } = useMentorCourses(page, pageSize);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchQueryDisplay, setSearchQueryDisplay] = useState("");
+    const debounceQuery = useDebounce(searchQuery, 500);
+    const { data: pagedCourses } = useMentorCourses(page, pageSize, debounceQuery);
 
     const createCourseMutation = useCreateCourse();
     const updateCourseMutation = useUpdateCourse();
@@ -101,6 +105,12 @@ export const MentorCoursesPage = () => {
         setPageSize(newPageSize);
     }
 
+    useEffect(() => {
+        if (page !== 1) {
+            setPage(1);
+        }
+    }, [debounceQuery]);
+
     return (
         <div className="p-12 rounded-lg bg-card text-white min-h-full">
             <div className="flex justify-between items-center mb-6">
@@ -109,7 +119,21 @@ export const MentorCoursesPage = () => {
                     Create New Course
                 </button>
             </div>
-
+            <div className="relative mb-4">
+                <input
+                    type="text"
+                    placeholder="Search courses by name or code"
+                    className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    value={searchQueryDisplay}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSearchQueryDisplay(e.target.value)
+                    }}
+                />
+                <div className="absolute left-3 top-2.5 text-gray-400">
+                    <FontAwesomeIcon icon={faSearch} />
+                </div>
+            </div>
             {pagedCourses && pagedCourses.totalCount > 0 ? (
                 <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
                     <table className="min-w-full divide-y divide-gray-200">
