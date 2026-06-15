@@ -205,7 +205,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("TraineeId");
 
-                    b.ToTable("CourseTrainee");
+                    b.ToTable("CourseTrainees");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Experience", b =>
@@ -351,7 +351,7 @@ namespace LearningHub.Infrastructure.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Resource");
+                    b.ToTable("Resources");
                 });
 
             modelBuilder.Entity("LearningHub.Domain.Entities.Role", b =>

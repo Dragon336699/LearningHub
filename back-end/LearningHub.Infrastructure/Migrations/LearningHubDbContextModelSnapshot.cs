@@ -203,6 +203,8 @@ namespace LearningHub.Infrastructure.Migrations
                     b.HasIndex("TraineeId");
 
                     b.ToTable("CourseTrainees");
+                });
+
             modelBuilder.Entity("LearningHub.Domain.Entities.DashboardSummary", b =>
                 {
                     b.Property<Guid>("Id")

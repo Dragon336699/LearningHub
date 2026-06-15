@@ -20,6 +20,8 @@ namespace LearningHub.API.Configs
             services.AddScoped<IBookingSessionRepository, BookingSessionRepository>();
             services.AddScoped<IResourceRepository, ResourceRepository>();
             services.AddScoped<IDashboardSummaryRepository, DashboardSummaryRepository>();
+            services.AddScoped<ICourseTraineeRepository, CourseTraineeRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
 
             return services;
         }
