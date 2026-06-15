@@ -51,8 +51,7 @@ export const AdminCoursesPage = () => {
     const handleChangeStatus = async (course: Course, status: string) => {
         try {
             const updatedCourse = await courseService.updateCourseStatus({ id: course.id, status: status as CourseStatus });
-
-            queryClient.setQueryData(["admin-courses", page, pageSize], (oldData: any) => {
+            queryClient.setQueryData(["admin-courses", page, pageSize, debounceQuery], (oldData: any) => {
                 if (!oldData) return oldData;
 
                 return {
@@ -78,7 +77,7 @@ export const AdminCoursesPage = () => {
         setPage(newPage);
         setPageSize(newPageSize);
     }
-    
+
     useEffect(() => {
         if (page !== 1) {
             setPage(1);
