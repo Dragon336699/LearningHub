@@ -72,5 +72,11 @@ namespace LearningHub.Infrastructure.Repositories
             return bookingSessions;
         }
 
+        public async Task<int> CountByDate(DateTime date)
+        {
+            return await _context.BookingSessions
+                .AsNoTracking()
+                .CountAsync(s => s.StartTime <= date);
+        }
 	}
 }
