@@ -36,4 +36,8 @@ export const API_ROUTES = {
     APPROVE: "/sessions/approve",
     CANCEL: "/sessions/cancel",
   },
+  DASHBOARD:{
+    SUMMARY: "/dashboards",
+    DAILY_QUOTE: "/dashboards/daily-quotes"
+  }
 };

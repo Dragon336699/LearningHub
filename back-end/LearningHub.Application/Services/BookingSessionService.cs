@@ -80,12 +80,10 @@ namespace LearningHub.Application.Services
                 currentSession!.Status = SessionStatus.Approved;
                 _unitOfWork.BookingSessions.Update(currentSession);
 
-                // --- BẮT ĐẦU: LOGIC CẬP NHẬT TRẠNG THÁI SLOT THÀNH BOOKED ---
                 DateOnly sessionDate = DateOnly.FromDateTime(currentSession.StartTime);
                 TimeOnly sessionStartTime = TimeOnly.FromDateTime(currentSession.StartTime);
                 TimeOnly sessionEndTime = TimeOnly.FromDateTime(currentSession.EndTime);
 
-                // Lấy cài đặt thời gian rảnh của Mentor trong ngày diễn ra session
                 List<UserAvailabilitySetting> mentorAvailabilities = await _userAvailabilitySettingRepository
                     .GetUserAvailabilities(currentSession.MentorId, sessionDate, sessionDate);
 
@@ -183,12 +181,11 @@ namespace LearningHub.Application.Services
 
             int durationMinutes = request.DurationType switch
             {
+                SessionDurationType.Minutes15 => 15,
                 SessionDurationType.Minutes30 => 30,
                 SessionDurationType.Minutes45 => 45,
                 SessionDurationType.Hour1 => 60,
-                SessionDurationType.Hour1AndHalf => 90,
-                SessionDurationType.Hours2 => 120,
-                _ => 60
+                _ => 30
             };
 
             DateOnly targetDateOnly = DateOnly.FromDateTime(targetDate);
@@ -227,7 +224,8 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<List<BookingSessionResponse>>> GetBookingSessions(GetSessionsRequest request)
         {
-            List<BookingSession> bookingSessions = await _bookingSessionRepository.GetSessionsByUserAndDateAsync(request.UserId, request.Date, request.Status);
+            Guid? userId = TokenUtils.GetNameIdentifier(_httpContextAccessor);
+            List<BookingSession> bookingSessions = await _bookingSessionRepository.GetSessionsByUserAndDateAsync(userId.Value, request.Date, request.Status);
             List<BookingSessionResponse> responses = BookingSessionMappingProfile.ToResponseList(bookingSessions);
             return Result<List<BookingSessionResponse>>.Success(responses);
 
@@ -262,6 +260,10 @@ namespace LearningHub.Application.Services
             if (isTraineeBusy)
                 return (false, Messages.BookingSession.TraineeAlreadyBusy, null);
 
+            bool isSlotAvailable = await IsSlotAvailableAsync(request.MentorId, request.StartTime, request.EndTime);
+            if(!isSlotAvailable)
+                return (false, Messages.BookingSession.MentorAlreadyBusy, null);
+
             return (true, null, mentor);
         }
 
@@ -287,6 +289,32 @@ namespace LearningHub.Application.Services
                 return (false, Messages.BookingSession.MentorAlreadyBusy, null, null);
 
             return (true, null, session, trainee);
+        }
+
+        private async Task<bool> IsSlotAvailableAsync(Guid mentorId, DateTime startTime, DateTime endTime)
+        {
+            DateOnly date = DateOnly.FromDateTime(startTime);
+            TimeOnly startT = TimeOnly.FromDateTime(startTime);
+            TimeOnly endT = TimeOnly.FromDateTime(endTime);
+
+            // Lấy setting của mentor trong ngày đó
+            var mentorAvailabilities = await _userAvailabilitySettingRepository
+                .GetUserAvailabilities(mentorId, date, date);
+
+            var dailySetting = mentorAvailabilities.FirstOrDefault(ua => ua.SettingDay == date);
+
+            if (dailySetting == null || dailySetting.AvailabilitySlots == null)
+            {
+                return false;
+            }
+
+            // Kiểm tra xem khoảng thời gian [startT, endT] có nằm trọn trong một slot nào đang "Available" không
+            bool isSlotValid = dailySetting.AvailabilitySlots.Any(slot =>
+                slot.Status == UserAvailabilityStatus.Available &&
+                slot.StartTime <= startT &&
+                slot.EndTime >= endT);
+
+            return isSlotValid;
         }
 
         private List<(DateTime Start, DateTime End)> GetRawFreeIntervals(
