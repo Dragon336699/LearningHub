@@ -39,18 +39,18 @@ export const useLoadCourseOptions = () => {
   return { loadCourseOptions };
 };
 
-export const useAdminCourses = (page: number = 1, pageSize: number = 5, keyword: string) => {
+export const useAdminCourses = (page: number = 1, pageSize: number = 5) => {
   return useQuery({
-    queryKey: ["admin-courses", page, pageSize, keyword],
-    queryFn: async () => await courseService.getAllCourses(page, pageSize, keyword),
+    queryKey: ["admin-courses", page, pageSize],
+    queryFn: async () => await courseService.getAllCourses(page, pageSize),
   });
 };
 
-export const useTraineeCourses = (page: number = 1, pageSize: number = 5, keyword: string) => {
+export const useTraineeCourses = (page: number = 1, pageSize: number = 5) => {
   return useQuery({
-    queryKey: ["trainee-courses", page, pageSize, keyword],
+    queryKey: ["trainee-courses", page, pageSize],
     queryFn: async () =>
-      await courseService.getCoursesByTrainee(page, pageSize, keyword),
+      await courseService.getCoursesByTrainee(page, pageSize),
   });
 };
 

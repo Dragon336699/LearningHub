@@ -4,6 +4,8 @@ using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
+using LearningHub.Domain.Enums;
+using System.Runtime.CompilerServices;
 
 namespace LearningHub.Application.Services
 {
@@ -53,11 +55,11 @@ namespace LearningHub.Application.Services
             return new string(Enumerable.Range(0, length).Select(_ => chars[Random.Shared.Next(chars.Length)]).ToArray());
         }
 
-        public async Task<Result<PagedResult<CourseDto>>> GetPagedAllCourses(int page, int pageSize, string? keyword)
+        public async Task<Result<PagedResult<CourseDto>>> GetPagedAllCourses(int page, int pageSize)
         {
-            keyword = keyword?.Trim().ToLower() ?? "";
+            List<Course> courses = await _unitOfWork.Courses.GetAllCourses(page, pageSize);
 
-            var (courses, totalCourses) = await _unitOfWork.Courses.GetAllCourses(page, pageSize, keyword);
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems();
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 
@@ -74,9 +76,11 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<PagedResult<CourseDto>>> GetCoursesByMentor(int page, int pageSize, string? keyword, Guid mentorId)
         {
-            keyword  = keyword?.Trim().ToLower() ?? "";
+            keyword  = keyword?.Trim() ?? "";
 
-            var (courses, totalCourses) = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, keyword, mentorId);
+            List<Course> courses = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, keyword, mentorId);
+
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems((c) => c.UserId == mentorId && c.Title.Contains(keyword));
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 
@@ -91,11 +95,11 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<CourseDto>>.Success(pageCourses);
         }
 
-        public async Task<Result<PagedResult<CourseDto>>> GetPublishedCourses(int page, int pageSize, string? keyword)
+        public async Task<Result<PagedResult<CourseDto>>> GetPublishedCourses(int page, int pageSize)
         {
-            keyword = keyword?.Trim().ToLower() ?? "";
+            List<Course> courses = await _unitOfWork.Courses.GetCoursesByTrainee(page, pageSize);
 
-            var (courses, totalCourses) = await _unitOfWork.Courses.GetCoursesByTrainee(page, pageSize, keyword);
+            int totalCourses = await _unitOfWork.Courses.GetTotalItems(c => c.Status == CourseStatus.Published);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(courses);
 

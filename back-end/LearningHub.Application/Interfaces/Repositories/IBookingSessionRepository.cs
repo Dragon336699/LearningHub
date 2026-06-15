@@ -9,6 +9,5 @@ namespace LearningHub.Application.Interfaces.Repositories
         Task<List<BookingSession>> GetBusySlotsAsync(Guid mentorId, DateTime targetDate, DateTime nextDay);
         Task<List<BookingSession>> GetSessionsByUserAndDateAsync(Guid userId, DateTime targetDate, SessionStatus? status);
         Task<List<BookingSession>> GetOverlapingSession(BookingSession currentSession);
-        Task<int> CountByDate(DateTime date);
     }
 }

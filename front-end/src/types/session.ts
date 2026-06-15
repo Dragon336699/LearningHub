@@ -44,6 +44,7 @@ export interface SessionResponse {
 }
 
 export interface GetSessionsRequest {
+  userId: string;
   date: string; // YYYY-MM-DD
   sessionStatus?: string; 
 }

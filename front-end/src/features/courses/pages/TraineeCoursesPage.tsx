@@ -1,23 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pagination } from "../../../shared/ui/components/Pagination";
 import { Course } from "../types/Course.types";
 import { ViewCourseDetailModal } from "../components/ViewCourseDetailModal";
 import { useTraineeCourses } from "../hooks/Course.hook";
 import { CommonPageSizeOptions } from "../../../shared/types/pageSizeOptions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { useDebounce } from "../../../shared/hooks/Common.hook";
+import { faBook } from "@fortawesome/free-solid-svg-icons";
 
 export const TraineeCoursesPage = () => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const { data: pagedCourses } = useTraineeCourses(page, pageSize);
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchQueryDisplay, setSearchQueryDisplay] = useState("");
-    const debounceQuery = useDebounce(searchQuery, 500);
-    const { data: pagedCourses } = useTraineeCourses(page, pageSize, debounceQuery);
 
     const totalPages = Math.ceil(
         (pagedCourses?.totalCount ?? 0) / pageSize
@@ -30,31 +25,10 @@ export const TraineeCoursesPage = () => {
         setPageSize(newPageSize);
     }
 
-    useEffect(() => {
-        if (page !== 1) {
-            setPage(1);
-        }
-    }, [debounceQuery]);
-
     return (
         <div className="p-12 rounded-lg bg-card text-white min-h-full">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Find courses</h1>
-            </div>
-            <div className="relative mb-4">
-                <input
-                    type="text"
-                    placeholder="Search courses by name or code"
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={searchQueryDisplay}
-                    onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setSearchQueryDisplay(e.target.value)
-                    }}
-                />
-                <div className="absolute left-3 top-2.5 text-gray-400">
-                    <FontAwesomeIcon icon={faSearch} />
-                </div>
             </div>
             {pagedCourses && pagedCourses.totalCount > 0 ? (
                 <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">

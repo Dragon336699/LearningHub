@@ -219,7 +219,7 @@ export const UserProfilePage = () => {
   const currentUserRole = String(currentUser?.roleName || (currentUser as any)?.RoleName || "").toLowerCase();
   const currentIsAdmin = currentUserRole === "admin";
   const currentIsMentor = currentUserRole === "mentor";
-  const currentIsTrainee = currentUserRole === "trainee";
+
   const profileUserRole = String(user?.roleName || (user as any)?.RoleName || "").toLowerCase();
   const profileIsMentor = profileUserRole === "mentor";
   const profileIsTrainee = profileUserRole === "trainee";
@@ -285,7 +285,7 @@ export const UserProfilePage = () => {
               : "bg-red-500/10 text-red-400 border-red-500/20"
             }`}>
             <FontAwesomeIcon icon={faExclamationCircle} className="h-4 w-4 shrink-0" />
-            <p className="grow">{uiFeedback.msg}</p>
+            <p className="flex-grow">{uiFeedback.msg}</p>
             <button
               type="button"
               onClick={() => setUiFeedback(null)}
@@ -337,7 +337,7 @@ export const UserProfilePage = () => {
               </button>
 
               {/* Details */}
-              <div className="grow">
+              <div className="flex-grow">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
                     <div className="flex flex-wrap items-center gap-2.5">
@@ -379,7 +379,7 @@ export const UserProfilePage = () => {
 
                   <div className="mt-6 md:mt-0 flex gap-3">
 
-                    {!isCurrentUser && profileIsMentor && currentIsTrainee && (
+                    {!isCurrentUser && profileIsMentor && !currentIsAdmin && !currentIsMentor && (
                       <button
                         className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20"
                         onClick={() => setIsBookModalOpen(true)}>c
@@ -467,7 +467,7 @@ export const UserProfilePage = () => {
                 <h4 className="text-lg font-semibold mb-3 text-white flex items-center gap-2">
                   <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-orange-500" /> About {fullName}
                 </h4>
-                <p className="whitespace-pre-line wrap-break-word text-sm leading-relaxed text-gray-300">
+                <p className="whitespace-pre-line break-words text-sm leading-relaxed text-gray-300">
                   {user.bio || "No bio provided yet."}
                 </p>
               </div>
@@ -603,7 +603,7 @@ export const UserProfilePage = () => {
       )}
 
       {isSubmittingCerts && (
-        <div className="fixed inset-0 z-100 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 select-none">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 select-none">
           <div className="flex flex-col items-center gap-3 bg-gray-950/80 border border-gray-800 p-8 rounded-2xl shadow-2xl text-center max-w-xs">
             <FontAwesomeIcon
               icon={faSpinner}
