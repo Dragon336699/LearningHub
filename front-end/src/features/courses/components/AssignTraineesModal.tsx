@@ -95,7 +95,17 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
             {currentEnrolled.map((t: CourseTraineeDto) => (
               <div key={t.id} className="flex items-center justify-between p-3.5">
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={t.avatarUrl || t.firstName.charAt(0) || "U"} className="w-8 h-8 rounded-full border border-slate-800 object-cover" alt="" />
+                  {t.avatarUrl ? (
+                    <img 
+                      src={t.avatarUrl} 
+                      className="w-8 h-8 rounded-full border border-slate-800 object-cover shrink-0" 
+                      alt="" 
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border border-slate-800 bg-orange-500/10 text-orange-500 flex items-center justify-center text-xs font-bold uppercase shrink-0">
+                      {t.firstName ? t.firstName.charAt(0) : "U"}
+                    </div>
+                  )}
                   <div className="text-sm min-w-0">
                     <p className="font-bold text-gray-200 truncate">{`${t.firstName || ""} ${t.lastName || ""}`}</p>
                     <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || "LearningHub member"}</p>
@@ -136,7 +146,17 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
                   <label key={t.id} className={`flex items-center justify-between p-3 hover:bg-slate-900/30 transition-colors cursor-pointer select-none ${isChecked ? "bg-orange-500/5" : ""}`}>
                     <div className="flex items-center gap-3 min-w-0">
                       <input type="checkbox" value={t.id} {...register("traineeIds")} className="rounded border-slate-800 bg-slate-950 text-orange-600 focus:ring-0 w-4 h-4" />
-                      <img src={t.avatarUrl || t.firstName.charAt(0) || "U"} className="w-7 h-7 rounded-full object-cover" alt="" />
+                      {t.avatarUrl ? (
+                        <img 
+                          src={t.avatarUrl} 
+                          className="w-8 h-8 rounded-full border border-slate-800 object-cover shrink-0" 
+                          alt="" 
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full border border-slate-800 bg-orange-500/10 text-orange-500 flex items-center justify-center text-xs font-bold uppercase shrink-0">
+                          {t.firstName ? t.firstName.charAt(0) : "U"}
+                        </div>
+                      )}
                       <div className="text-sm min-w-0">
                         <p className="font-bold text-gray-200 truncate">{`${t.firstName || ""} ${t.lastName || ""}`}</p>
                         <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || "LearningHub member"}</p>
