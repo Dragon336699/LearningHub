@@ -19,6 +19,8 @@ namespace LearningHub.Infrastructure.UnitOfWork
         public IAvailabilitySlotRepository AvailabilitySlots { get; }
         public IUserAvailabilitySettingRepository UserAvailabilitySetting { get; }
         public IResourceRepository Resources { get; }
+        public ICourseTraineeRepository CourseTrainees { get; }
+        public IRoleRepository Roles { get; }
         public UnitOfWork(
             LearningHubDbContext context,
             IExpertiseRepository expertiseRepository,
@@ -29,7 +31,9 @@ namespace LearningHub.Infrastructure.UnitOfWork
             IBookingSessionRepository bookingSessionRepository,
             IAvailabilitySlotRepository availabilitySlotRepository,
             IUserAvailabilitySettingRepository userAvailabilitySettingRepository,
-            IResourceRepository resourceRepository
+            IResourceRepository resourceRepository,
+            ICourseTraineeRepository courseTraineeRepository,
+            IRoleRepository roleRepository
         )
         {
             _context = context;
@@ -42,6 +46,8 @@ namespace LearningHub.Infrastructure.UnitOfWork
             AvailabilitySlots = availabilitySlotRepository;
             UserAvailabilitySetting = userAvailabilitySettingRepository;
             Resources = resourceRepository;
+            CourseTrainees = courseTraineeRepository;
+            Roles = roleRepository;
         }
 
         public int Complete()

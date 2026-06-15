@@ -44,6 +44,18 @@ public static class Messages
         public const string TimeSlotBufferInvalid = "Time break between slots must be greater than or equal to the specified buffer time.";
     }
 
+    public static class CourseMessage
+    {
+        public const string CourseNotFound = "Course not found.";
+        public const string FailToChangeToDraft = "Course is having enrolled trainee, cannot change status to draft.";
+        public const string AlreadyInStatus = "Course is already in {0} status.";
+        public const string NotAuthorizedToDelete = "You are not authorized to delete this course.";
+        public const string NotAuthorizedToUpdate = "You are not authorized to update this course.";
+        public const string FailToAssignToUnpublish = "Cannot assign trainees to an unpublished course.";
+        public const string SuccesfullyAssignTrainee = "Successfully assigned {0} trainees to the course.";
+        public const string NoChangesSaved = "No changes were saved";
+    }
+
     public static class ResourceMessage
     {
         public const string TitleRequired = "Title is required.";

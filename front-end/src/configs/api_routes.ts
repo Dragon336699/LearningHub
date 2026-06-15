@@ -4,6 +4,7 @@ export const API_ROUTES = {
     ADMIN_GET_ALL: "/user/admin/users",
     UPDATE: "/user/profile",
     EXPERTISE: "/expertise",
+    GET_TRAINEES: "/user/trainees"
   },
   AUTH: {
     LOGIN: "/auth/login",
@@ -22,6 +23,7 @@ export const API_ROUTES = {
     MENTOR: "/courses/mentor",
     TRAINEE: "/courses/published",
     GET_DETAIL: (id: string) => `/courses/${id}`,
+    ENROLLED: "/courses/enrolled",
   },
   AVAILABILITY: {
     COMMON: "/availability",

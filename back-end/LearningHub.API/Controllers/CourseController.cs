@@ -165,5 +165,52 @@ namespace LearningHub.API.Controllers
 
             return NoContent();
         }
+
+        [Authorize(Roles = "Mentor,Admin")]
+        [HttpPost("assign")]
+        public async Task<IActionResult> AssignTrainees([FromBody] AssignTraineesCommand command)
+        {
+            var validationResult = await _validationService.ValidateAsync(command);
+            if (!validationResult.IsSuccess) return BadRequest(validationResult);
+
+            var result = await _courseService.AssignTraineesToCourseAsync(command);
+            if (!result.IsSuccess) return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Trainee")]
+        [HttpGet("enrolled")]
+        public async Task<IActionResult> GetMyEnrolledCourses([FromQuery] GetPageQuery query)
+        {
+            var validationResult = await _validationService.ValidateAsync(query);
+            if (!validationResult.IsSuccess) return BadRequest(validationResult);
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized(Result<string>.Failure(new List<string> { "Invalid access token." }));
+            }
+
+            var result = await _courseService.GetEnrolledCoursesForTraineeAsync(query.Page, query.PageSize, Guid.Parse(userId));
+            if (!result.IsSuccess) return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Mentor")]
+        [HttpGet]
+        [Route("{courseId}/trainees")]
+        public async Task<IActionResult> GetTraineesStatusByCourse(Guid courseId, [FromQuery] string? keyword)
+        {
+            var result = await _courseService.GetTraineesWithEnrollmentStatusAsync(courseId, keyword);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
     }
 }

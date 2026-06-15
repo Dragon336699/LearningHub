@@ -19,3 +19,8 @@ export interface ChangeCourseStatusRequest {
     id: string;
     status: CourseStatus;
 }
+
+export interface AssignTraineesPayload {
+  courseId: string;
+  traineeIds: string[];
+}

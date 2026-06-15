@@ -46,10 +46,11 @@ namespace LearningHub.Application.Services
             return Result<ResourceDto>.Success(_mapper.Map<ResourceDto>(resource));
         }
 
-        public async Task<Result<PagedResult<ResourceDto>>> GetResourcesAsync(int page = 1, int pageSize = 10, string keyword = "")
+        public async Task<Result<PagedResult<ResourceDto>>> GetResourcesAsync(int page = 1, int pageSize = 10, string? keyword = "")
         {
-            keyword = keyword.Trim();
-            PagedResult<Resource> resources = await _unitOfWork.Resources.GetPagedResources(page, pageSize, keyword);
+            Guid traineeId = _currentSessionService.UserId;
+            keyword = keyword.Trim().ToLower() ?? "";
+            PagedResult<Resource> resources = await _unitOfWork.Resources.GetPagedResourcesByTrainee(page, pageSize, keyword, traineeId);
 
             List<ResourceDto> resourceList = _mapper.Map<List<ResourceDto>>(resources.Items);
             PagedResult<ResourceDto> pagedResult = new PagedResult<ResourceDto>
@@ -63,10 +64,10 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<ResourceDto>>.Success(pagedResult);
         }
 
-        public async Task<Result<PagedResult<ResourceDto>>> GetResourcesByMentor(int page = 1, int pageSize = 10, string keyword = "")
+        public async Task<Result<PagedResult<ResourceDto>>> GetResourcesByMentor(int page = 1, int pageSize = 10, string? keyword = "")
         {
             Guid userId = _currentSessionService.UserId;
-            keyword = keyword.Trim();
+            keyword = keyword.Trim().ToLower() ?? "";
             PagedResult<Resource> resources = await _unitOfWork.Resources.GetPagedResourcesByMentor(page, pageSize, keyword, userId);
 
             List<ResourceDto> resourceList = _mapper.Map<List<ResourceDto>>(resources.Items);

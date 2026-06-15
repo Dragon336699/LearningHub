@@ -13,13 +13,16 @@ namespace LearningHub.Infrastructure.Repositories
 
         }
 
-        public async Task<PagedResult<Resource>> GetPagedResources(int page, int pageSize, string keyword)
+        public async Task<PagedResult<Resource>> GetPagedResourcesByTrainee(int page, int pageSize, string keyword, Guid traineeId)
         {
-            IQueryable<Resource> query = _context.Set<Resource>();
-            query = query.Where(r => r.Title.Contains(keyword));
-            int totalCount = await query.CountAsync();
+            var query = from resources in _context.Resources
+                        join courses in _context.Courses on resources.CourseId equals courses.Id
+                        join courseTrainee in _context.CourseTrainees on courses.Id equals courseTrainee.CourseId
+                        where EF.Functions.Like(resources.Title, $"%{keyword}%") && courseTrainee.TraineeId == traineeId
+                        select resources;
+
+            var totalCount = await query.CountAsync();
             var items = await query
-                .Where(r => r.Title.Contains(keyword))
                 .OrderByDescending(r => r.UpdatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

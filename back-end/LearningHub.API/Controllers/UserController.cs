@@ -195,5 +195,21 @@ namespace LearningHub.API.Controllers
 
             return Ok(result);
         }
+
+        [Authorize(Roles = "Mentor,Admin")]
+        [HttpGet]
+        [Route("trainees")]
+        public async Task<IActionResult> GetAllTrainees()
+        {
+            Result<List<UserDto>> result = await _userService.GetAllTraineesAsync();
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
     }
 }

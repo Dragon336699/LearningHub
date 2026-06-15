@@ -13,6 +13,8 @@ namespace LearningHub.Application.Interfaces.UnitOfWork
         IAvailabilitySlotRepository AvailabilitySlots { get; }
         IUserAvailabilitySettingRepository UserAvailabilitySetting { get; }
         IResourceRepository Resources { get; }
+        ICourseTraineeRepository CourseTrainees { get; }
+        IRoleRepository Roles { get; }
         int Complete();
         Task<int> CompleteAsync();
         Task BeginTransactionAsync();
