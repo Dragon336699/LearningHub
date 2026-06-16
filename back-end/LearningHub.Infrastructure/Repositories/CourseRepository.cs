@@ -91,8 +91,8 @@ namespace LearningHub.Infrastructure.Repositories
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 var lowerKeyword = keyword.Trim().ToLower();
-                query = query.Where(u => u.FirstName.Contains(lowerKeyword, StringComparison.CurrentCultureIgnoreCase)
-                                            || (u.LastName != null && u.LastName.Contains(lowerKeyword, StringComparison.CurrentCultureIgnoreCase)));
+                query = query.Where(u => (!string.IsNullOrEmpty(u.FirstName) && u.FirstName.Contains(lowerKeyword))
+                                            || (u.LastName != null && u.LastName.Contains(lowerKeyword)));
             }
 
             return await query
