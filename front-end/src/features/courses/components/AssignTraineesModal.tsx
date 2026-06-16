@@ -108,7 +108,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
                   )}
                   <div className="text-sm min-w-0">
                     <p className="font-bold text-gray-200 truncate">{`${t.firstName || ""} ${t.lastName || ""}`}</p>
-                    <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || "LearningHub member"}</p>
+                    <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || ""}</p>
                   </div>
                 </div>
 
