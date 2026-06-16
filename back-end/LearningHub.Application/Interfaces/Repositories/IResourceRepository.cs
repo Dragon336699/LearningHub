@@ -7,5 +7,6 @@ namespace LearningHub.Application.Interfaces.Repositories
     {
         Task<PagedResult<Resource>> GetPagedResourcesByTrainee(int page, int pageSize, string keyword, Guid traineeId);
         Task<PagedResult<Resource>> GetPagedResourcesByMentor(int page, int pageSize, string keyword, Guid userId);
+        Task<int> CountByDate(DateTime date);
     }
 }
