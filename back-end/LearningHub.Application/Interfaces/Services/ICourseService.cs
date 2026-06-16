@@ -14,7 +14,7 @@ namespace LearningHub.Application.Interfaces.Services
         Task<Result<CourseDto>> UpdateCourseStatusAsync(UpdateCourseStatusCommand command);
         Task DeleteCourseAsync(Guid courseId, Guid userId, bool isAdmin);
         Task<Result<string>> AssignTraineesToCourseAsync(AssignTraineesCommand command);
-        Task<Result<List<CourseTraineeDto>>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string? keyword);
+        Task<Result<List<CourseTraineeDto>>> GetUsersNotEnrolledInCourseAsync(Guid courseId, string? keyword);
         Task<Result<List<CourseTraineeDto>>> GetEnrolledTraineesAsync(Guid courseId);
         Task CleanupCourses();
     }

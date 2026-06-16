@@ -212,7 +212,7 @@ namespace LearningHub.API.Controllers
         [Route("{courseId}/trainees")]
         public async Task<IActionResult> GetTraineesStatusByCourse(Guid courseId, [FromQuery] string? keyword)
         {
-            var result = await _courseService.GetTraineesWithEnrollmentStatusAsync(courseId, keyword);
+            var result = await _courseService.GetUsersNotEnrolledInCourseAsync(courseId, keyword);
 
             if (!result.IsSuccess)
             {

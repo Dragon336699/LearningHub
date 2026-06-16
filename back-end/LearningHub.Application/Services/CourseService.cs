@@ -232,11 +232,11 @@ namespace LearningHub.Application.Services
             return Result<PagedResult<CourseDto>>.Success(pageCourses);
         }
 
-        public async Task<Result<List<CourseTraineeDto>>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string? keyword)
+        public async Task<Result<List<CourseTraineeDto>>> GetUsersNotEnrolledInCourseAsync(Guid courseId, string? keyword)
         {
-            string searchKeyword = keyword?.Trim() ?? string.Empty;
+            string searchKeyword = keyword?.ToLower().Trim() ?? string.Empty;
 
-            var traineesWithStatus = await _unitOfWork.CourseTrainees.GetUsersNotEnrolledInCourse(courseId, searchKeyword);
+            var traineesWithStatus = await _unitOfWork.CourseTrainees.GetUsersNotEnrolledInCourseAsync(courseId, searchKeyword);
 
             return Result<List<CourseTraineeDto>>.Success(traineesWithStatus);
         }
