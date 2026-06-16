@@ -51,7 +51,6 @@ export const SessionPage: React.FC = () => {
       try {
         const result = await dispatch(
           fetchUserSessions({ 
-            userId: currentUser.id, 
             date: dateString, 
             sessionStatus: activeStatus 
           }),
@@ -120,7 +119,6 @@ export const SessionPage: React.FC = () => {
 
       dispatch(
         fetchUserSessions({
-          userId: currentUser!.id,
           date: formatDateToApi(selectedDate),
           sessionStatus: activeStatus,
         }),

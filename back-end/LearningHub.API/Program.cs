@@ -1,11 +1,12 @@
+using Hangfire;
+using Hangfire.SqlServer;
 using LearningHub.API.Common.Middlewares;
 using LearningHub.API.Configs;
 using LearningHub.Application.Interfaces.Seeder;
+using LearningHub.Domain.Constants;
+using LearningHub.Infrastructure.BackgroundJobs;
 using LearningHub.Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,9 +38,28 @@ builder.Services.AddDbContext<LearningHubDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.Zero,
+        UseRecommendedIsolationLevel = true,
+        DisableGlobalLocks = true,
+        //automatically initing table if not exist
+        PrepareSchemaIfNecessary = true, 
+        SchemaName = "HangFire" 
+    }));
+    
+builder.Services.AddHangfireServer();
+
 builder.Services.AddAuthorization(options => {
-    options.AddPolicy("Mentor", policy => policy.RequireRole("Mentor"));
-    options.AddPolicy("Trainee", policy => policy.RequireRole("Trainee"));
+    options.AddPolicy(RoleName.Mentor, policy => policy.RequireRole(RoleName.Mentor));
+    options.AddPolicy(RoleName.Trainee, policy => policy.RequireRole(RoleName.Trainee));
+    options.AddPolicy(RoleName.Admin, policy => policy.RequireRole(RoleName.Admin));
 
 });
 
@@ -56,7 +76,24 @@ if (app.Environment.IsDevelopment())
         context.Response.Redirect("/swagger");
         return Task.CompletedTask;
     });
+    
 }
+app.UseHangfireDashboard("/hangfire");
+
+var jobOptions = builder.Configuration
+    .GetSection(BackgroundJobsOptions.SectionName)
+    .Get<BackgroundJobsOptions>() ?? new BackgroundJobsOptions();
+
+//Hangfire
+RecurringJob.AddOrUpdate<DashboardSummaryJob>(
+    jobOptions.Dashboard.JobName,
+    service => service.RunDailySnapshotAsync(),
+    jobOptions.Dashboard.Schedule,
+    new RecurringJobOptions 
+    { 
+        TimeZone = jobOptions.TimeZoneInfo 
+    }
+);
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")

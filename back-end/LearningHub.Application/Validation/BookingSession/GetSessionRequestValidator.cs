@@ -10,8 +10,6 @@ namespace LearningHub.Application.Validation.BookingSession
     {
         public GetSessionRequestValidator()
         {
-            RuleFor(rq => rq.UserId)
-                .NotEmpty().WithMessage("UserId is required");
 
             RuleFor(rq => rq.Date)
                 .NotEmpty().WithMessage("Date is required");
