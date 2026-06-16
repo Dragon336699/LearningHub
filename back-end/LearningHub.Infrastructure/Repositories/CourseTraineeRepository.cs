@@ -49,7 +49,7 @@ namespace LearningHub.Infrastructure.Repositories
             if (!string.IsNullOrEmpty(keyword))
             {
                 var lowerKeyword = keyword.Trim().ToLower();
-                query = query.Where(u => (u.FirstName + " " + u.LastName).Contains(keyword));
+                query = query.Where(u => (u.FirstName + " " + u.LastName ?? "").Contains(keyword) && !string.IsNullOrEmpty(u.FirstName));
             }
 
             return await query
