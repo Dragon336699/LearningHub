@@ -221,5 +221,20 @@ namespace LearningHub.API.Controllers
 
             return Ok(result);
         }
+
+        [Authorize(Roles = "Mentor")]
+        [HttpGet]
+        [Route("trainees/enrolled/{courseId}")]
+        public async Task<IActionResult> GetEnrolledTrainees(Guid courseId)
+        {
+            var result = await _courseService.GetEnrolledTraineesAsync(courseId);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
     }
 }

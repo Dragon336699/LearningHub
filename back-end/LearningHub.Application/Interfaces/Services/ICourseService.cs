@@ -1,6 +1,5 @@
 ﻿using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Courses;
-using LearningHub.Domain.Entities;
 
 namespace LearningHub.Application.Interfaces.Services
 {
@@ -16,6 +15,7 @@ namespace LearningHub.Application.Interfaces.Services
         Task DeleteCourseAsync(Guid courseId, Guid userId, bool isAdmin);
         Task<Result<string>> AssignTraineesToCourseAsync(AssignTraineesCommand command);
         Task<Result<List<CourseTraineeDto>>> GetTraineesWithEnrollmentStatusAsync(Guid courseId, string? keyword);
+        Task<Result<List<CourseTraineeDto>>> GetEnrolledTraineesAsync(Guid courseId);
         Task CleanupCourses();
     }
 }
