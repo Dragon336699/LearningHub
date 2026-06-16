@@ -5,7 +5,7 @@ import { courseService, CourseTraineeDto } from "../../../features/courses/servi
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faCheckCircle, faUsers, faUserPlus, faClock } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "sonner";
-import { useGetTraineesStatusByCourse } from "../hooks/Course.hook";
+import { useGetEnrolledTrainees, useGetTraineeNotEnroll } from "../hooks/Course.hook";
 
 interface AssignTraineesModalProps {
   courseId: string;
@@ -25,10 +25,10 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
   });
 
   const watchedTraineeIds = watch("traineeIds") || [];
-  const { data: traineeList } = useGetTraineesStatusByCourse(courseId, searchQuery);
+  const { data: traineeList } = useGetTraineeNotEnroll(courseId, searchQuery);
 
   const trainees = traineeList?.data ?? [];
-  const currentEnrolled = trainees.filter((t: { isEnrolled: any; }) => t.isEnrolled);
+  const { data: currentEnrolled } = useGetEnrolledTrainees(courseId);
   const nonEnrolled = trainees.filter((t: { isEnrolled: any; }) => !t.isEnrolled);
 
   const onSubmitForm = async (data: { traineeIds: string[] }) => {
@@ -77,7 +77,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
               }`}
           >
             <FontAwesomeIcon icon={faUsers} />
-            Enrolled Trainees ({currentEnrolled.length})
+            Enrolled Trainees ({currentEnrolled?.length})
           </button>
           <button
             type="button"
@@ -92,14 +92,14 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
 
         {activeTab === "current" && (
           <div className="border border-slate-900 bg-slate-950/20 rounded-xl max-h-[35vh] overflow-y-auto divide-y divide-slate-900 scrollbar-thin">
-            {currentEnrolled.map((t: CourseTraineeDto) => (
+            {currentEnrolled?.map((t: CourseTraineeDto) => (
               <div key={t.id} className="flex items-center justify-between p-3.5">
                 <div className="flex items-center gap-3 min-w-0">
                   {t.avatarUrl ? (
-                    <img 
-                      src={t.avatarUrl} 
-                      className="w-8 h-8 rounded-full border border-slate-800 object-cover shrink-0" 
-                      alt="" 
+                    <img
+                      src={t.avatarUrl}
+                      className="w-8 h-8 rounded-full border border-slate-800 object-cover shrink-0"
+                      alt=""
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full border border-slate-800 bg-orange-500/10 text-orange-500 flex items-center justify-center text-xs font-bold uppercase shrink-0">
@@ -118,7 +118,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
                 </span>
               </div>
             ))}
-            {currentEnrolled.length === 0 && (
+            {currentEnrolled?.length === 0 && (
               <p className="text-xs text-slate-500 italic text-center py-12">No trainees enrolled in this course yet.</p>
             )}
           </div>
@@ -147,10 +147,10 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
                     <div className="flex items-center gap-3 min-w-0">
                       <input type="checkbox" value={t.id} {...register("traineeIds")} className="rounded border-slate-800 bg-slate-950 text-orange-600 focus:ring-0 w-4 h-4" />
                       {t.avatarUrl ? (
-                        <img 
-                          src={t.avatarUrl} 
-                          className="w-8 h-8 rounded-full border border-slate-800 object-cover shrink-0" 
-                          alt="" 
+                        <img
+                          src={t.avatarUrl}
+                          className="w-8 h-8 rounded-full border border-slate-800 object-cover shrink-0"
+                          alt=""
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full border border-slate-800 bg-orange-500/10 text-orange-500 flex items-center justify-center text-xs font-bold uppercase shrink-0">

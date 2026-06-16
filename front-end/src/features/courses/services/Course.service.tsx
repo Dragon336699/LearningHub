@@ -50,6 +50,13 @@ export const courseService = {
             `${API_ROUTES.COURSE.COMMON}/${courseId}/trainees?keyword=${keyword}`
         );
     },
+    getEnrolledTrainees: async (courseId: string) => {
+        const response = await HttpClient.get<Result<CourseTraineeDto[]>>(
+            `${API_ROUTES.COURSE.COMMON}/trainees/enrolled/${courseId}`
+        );
+
+        return response.data;
+    },
     assignTrainees: async (payload: { courseId: string; traineeIds: string[] }): Promise<Result<string>> => {
         return HttpClient.post<Result<string>>(`${API_ROUTES.COURSE.COMMON}/assign`, {
             CourseId: payload.courseId,

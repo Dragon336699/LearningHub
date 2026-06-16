@@ -9,7 +9,7 @@ namespace LearningHub.Application.Dtos.Courses
         public string? Bio { get; set; }
         public bool IsEnrolled { get; set; }
         public Guid RoleId { get; set; }
-        public DateTime AssignedAt { get; set; }
+        public DateTime? AssignedAt { get; set; }
         public int Progress { get; set; }
 
         public string TrainingStatus

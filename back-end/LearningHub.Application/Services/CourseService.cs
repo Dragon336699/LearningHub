@@ -1,13 +1,11 @@
 ﻿using AutoMapper;
+using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Common.Results;
-using Microsoft.EntityFrameworkCore;
-using LearningHub.Application.Common;
 using LearningHub.Application.Dtos.Courses;
 using LearningHub.Application.Interfaces.Services;
 using LearningHub.Application.Interfaces.UnitOfWork;
 using LearningHub.Domain.Entities;
 using LearningHub.Domain.Enums;
-using LearningHub.Application.Common.Constants;
 
 namespace LearningHub.Application.Services
 {
@@ -78,7 +76,7 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<PagedResult<CourseDto>>> GetCoursesByMentor(int page, int pageSize, string? keyword, Guid mentorId)
         {
-            keyword  = keyword?.Trim().ToLower() ?? "";
+            keyword = keyword?.Trim().ToLower() ?? "";
 
             var (courses, totalCourses) = await _unitOfWork.Courses.GetCoursesByMentor(page, pageSize, keyword, mentorId);
 
@@ -189,7 +187,7 @@ namespace LearningHub.Application.Services
         {
             var course = await _unitOfWork.Courses.GetByIdAsync(command.CourseId);
             if (course == null) return Result<string>.Failure(Messages.CourseMessage.CourseNotFound);
-            if (course.Status != CourseStatus.Published) 
+            if (course.Status != CourseStatus.Published)
             {
                 return Result<string>.Failure(Messages.CourseMessage.FailToAssignToUnpublish);
             }
@@ -217,9 +215,9 @@ namespace LearningHub.Application.Services
 
         public async Task<Result<PagedResult<CourseDto>>> GetEnrolledCoursesForTraineeAsync(int page, int pageSize, Guid traineeId)
         {
-            List<Course> enrolledCourses = await _unitOfWork.Courses.GetCoursesByTraineeAsync(page, pageSize, traineeId);
+            List<Course> enrolledCourses = await _unitOfWork.CourseTrainees.GetCoursesByTraineeAsync(page, pageSize, traineeId);
 
-            int totalCourses = await _unitOfWork.Courses.GetTotalCoursesByTraineeAsync(traineeId);
+            int totalCourses = await _unitOfWork.CourseTrainees.GetTotalCoursesByTraineeAsync(traineeId);
 
             List<CourseDto> coursesDto = _mapper.Map<List<CourseDto>>(enrolledCourses);
 
@@ -238,7 +236,14 @@ namespace LearningHub.Application.Services
         {
             string searchKeyword = keyword?.Trim() ?? string.Empty;
 
-            var traineesWithStatus = await _unitOfWork.Courses.GetTraineesWithEnrollmentStatusAsync(courseId, searchKeyword);
+            var traineesWithStatus = await _unitOfWork.CourseTrainees.GetUsersNotEnrolledInCourse(courseId, searchKeyword);
+
+            return Result<List<CourseTraineeDto>>.Success(traineesWithStatus);
+        }
+
+        public async Task<Result<List<CourseTraineeDto>>> GetEnrolledTraineesAsync(Guid courseId)
+        {
+            var traineesWithStatus = await _unitOfWork.CourseTrainees.GetEnrolledTrainees(courseId);
 
             return Result<List<CourseTraineeDto>>.Success(traineesWithStatus);
         }
@@ -248,5 +253,5 @@ namespace LearningHub.Application.Services
             await _unitOfWork.CompleteAsync();
         }
     }
-    
+
 }

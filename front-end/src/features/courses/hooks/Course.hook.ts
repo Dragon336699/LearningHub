@@ -87,12 +87,20 @@ export const useDeleteCourse = () => {
   });
 };
 
-export const useGetTraineesStatusByCourse = (courseId: string, keyword: string) => {
+export const useGetTraineeNotEnroll = (courseId: string, keyword: string) => {
   return useQuery({
     queryKey: ["trainee-course", courseId, keyword],
     queryFn: async () => await courseService.getTraineesStatusByCourse(courseId, keyword)
   })
 }
+
+export const useGetEnrolledTrainees = (courseId: string) => {
+  return useQuery({
+    queryKey: ["trainee-course", courseId],
+    queryFn: async () => await courseService.getEnrolledTrainees(courseId)
+  })
+}
+
 export const useTraineeEnrolledCourses = (page: number = 1, pageSize: number = 6) => {
   return useQuery({
     queryKey: ["trainee-enrolled-courses", page, pageSize],
