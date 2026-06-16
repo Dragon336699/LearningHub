@@ -10,9 +10,9 @@ namespace LearningHub.Infrastructure.Repositories
 {
     public class CourseTraineeRepository : GenericRepository<CourseTrainee>, ICourseTraineeRepository
     {
-        public CourseTraineeRepository(LearningHubDbContext context): base(context)
+        public CourseTraineeRepository(LearningHubDbContext context) : base(context)
         {
-            
+
         }
 
         public async Task<List<Course>> GetCoursesByTraineeAsync(int page, int pageSize, Guid traineeId)
@@ -34,7 +34,7 @@ namespace LearningHub.Infrastructure.Repositories
                 .CountAsync(c => c.Status == CourseStatus.Published);
         }
 
-        public async Task<List<CourseTraineeDto>> GetUsersNotEnrolledInCourse(Guid courseId, string keyword)
+        public async Task<List<CourseTraineeDto>> GetUsersNotEnrolledInCourseAsync(Guid courseId, string keyword)
         {
 
             var traineeRoleId = await _context.Roles
@@ -43,14 +43,11 @@ namespace LearningHub.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
 
             var query = _context.Users
-                .Where(u => u.EmailConfirmed && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == traineeRoleId) 
+                .Where(u => u.EmailConfirmed && _context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == traineeRoleId)
                 && !_context.CourseTrainees.Any(ct => ct.CourseId == courseId && ct.TraineeId == u.Id));
 
-            if (!string.IsNullOrEmpty(keyword))
-            {
-                var lowerKeyword = keyword.Trim().ToLower();
-                query = query.Where(u => (u.FirstName + " " + u.LastName ?? "").Contains(keyword) && !string.IsNullOrEmpty(u.FirstName));
-            }
+            var lowerKeyword = keyword.Trim().ToLower();
+            query = query.Where(u => (u.FirstName + " " + u.LastName ?? "").Contains(keyword) && !string.IsNullOrEmpty(u.FirstName));
 
             return await query
                 .SelectMany(

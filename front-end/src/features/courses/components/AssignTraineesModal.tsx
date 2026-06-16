@@ -20,16 +20,14 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, watch, reset } = useForm<{ traineeIds: string[] }>({
+  const { setValue, handleSubmit, watch, reset } = useForm<{ traineeIds: string[] }>({
     defaultValues: { traineeIds: [] }
   });
 
   const watchedTraineeIds = watch("traineeIds") || [];
   const { data: traineeList } = useGetTraineeNotEnroll(courseId, searchQuery);
 
-  const trainees = traineeList?.data ?? [];
   const { data: currentEnrolled } = useGetEnrolledTrainees(courseId);
-  const nonEnrolled = trainees.filter((t: { isEnrolled: any; }) => !t.isEnrolled);
 
   const onSubmitForm = async (data: { traineeIds: string[] }) => {
     if (data.traineeIds.length === 0) return;
@@ -41,7 +39,7 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
       });
 
       if (response?.isSuccess) {
-        toast.success(`Successfully assigned ${data.traineeIds.length} trainees to this course!`);
+        toast.success(`Successfully assigned ${data.traineeIds.length} ${data.traineeIds.length > 1 ? 'trainees' : 'trainee'} to this course!`);
         reset({ traineeIds: [] });
         onSuccess();
       }
@@ -140,12 +138,26 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
             </div>
 
             <div className="border border-slate-900 bg-slate-950/20 rounded-xl max-h-[30vh] overflow-y-auto divide-y divide-slate-900 scrollbar-thin">
-              {nonEnrolled.map((t: CourseTraineeDto) => {
+              {traineeList && traineeList.data && traineeList.data.map((t: CourseTraineeDto) => {
                 const isChecked = watchedTraineeIds.includes(t.id);
                 return (
                   <label key={t.id} className={`flex items-center justify-between p-3 hover:bg-slate-900/30 transition-colors cursor-pointer select-none ${isChecked ? "bg-orange-500/5" : ""}`}>
                     <div className="flex items-center gap-3 min-w-0">
-                      <input type="checkbox" value={t.id} {...register("traineeIds")} className="rounded border-slate-800 bg-slate-950 text-orange-600 focus:ring-0 w-4 h-4" />
+                      <input
+                        type="checkbox"
+                        value={t.id}
+                        checked={watchedTraineeIds.includes(t.id)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+
+                          setValue(
+                            "traineeIds",
+                            checked
+                              ? [...watchedTraineeIds, t.id]
+                              : watchedTraineeIds.filter(id => id !== t.id)
+                          );
+                        }}
+                        className="rounded border-slate-800 bg-slate-950 text-orange-600 focus:ring-0 w-4 h-4" />
                       {t.avatarUrl ? (
                         <img
                           src={t.avatarUrl}
@@ -159,14 +171,14 @@ export const AssignTraineesModal = ({ courseId, courseTitle, onClose, onSuccess 
                       )}
                       <div className="text-sm min-w-0">
                         <p className="font-bold text-gray-200 truncate">{`${t.firstName || ""} ${t.lastName || ""}`}</p>
-                        <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || "LearningHub member"}</p>
+                        <p className="text-slate-500 text-[11px] truncate mt-0.5">{t.bio || ""}</p>
                       </div>
                     </div>
                     {isChecked && <FontAwesomeIcon icon={faCheckCircle} className="text-orange-500 text-xs shrink-0 animate-in fade-in zoom-in duration-100" />}
                   </label>
                 );
               })}
-              {nonEnrolled.length === 0 && (
+              {traineeList && traineeList.data && traineeList.data.length === 0 && (
                 <p className="text-xs text-slate-500 italic text-center py-12">No new trainees available to assign.</p>
               )}
             </div>
