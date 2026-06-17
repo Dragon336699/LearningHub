@@ -116,10 +116,7 @@ namespace LearningHub.Application.Services
         {
             Course? course = await _unitOfWork.Courses.GetByIdAsync(command.Id);
 
-            if (course == null)
-            {
-                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
-            }
+            ValidateCourse(course);
 
             if (course.UserId != userId)
             {
@@ -140,10 +137,7 @@ namespace LearningHub.Application.Services
         {
             Course? course = await _unitOfWork.Courses.GetByIdAsync(command.Id);
 
-            if (course == null)
-            {
-                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
-            }
+            ValidateCourse(course);
 
             CourseTrainee? courseTrainee = await _unitOfWork.CourseTrainees.FirstOrDefaultAsync(ct => ct.CourseId == course.Id);
 
@@ -169,10 +163,7 @@ namespace LearningHub.Application.Services
         {
             Course? course = await _unitOfWork.Courses.GetByIdAsync(courseId);
 
-            if (course == null)
-            {
-                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
-            }
+            ValidateCourse(course);
 
             if (!isAdmin && course.UserId != userId)
             {
@@ -186,7 +177,9 @@ namespace LearningHub.Application.Services
         public async Task<Result<string>> AssignTraineesToCourseAsync(AssignTraineesCommand command)
         {
             var course = await _unitOfWork.Courses.GetByIdAsync(command.CourseId);
-            if (course == null) return Result<string>.Failure(Messages.CourseMessage.CourseNotFound);
+
+            ValidateCourse(course);
+
             if (course.Status != CourseStatus.Published)
             {
                 return Result<string>.Failure(Messages.CourseMessage.FailToAssignToUnpublish);
@@ -251,6 +244,14 @@ namespace LearningHub.Application.Services
         {
             await _unitOfWork.Courses.RemoveAllCourses();
             await _unitOfWork.CompleteAsync();
+        }
+
+        private void ValidateCourse(Course? course)
+        {
+            if (course == null)
+            {
+                throw new KeyNotFoundException(Messages.CourseMessage.CourseNotFound);
+            }
         }
     }
 

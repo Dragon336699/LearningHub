@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Common;
 using LearningHub.Application.Dtos.Users;
@@ -35,10 +36,7 @@ namespace LearningHub.Application.Services
                 .Include(u => u.Certificates)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User can't be found");
-            }
+            ValidateUser(user);
 
             var roles = await _userManager.GetRolesAsync(user);
             var roleName = roles.FirstOrDefault();
@@ -75,10 +73,7 @@ namespace LearningHub.Application.Services
                 .Include(u => u.Expertises)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User can't be found");
-            }
+            ValidateUser(user);
 
             if (await _userManager.IsInRoleAsync(user, "Mentor"))
             {
@@ -146,10 +141,7 @@ namespace LearningHub.Application.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User can't be found");
-            }
+            ValidateUser(user);
 
             string? avatarUrl = await _fileStorageService.UploadFileAsync(avatarFileUpload, "Avatar");
 
@@ -175,10 +167,7 @@ namespace LearningHub.Application.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User can't be found");
-            }
+            ValidateUser(user);
 
             if (user.AvatarUrl == null)
             {
@@ -198,10 +187,7 @@ namespace LearningHub.Application.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User can't be found");
-            }
+            ValidateUser(user);
 
             if (user.Status == command.UserStatus)
             {
@@ -269,6 +255,14 @@ namespace LearningHub.Application.Services
             var traineesDto = _mapper.Map<List<UserDto>>(trainees);
 
             return Result<List<UserDto>>.Success(traineesDto);
+        }
+
+        public void ValidateUser (User? user)
+        {
+            if (user == null)
+            {
+                throw new KeyNotFoundException(Messages.UserMessage.UserNull);
+            }
         }
     }
 }

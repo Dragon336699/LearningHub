@@ -44,6 +44,17 @@ public static class Messages
         public const string TimeSlotBufferInvalid = "Time break between slots must be greater than or equal to the specified buffer time.";
     }
 
+    public static class UserMessage
+    {
+        public const string UserNull = "User can't be found.";
+    }
+
+    public static class CertificateMessage
+    {
+        public const string CertificateNull = "Certificate not found.";
+        public const string UploadFileFail = "Upload file failed.";
+    }
+
     public static class CourseMessage
     {
         public const string CourseNotFound = "Course not found.";

@@ -107,7 +107,7 @@ namespace LearningHub.Application.Services
             {
                 foreach (var cmd in commandToday)
                 {
-                    if (cmd.AvailabilitySlots.Any(slot => slot.StartTime < TimeOnly.FromDateTime(vietnamNow.DateTime)))
+                    if (cmd.SettingDay < today)
                     {
                         throw new ValidationException(Messages.AvailabilityMessage.InvalidTimeSlot);
                     }
