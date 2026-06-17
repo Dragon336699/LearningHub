@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using LearningHub.Application.Common.Constants;
 using LearningHub.Application.Common.Results;
 using LearningHub.Application.Dtos.Certificates;
 using LearningHub.Application.Interfaces.Services;
@@ -28,7 +29,7 @@ namespace LearningHub.Application.Services
 
                 if (uploadUrl == null)
                 {
-                    throw new Exception("Upload file failed");
+                    throw new Exception(Messages.CertificateMessage.UploadFileFail);
                 }
             }
 
@@ -56,12 +57,10 @@ namespace LearningHub.Application.Services
         {
             string? uploadUrl = null;
 
-            Certificate? certificate =  await _unitOfWork.Certificates.GetByIdAsync(command.Id);
-            if (certificate == null)
-            {
-                throw new KeyNotFoundException("Certificate not found");
-            }
-            
+            Certificate? certificate = await _unitOfWork.Certificates.GetByIdAsync(command.Id);
+
+            ValidateCertificate(certificate);
+
             certificate.CertificateName = command.CertificateName;
             certificate.Organization = command.Organization;
             certificate.IssueDate = command.IssueDate;
@@ -73,7 +72,7 @@ namespace LearningHub.Application.Services
 
                 if (uploadUrl == null)
                 {
-                    throw new Exception("Upload file failed");
+                    throw new Exception(Messages.CertificateMessage.UploadFileFail);
                 }
             }
 
@@ -92,13 +91,18 @@ namespace LearningHub.Application.Services
 
             Certificate? certificate = await _unitOfWork.Certificates.GetByIdAsync(certificateId);
 
-            if (certificate == null)
-            {
-                throw new KeyNotFoundException("Certificate not found");
-            }
+            ValidateCertificate(certificate);
 
             _unitOfWork.Certificates.Remove(certificate);
             await _unitOfWork.CompleteAsync();
+        }
+
+        private void ValidateCertificate(Certificate? certificate)
+        {
+            if (certificate == null)
+            {
+                throw new KeyNotFoundException(Messages.CertificateMessage.CertificateNull);
+            }
         }
     }
 }

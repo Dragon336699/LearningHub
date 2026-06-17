@@ -431,11 +431,11 @@ export const MentorAvailabilityPage = () => {
                         return bookedSlotIndex === -1;
                     });
                 } else if (bookedSlots.length !== 0 && (existingDay?.workStartTime !== availabilities[availabilityIndex].workStartTime || existingDay?.workEndTime !== availabilities[availabilityIndex].workEndTime || existingDay?.sessionDurationMinutes !== availabilities[availabilityIndex].sessionDurationMinutes || existingDay?.bufferTimeMinutes !== availabilities[availabilityIndex].bufferTimeMinutes)) {
-                    daySlots = [];
+                    const existSlots = existingDay?.availabilitySlots ?? [];
 
                     const map = new Map();
 
-                    [...bookedSlots, ...pastSlots, ...daySlots].sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
+                    existSlots.sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(slot => {
                         const key = `${(formatTime(slot.startTime))}-${formatTime(slot.endTime)}`;
                         map.set(key, slot);
                     });

@@ -44,5 +44,12 @@ namespace LearningHub.API.Controllers
             ZenQuote result = await _dashboardSummaryService.GetDailyQuoteAsync();
             return Ok(result);
         }
+
+        [HttpPost("run-batch")]
+        public async Task<IActionResult> RunBatchSummary()
+        {
+            await _dashboardSummaryService.SaveOrUpdateDashboardSummaryAsync();
+            return Ok();
+        }
     }
 }
