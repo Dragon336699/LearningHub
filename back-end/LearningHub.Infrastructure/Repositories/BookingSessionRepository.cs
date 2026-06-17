@@ -76,7 +76,8 @@ namespace LearningHub.Infrastructure.Repositories
         {
             return await _context.BookingSessions
                 .AsNoTracking()
-                .CountAsync(s => s.StartTime <= date);
+                .CountAsync(s => s.Status == SessionStatus.Approved 
+                    && s.StartTime < date);
         }
 	}
 }
