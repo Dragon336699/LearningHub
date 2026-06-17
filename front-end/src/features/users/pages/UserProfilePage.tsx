@@ -382,7 +382,7 @@ export const UserProfilePage = () => {
                     {!isCurrentUser && profileIsMentor && currentIsTrainee && (
                       <button
                         className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-md font-medium transition duration-200 shadow-lg shadow-orange-500/20"
-                        onClick={() => setIsBookModalOpen(true)}>c
+                        onClick={() => setIsBookModalOpen(true)}>
                         Book a Session
                       </button>
                     )}

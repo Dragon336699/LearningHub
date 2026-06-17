@@ -23,7 +23,7 @@ namespace LearningHub.API.Controllers
 
         [HttpGet]
         [Authorize(Policy = RoleName.Admin)]
-        public async Task<IActionResult> GetSessions([FromQuery] GetDashboardSummaryRequest request)
+        public async Task<IActionResult> GetDashboards([FromQuery] GetDashboardSummaryRequest request)
         {
             var validationResult = await _validationService.ValidateAsync(request);
 
