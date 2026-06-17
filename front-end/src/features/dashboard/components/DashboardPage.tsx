@@ -1,81 +1,93 @@
 import { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../../store";
-import { fetchDailyQuote, fetchDashboardSummary } from "../../../store/thunks/dashboardThunks";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 import { useAppSelector } from "../../../store/hooks";
-import { fetchUserSessions } from "../../../store/thunks/sessionThunk";
 import { useNavigate } from "react-router-dom";
+import { dashboardService } from "../../../services/dashboard.service";
+import { sessionService } from "../../../services/session.service";
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch<AppDispatch>();
-  const { summaries, loading } = useSelector(
-    (state: RootState) => state.dashboard,
-  );
 
-  const { sessions } = useAppSelector((state: RootState) => state.session);
-  const {quote} =  useAppSelector((state: RootState) => state.dashboard);
+  const [summaries, setSummaries] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [quote, setQuote] = useState<{ q: string; a: string } | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [timeRange, setTimeRange] = useState<string>("week");
 
   const currentUser = useAppSelector((state) => state.auth.currentUser);
   const currentUserRole = String(
     currentUser?.roleName || (currentUser as any)?.RoleName || "",
   ).toLowerCase();
+  
   const currentIsAdmin = currentUserRole === "admin";
   const currentIsMentor = currentUserRole === "mentor";
   const currentIsTrainee = currentUserRole === "trainee";
 
-  const [timeRange, setTimeRange] = useState<string>("week");
-
   useEffect(() => {
-    const today = new Date();
-    const fromDateObj = new Date(today);
+    let isMounted = true;
 
-    switch (timeRange) {
-      case "today":
-        break;
-      case "week":
-        fromDateObj.setDate(today.getDate() - 6);
-        break;
-      case "month":
-        fromDateObj.setMonth(today.getMonth() - 1);
-        break;
-      case "6months":
-        fromDateObj.setMonth(today.getMonth() - 6);
-        break;
-      case "year":
-        fromDateObj.setMonth(today.getMonth() - 12);
-        break;
-      default:
-        fromDateObj.setDate(today.getDate() - 6);
-    }
+    const fetchDashboardData = async () => {
+      setLoading(true); 
 
-    const toDate = today.toLocaleDateString('en-CA');
-    const fromDate = fromDateObj.toLocaleDateString('en-CA');
+      try {
+        const today = new Date();
+        const fromDateObj = new Date(today);
 
-    const fetchParams = { FromDate: fromDate, ToDate: toDate };
+        switch (timeRange) {
+          case "today":
+            fromDateObj.setDate(today.getDate() - 1);
+            break;
+          case "week":
+            fromDateObj.setDate(today.getDate() - 6);
+            break;
+          case "month":
+            fromDateObj.setMonth(today.getMonth() - 1);
+            break;
+          case "6months":
+            fromDateObj.setMonth(today.getMonth() - 6);
+            break;
+          case "year":
+            fromDateObj.setMonth(today.getMonth() - 12);
+            break;
+          default:
+            fromDateObj.setDate(today.getDate() - 6);
+        }
 
-    switch (currentUserRole) {
-      case "admin":
-        dispatch(fetchDashboardSummary(fetchParams));
-        break;
+        const toDate = today.toLocaleDateString('en-CA');
+        const fromDate = fromDateObj.toLocaleDateString('en-CA');
+        const fetchParams = { FromDate: fromDate, ToDate: toDate };
 
-      case "mentor":
-      case "trainee":
-        dispatch(
-          fetchUserSessions({
-            date: toDate,
-            sessionStatus: "Approved",
-          }),
-        );
-        break;
+       const quoteData = await dashboardService.getDailyQuote();
+      if (isMounted) setQuote(quoteData);
 
-      default:
-        console.warn(`Unknown role or role not loaded yet: ${currentUserRole}`);
-        break;
-    }
-    dispatch(fetchDailyQuote());
-  }, [dispatch, timeRange, currentUserRole]);
+      if (currentUserRole === "admin") {
+        const summaryData = await dashboardService.getDashboardSummary(fetchParams);
+        if (isMounted) setSummaries(summaryData);
+        
+      } else if (currentUserRole === "mentor" || currentUserRole === "trainee") {
+        
+        const sessionsData = await sessionService.getUserSessions({
+          date: toDate,
+          sessionStatus: "Approved",
+        });
+        if (isMounted) setSessions(sessionsData);
+      }
+
+      } catch (error) {
+        console.error("Error when fetching dashboard:", error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [timeRange, currentUserRole]);
 
   const { currentMetrics, trends } = useMemo(() => {
     const defaultMetrics = { totalUser: 0, totalSession: 0, totalResource: 0 };
@@ -103,18 +115,9 @@ export const DashboardPage = () => {
         return (((curr - prev) / prev) * 100).toFixed(1);
       };
 
-      calculatedTrends.user = calcPercent(
-        current.totalUser,
-        previous.totalUser,
-      );
-      calculatedTrends.resource = calcPercent(
-        current.totalResource,
-        previous.totalResource,
-      );
-      calculatedTrends.session = calcPercent(
-        current.totalSession,
-        previous.totalSession,
-      );
+      calculatedTrends.user = calcPercent(current.totalUser, previous.totalUser);
+      calculatedTrends.resource = calcPercent(current.totalResource, previous.totalResource);
+      calculatedTrends.session = calcPercent(current.totalSession, previous.totalSession);
     }
 
     return { currentMetrics: current, trends: calculatedTrends };
@@ -128,10 +131,7 @@ export const DashboardPage = () => {
     return (
       [...sessions]
         .filter((session) => new Date(session.startTime) >= now)
-        .sort(
-          (a, b) =>
-            new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-        )
+        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
         .slice(0, 3)
     );
   }, [sessions]);
@@ -148,15 +148,6 @@ export const DashboardPage = () => {
       </span>
     );
   };
-
-  const mockCompletionData = [
-    { value: 60 },
-    { value: 62 },
-    { value: 61 },
-    { value: 65 },
-    { value: 64 },
-    { value: 67.8 },
-  ];
 
   return (
     <div className="w-full max-w-5xl space-y-6">
@@ -205,94 +196,70 @@ export const DashboardPage = () => {
           <div className="space-y-6">
             
             {currentIsAdmin && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Total Users */}
-                  <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
-                    <div className="flex items-center text-orange-500 z-10">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Total Users</h2>
-                    </div>
-                    <div className="h-12 w-full opacity-60 px-1">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={summaries}>
-                          <Line type="monotone" dataKey="totalUser" stroke="#60a5fa" strokeWidth={2.5} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex justify-between items-end z-10">
-                      <p className="text-4xl font-bold tracking-tight text-white">{currentMetrics.totalUser}</p>
-                      <div className="mb-1">{renderTrend(trends.user)}</div>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Active Users */}
+                <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
+                  <div className="flex items-center text-orange-500 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Active Users</h2>
                   </div>
-
-                  {/* Resources */}
-                  <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
-                    <div className="flex items-center text-orange-500 z-10">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" />
-                      </svg>
-                      <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Resources</h2>
-                    </div>
-                    <div className="h-12 w-full opacity-60 px-1">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={summaries}>
-                          <Line type="monotone" dataKey="totalResource" stroke="#34d399" strokeWidth={2.5} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex justify-between items-end z-10">
-                      <p className="text-4xl font-bold tracking-tight text-white">{currentMetrics.totalResource}</p>
-                      <div className="mb-1">{renderTrend(trends.resource)}</div>
-                    </div>
+                  <div className="h-12 w-full opacity-60 px-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={summaries}>
+                        <Line type="monotone" dataKey="totalUser" stroke="#60a5fa" strokeWidth={2.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-between items-end z-10">
+                    <p className="text-4xl font-bold tracking-tight text-white">{currentMetrics.totalUser}</p>
+                    <div className="mb-1">{renderTrend(trends.user)}</div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Sessions */}
-                  <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
-                    <div className="flex items-center text-orange-500 z-10">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Sessions</h2>
-                    </div>
-                    <div className="h-12 w-full opacity-60 px-1">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={summaries}>
-                          <Line type="monotone" dataKey="totalSession" stroke="#a78bfa" strokeWidth={2.5} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex justify-between items-end z-10">
-                      <p className="text-4xl font-bold tracking-tight text-white">{currentMetrics.totalSession}</p>
-                      <div className="mb-1">{renderTrend(trends.session)}</div>
-                    </div>
+                {/* Resources */}
+                <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
+                  <div className="flex items-center text-orange-500 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" />
+                    </svg>
+                    <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Resources</h2>
                   </div>
-
-                  <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
-                    <div className="flex items-center text-orange-500 z-10">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7a2 2 0 012-2h3.28a1 1 0 01.948.684l.894 2.682A2 2 0 0011.92 10h6.12a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-                      </svg>
-                      <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Program Completion Rate</h2>
-                    </div>
-                    <div className="h-12 w-full opacity-60 px-1">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={mockCompletionData}>
-                          <Line type="monotone" dataKey="value" stroke="#fb7185" strokeWidth={2.5} dot={false} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex justify-between items-end z-10">
-                      <p className="text-4xl font-bold tracking-tight text-white">67.8%</p>
-                      <div className="mb-1">{renderTrend("3.2")}</div>
-                    </div>
+                  <div className="h-12 w-full opacity-60 px-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={summaries}>
+                        <Line type="monotone" dataKey="totalResource" stroke="#34d399" strokeWidth={2.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-between items-end z-10">
+                    <p className="text-4xl font-bold tracking-tight text-white">{currentMetrics.totalResource}</p>
+                    <div className="mb-1">{renderTrend(trends.resource)}</div>
                   </div>
                 </div>
-              </>
+
+                {/* Conducted Sessions */}
+                <div className="bg-zinc-950/40 rounded-xl p-5 border border-zinc-800/80 flex flex-col justify-between h-44 relative overflow-hidden">
+                  <div className="flex items-center text-orange-500 z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <h2 className="text-sm font-medium tracking-wide text-zinc-400 uppercase">Conducted Sessions</h2>
+                  </div>
+                  <div className="h-12 w-full opacity-60 px-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={summaries}>
+                        <Line type="monotone" dataKey="totalSession" stroke="#a78bfa" strokeWidth={2.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-between items-end z-10">
+                    <p className="text-4xl font-bold tracking-tight text-white">{currentMetrics.totalSession}</p>
+                    <div className="mb-1">{renderTrend(trends.session)}</div>
+                  </div>
+                </div>
+              </div>
             )}
 
             {currentIsMentor && (
@@ -421,26 +388,6 @@ export const DashboardPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                       </svg>
                     </button>
-                  </div>
-                </div>
-
-                <div className="bg-zinc-950/40 rounded-xl p-6 border border-zinc-800/80">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2 text-orange-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h2 className="text-sm font-semibold tracking-wide text-zinc-400 uppercase">Program Completion Rate</h2>
-                    </div>
-                    <span className="text-2xl font-bold text-white">74.5%</span>
-                  </div>
-
-                  <div className="w-full bg-zinc-900 rounded-full h-3 border border-zinc-800 overflow-hidden">
-                    <div className="bg-linear-to-r from-orange-600 to-orange-400 h-full rounded-full transition-all duration-500" style={{ width: "74.5%" }} />
-                  </div>
-
-                  <div className="flex justify-between items-center mt-3 text-xs text-zinc-500">
-                    <span>Mocked Data</span>
                   </div>
                 </div>
               </div>

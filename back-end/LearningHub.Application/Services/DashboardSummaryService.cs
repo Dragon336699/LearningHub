@@ -101,14 +101,14 @@ namespace LearningHub.Application.Services
                 List<DashboardSummary> summariesUntilYesterday = (await _dashboardSummaryRepository
                     .GetSummariesInRangeAsync(startDate, today)).ToList();
 
-                DateTime endOfToday = today.AddDays(1).AddTicks(-1);
-                var (totalActiveUsers, totalResources, totalSessions) = await GetCumulativeMetricsAsync(endOfToday);
+                DateTime exactNow = DateTime.Now;
+                var (totalActiveUsers, totalResources, totalSessions) = await GetCumulativeMetricsAsync(exactNow);
 
                 DashboardSummary todayLiveSummary = DashboardSummaryMappingProfile.ToEntity(
                     totalActiveUsers, 
                     totalResources, 
                     totalSessions,
-                    today);
+                    exactNow);
 
                 summariesUntilYesterday.Add(todayLiveSummary);
                 return Result<IEnumerable<DashboardSummary>>.Success(summariesUntilYesterday);

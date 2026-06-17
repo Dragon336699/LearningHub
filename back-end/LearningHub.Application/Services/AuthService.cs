@@ -83,7 +83,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             FirstName = "",
             EmailConfirmed = false,
-            Status = UserStatus.Active
+            Status = UserStatus.Deactivated
         };
 
         var createResult = await _userManager.CreateAsync(newUser, request.Password);
@@ -130,6 +130,7 @@ public class AuthService : IAuthService
     if (user.EmailConfirmed) return Result<string>.Success(Messages.Auth.EmailConfirmed);
 
     user.EmailConfirmed = true;
+        user.Status = UserStatus.Active;
     var updateResult = await _userManager.UpdateAsync(user);
     if (!updateResult.Succeeded) return Result<string>.Failure(updateResult.Errors.Select(e => e.Description).ToList());
 
