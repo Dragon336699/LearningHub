@@ -163,6 +163,15 @@ public static class Messages
                 <p style='font-size: 11px; color: #a0aec0; text-align: center; margin: 0;'>This is an automated notification. Please do not reply directly to this email.</p>
             </div>";
         }
+
+        public static string WorkerSuccess() {
+            return "Dashboard snapshot was updated at " + DateTime.Now;
+        }
+
+        public static string WorkerFailed(string exMsg, string stackTrace)
+        {
+            return $"Error: {exMsg} <br/> StackTrace: {stackTrace}";
+        }
     }
     public static class UploadFile
     {
@@ -181,4 +190,4 @@ public static class Messages
             };
         }
     }
-}
+}}
